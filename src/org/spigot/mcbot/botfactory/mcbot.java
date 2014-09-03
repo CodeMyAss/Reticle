@@ -3,7 +3,6 @@ package org.spigot.mcbot.botfactory;
 import java.awt.Color;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 

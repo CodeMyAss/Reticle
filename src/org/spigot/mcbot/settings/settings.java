@@ -119,7 +119,7 @@ public class settings extends JFrame {
 		JButton btnNewButton_1 = new JButton("Restore settings");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				botsettings nset = storage.getInstance().settin.settings.get(storage.getInstance().getselectedtabtitle());
+				botsettings nset = storage.getInstance().settin.settings.get(storage.getselectedtabtitle());
 				storage.getInstance().setobj.setsettings(nset);
 			}
 		});
@@ -231,7 +231,7 @@ public class settings extends JFrame {
 
 		textafkcom = new JTextArea();
 		scrollPane_2.setViewportView(textafkcom);
-		storage.getInstance().winobj = this.getFrames()[2];
+		storage.getInstance().winobj = getFrames()[2];
 		if (this.txtservername != null) {
 			set_obj_struct sobj = storage.getsettingsobj();
 			sobj.txtservername = txtservername;
