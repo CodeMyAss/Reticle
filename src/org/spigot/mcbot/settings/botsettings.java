@@ -30,10 +30,32 @@ public class botsettings {
 
 	public boolean isExclusive() {
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
-		String bottabname=gettabname().toLowerCase();
+		String bottabname = gettabname().toLowerCase();
 		for (String bot : bots.keySet()) {
 			if (bot.toLowerCase().equals(bottabname.toLowerCase())) {
 				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean isDoubleExclusive() {
+		boolean hasthis = false;
+		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
+		String bottabname = gettabname().toLowerCase();
+		for (String bot : bots.keySet()) {
+			if (bot.toLowerCase().equals(bottabname.toLowerCase())) {
+				/*
+				if(!bots.get(bot).equals(this)) {
+					return false;
+				}
+				*/
+				if (hasthis) {
+					return false;
+				} else if(bots.get(bot).equals(this)) {
+					hasthis = true;
+				}
+				
 			}
 		}
 		return true;

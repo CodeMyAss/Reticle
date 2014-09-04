@@ -79,7 +79,7 @@ public class botfactory {
 		splitPane.setDividerSize(5);
 		splitPane.setDividerLocation(500);
 		panel.add(splitPane, "cell 0 0,grow");
-
+		bot.setconfig(txtpnText, table, panel_1);
 	}
 
 }

@@ -6,14 +6,16 @@ import java.net.Socket;
 public class ChatPacket extends packet {
 	private Socket sock;
 
-	public ChatPacket(Socket sock) throws IOException {
+	public ChatPacket(Socket sock) {
 		this.sock = sock;
 	}
 	
 	public String Read() throws IOException {
 		super.input=sock.getInputStream();
+		//The string itself
 		String chat=super.readString();
-		super.readByte();
+		//Position byte
+		//super.readByte();
 		return chat;
 	}
 	

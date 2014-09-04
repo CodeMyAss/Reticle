@@ -18,6 +18,8 @@ public class JoinGamePacket extends packet {
 		super.readByte();
 		//Our dimension (world)
 		super.readByte();
+		//Difficulty
+		super.readByte();
 		//Max players
 		super.readByte();
 		//Level type

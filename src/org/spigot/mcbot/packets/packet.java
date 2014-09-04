@@ -13,14 +13,28 @@ public class packet {
 	protected InputStream input;
 	private ByteBuffer output;
 	protected int version = 4;
-	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0,1,2));
+	public static int MAXPACKETID = 64;
+	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 64));
+
+	public enum SIZER {
+		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
+		public int size;
+
+		SIZER(int siz) {
+			this.size = siz;
+		}
+	}
 
 	public packet() {
 
 	}
-	
+
+	public packet(InputStream input) {
+		this.input = input;
+	}
+
 	public packet(int len) {
-		
+
 	}
 
 	public packet(int len, InputStream input) throws IOException {
@@ -37,10 +51,24 @@ public class packet {
 	 * input.read(b, 0, len); return b; }
 	 */
 
+	public int[] readNext() throws IOException {
+		int[] res = new int[2];
+		// The length of the packet
+		res[0] = readVarInt();
+		// Id of packet
+		res[1] = readVarInt();
+		return res;
+	}
+
+	public int getStringLength(String s) throws IOException {
+		return s.length() + getVarntCount(s.length());
+	}
+
 	public void Send(OutputStream sockoutput) throws IOException {
+		output.position(0);
 		sockoutput.write(output.array());
 	}
-	
+
 	protected void setOutputStream(int len) throws IOException {
 		int vcount = getVarntCount(len);
 		this.output = ByteBuffer.allocate(len + vcount);
@@ -48,40 +76,50 @@ public class packet {
 	}
 
 	protected void readAndIgnore(int length) throws IOException {
-		input.read(new byte[length],0,length);
+		input.read(new byte[length], 0, length);
+		System.out.println("Ignoring LEN: "+length);
 	}
-	
+
 	protected int readVarInt() throws IOException {
-		int out = 0;
-		int bytes = 0;
-		byte in;
-		while (true) {
-			in = (byte) input.read();
-			out |= (in & 0x7F) << (bytes++ * 7);
-			if (bytes > 5) {
-				throw new RuntimeException("VarInt too big");
-			}
-			if ((in & 0x80) != 0x80) {
-				break;
+		/*
+		 * int out = 0; int bytes = 0; byte in; while (true) { in = readByte();
+		 * out |= (in & 0x7F) << (bytes++ * 7); if (bytes > 6) { throw new
+		 * RuntimeException("VarInt too big"); } if ((in & 0x80) != 0x80) {
+		 * break; } } return out;
+		 */
+
+		int value = 0;
+		int i = 0;
+		int b;
+		while (((b = readByte()) & 0x80) != 0) {
+			value |= (b & 0x7F) << i;
+			i += 7;
+			if (i > 35) {
+				throw new IllegalArgumentException("Variable length quantity is too long");
 			}
 		}
-		return out;
+		return value | (b << i);
+
 	}
 
 	protected int readInt() throws IOException {
-		return (input.read() << 12) + (input.read() << 8) + (input.read() << 4) + input.read();
+		return (readByte() << 12) + (readByte() << 8) + (readByte() << 4) + readByte();
 
 	}
 
 	protected void writeInt(int i) throws IOException {
-		output.put((byte) ((i & 0xff000000) >> 12));
-		output.put((byte) ((i & 0x00ff0000) >> 8));
-		output.put((byte) ((i & 0x0000ff00) >> 4));
+		output.put((byte) ((i & 0xff000000) >> 3 * 8));
+		output.put((byte) ((i & 0x00ff0000) >> 2 * 8));
+		output.put((byte) ((i & 0x0000ff00) >> 1 * 8));
 		output.put((byte) ((i & 0x000000ff)));
 	}
 
 	protected byte readByte() throws IOException {
-		return (byte) input.read();
+		int byter = input.read();
+		if (byter == -1) {
+			throw new IOException();
+		}
+		return (byte) byter;
 	}
 
 	protected void writeByte(byte b) throws IOException {
@@ -89,7 +127,7 @@ public class packet {
 	}
 
 	protected short readShort() throws IOException {
-		return (short) ((input.read() << 4) + input.read());
+		return (short) ((readByte() << 4) + readByte());
 	}
 
 	protected String readString() throws IOException {
@@ -106,7 +144,7 @@ public class packet {
 	}
 
 	protected void writeShort(short b) throws IOException {
-		output.put(((byte) (b >> 2)));
+		output.put(((byte) (b >> 1 * 8)));
 		output.put((byte) (b & 0xff));
 	}
 
@@ -115,12 +153,12 @@ public class packet {
 	}
 
 	protected void writeLong(long l, OutputStream output) throws IOException {
-		writeInt((int) l >> 16);
-		writeInt((int) l & 0xFFFFFFF);
+		writeInt((int) l >> 4 * 8);
+		writeInt((int) l & 0xFFFFFFFF);
 	}
 
 	protected boolean readBoolean() throws IOException {
-		int i = input.read();
+		int i = readByte();
 		return (i != 0);
 	}
 

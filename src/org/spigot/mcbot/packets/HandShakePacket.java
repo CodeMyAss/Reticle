@@ -4,33 +4,23 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class HandShakePacket extends packet {
-	public String ip;
-	public int port;
-	public String username;
 	public Socket sock;
 
-	public HandShakePacket(String ip, int port, String username, Socket sock) throws IOException {
-		this.ip = ip;
-		this.port = port;
-		this.username = username;
+	public HandShakePacket(Socket sock) {
 		this.sock = sock;
-		super.writeVarInt(0);
-		super.writeVarInt(0);
-		super.writeVarInt(version);
-		super.writeString(ip);
-		writeShort((short) (port & 0xFFFF));
-		writeVarInt(2);
 	}
 
-	public void Write() throws IOException {
+	public void Write(String ip, int port) throws IOException {
 		int vint = 0;
-		vint += super.getVarntCount(super.version);
-		vint += super.getVarntCount(ip.length());
-		vint += super.getVarntCount(3); // 2 for short and 1 for login
+		vint = vint + super.getVarntCount(0);
+		vint = vint + super.getVarntCount(super.version);
+		vint = vint + super.getStringLength(ip);
+		vint = vint + super.getVarntCount(2)+packet.SIZER.SHORT.size; // 2 for short port and 0 for next state
 		super.setOutputStream(vint);
+		super.writeVarInt(0);
 		super.writeVarInt(super.version);
 		super.writeString(ip);
-		super.writeShort((short)port);
+		super.writeShort((short) port);
 		super.writeVarInt(2);
 		super.Send(sock.getOutputStream());
 	}

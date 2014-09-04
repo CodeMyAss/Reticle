@@ -84,7 +84,7 @@ public class storage {
 	}
 
 	public static void getselectedtab() {
-		Component component = storage.getInstance().tabbedPane.getSelectedComponent();
+		//Component component = storage.getInstance().tabbedPane.getSelectedComponent();
 	}
 
 	public static int getselectedtabindex() {
@@ -189,7 +189,7 @@ public class storage {
 
 	
 	public static boolean verifysettings(botsettings bot) {
-		if(!bot.isExclusive()) {
+		if(!bot.isDoubleExclusive()) {
 			storage.alert("Configuration error", "There is another bot with this servername and nickname");
 			return false;
 		}

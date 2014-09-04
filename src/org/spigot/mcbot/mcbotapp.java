@@ -85,6 +85,13 @@ public class mcbotapp {
 		menuBar.add(mnNewMenu_1);
 
 		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Connect");
+		mntmNewMenuItem_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String botname=storage.getselectedtabtitle();
+				mcbot bot=storage.getInstance().settin.bots.get(botname);
+				bot.connect();
+			}
+		});
 		mnNewMenu_1.add(mntmNewMenuItem_2);
 
 		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Disconnect");

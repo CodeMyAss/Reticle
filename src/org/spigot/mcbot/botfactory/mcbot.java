@@ -12,12 +12,14 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Position;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import org.spigot.mcbot.storage;
 import org.spigot.mcbot.settings.botsettings;
+import org.spigot.mcbot.sockets.connector;
 
 public class mcbot {
 	private Socket sock;
@@ -29,14 +31,17 @@ public class mcbot {
 	public boolean autoconnect = false;
 	public boolean exists = false;
 	public boolean ismain = false;
-	private HashMap<String, Style> styles;
+	private HashMap<String, Style> styles=new HashMap<String, Style>();
+	private connector connector;
+	public String serverip;
+	public int serverport;
+	public String username;
 
 	public mcbot(botsettings bot, boolean ismain) {
 		this.ismain = ismain;
 		this.rawbot = bot;
 		initwin();
 	}
-	
 
 	public mcbot(botsettings bot) {
 		this.rawbot = bot;
@@ -44,6 +49,9 @@ public class mcbot {
 	}
 
 	public void initwin() {
+		this.serverip=this.rawbot.serverip;
+		this.serverport=this.rawbot.serverport;
+		this.username=this.rawbot.nick;
 		botfactory.makenewtab(this);
 		if (ismain) {
 			seticon(ICONSTATE.MAIN);
@@ -131,17 +139,33 @@ public class mcbot {
 			return style;
 		}
 	}
+	
+	public connector getConnector() {
+		return this.connector;
+	}
 
 	public void connect() {
-		if (this.rawbot.serverip != null && this.sock==null) {
+		if (this.rawbot.serverip != null) {
 			try {
-				sock=new Socket(this.rawbot.serverip,this.rawbot.serverport);
-				sock.getOutputStream();
+				if (this.connector == null) {
+					// Initial connection
+					// sock = new Socket(this.rawbot.serverip, this.rawbot.serverport);
+					this.connector = new connector(this);
+					connector.start();
+				} else if (this.connector.isConnected()) {
+					// We are already connected
+					this.logmsg("§4§lAlready connected");
+				} else {
+					// We have lost connection
+					// sock = new Socket(this.rawbot.serverip, this.rawbot.serverport);
+					this.connector = new connector(this);
+					connector.start();
+				}
 			} catch (UnknownHostException e) {
-				sock=null;
+				sock = null;
 				e.printStackTrace();
 			} catch (IOException e) {
-				sock=null;
+				sock = null;
 				e.printStackTrace();
 			}
 		}
@@ -161,6 +185,8 @@ public class mcbot {
 		if (message.length() > 0) {
 			if (message.startsWith("§")) {
 				message = message.substring(1);
+			} else {
+				message=" "+message;
 			}
 			String bold = "";
 			String underline = "";
@@ -168,7 +194,7 @@ public class mcbot {
 			String italic = "";
 			String color = "f";
 			StyledDocument doc = this.chatlog.getStyledDocument();
-			String[] msgs = message.split("§");
+			String[] msgs = (message+"\n").split("§");
 			for (String msg : msgs) {
 				String tmg = msg.substring(0, 1).toLowerCase();
 				if (tmg.equals("l")) {
@@ -191,7 +217,7 @@ public class mcbot {
 				String combo = bold + strike + underline + italic + color;
 				Style style = getstyle(combo);
 				try {
-					doc.insertString(doc.getLength(), combo + msg.substring(1), style);
+					doc.insertString(doc.getLength(), msg.substring(1), style);
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}
