@@ -18,8 +18,10 @@ public class LoginSuccessPacket extends packet {
 		super.readVarInt();
 		//Pid
 		super.readVarInt();
+		//UUID
 		String uuid = super.readString();
-		String username = super.readString();
+		//Username		
+		super.readString();
 		con.sendmessage("§bReceived UUID: §2§n"+uuid);
 	}
 }

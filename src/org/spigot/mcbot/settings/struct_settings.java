@@ -1,8 +1,6 @@
 package org.spigot.mcbot.settings;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import org.spigot.mcbot.botfactory.mcbot;
 
 public class struct_settings {
@@ -46,9 +44,6 @@ public class struct_settings {
 		}
 		botsettings bot = null;
 		boolean saved = false;
-		List<String> logincmds = new ArrayList<String>();
-		List<String> logoutcmds = new ArrayList<String>();
-		List<String> antiafkcmds = new ArrayList<String>();
 		int pos = 0;
 
 		StringBuilder sb1 = new StringBuilder();
