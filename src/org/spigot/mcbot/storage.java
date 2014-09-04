@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -34,6 +35,11 @@ public class storage {
 
 	// Main win tabs
 	public JTabbedPane tabbedPane;
+	
+	// Main win menu
+	public JMenuItem menu_con;
+	public JMenuItem menu_dis;
+	public JMenuItem menu_set;
 
 	// Settings window
 	public settings setwin;
@@ -43,6 +49,7 @@ public class storage {
 	public JTextField setwin_txtservername;
 
 	public set_obj_struct setobj = new set_obj_struct();
+
 
 	public static Icon icon_off = new ImageIcon("resources/icon_off.PNG");
 	public static Icon icon_on = new ImageIcon("resources/icon_on.PNG");
@@ -57,7 +64,20 @@ public class storage {
 		return storage.getInstance().winobj;
 	}
 	
-	
+	public static void changemenuitems() {
+		mcbot bot=storage.getcurrentselectedbot();
+		if(bot==null) {
+			storage.setdisabled();
+		} else
+		if(bot.ismain) {
+			storage.setdisabled();
+		} else
+		if(bot.isConnected()) {
+			storage.setconnected();
+		} else  {
+			storage.setdisconnected();
+		}
+	}
 	
 	public static boolean sendmessagetoactivebot(String message) {
 		mcbot bot=storage.getcurrentselectedbot();
@@ -66,6 +86,25 @@ public class storage {
 
 	public static void setsetvis(boolean vis) {
 		storage.getInstance().winobj.setVisible(vis);
+	}
+	
+	public static void setconnected() {
+		storage.getInstance().menu_con.setEnabled(false);
+		storage.getInstance().menu_dis.setEnabled(true);
+		storage.getInstance().menu_set.setEnabled(true);
+		
+	}
+	
+	public static void setdisconnected() {
+		storage.getInstance().menu_con.setEnabled(true);
+		storage.getInstance().menu_dis.setEnabled(false);
+		storage.getInstance().menu_set.setEnabled(true);
+	}
+	
+	public static void setdisabled() {
+		storage.getInstance().menu_con.setEnabled(false);
+		storage.getInstance().menu_dis.setEnabled(false);
+		storage.getInstance().menu_set.setEnabled(false);
 	}
 
 	public static set_obj_struct getsettingsobj() {

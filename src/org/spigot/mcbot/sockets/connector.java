@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.packets.ChatPacket;
@@ -34,6 +35,7 @@ public class connector extends Thread {
 			InputStream input = sock.getInputStream();
 			packet reader = new packet(input);
 			bot.seticon(ICONSTATE.CONNECTING);
+			storage.changemenuitems();
 			// First, we must send HandShake and hope for good response
 			new HandShakePacket(sock).Write(bot.serverip, bot.serverport);
 			new LoginStartPacket(sock).Write(bot.username);
@@ -46,15 +48,14 @@ public class connector extends Thread {
 				pack = reader.readNext();
 				len = pack[0];
 				pid = pack[1];
-				
 
-				while(pid > packet.MAXPACKETID) {
+				while (pid > packet.MAXPACKETID) {
 					pack = reader.readNext();
 					len = pack[0];
 					pid = pack[1];
 				}
-				
-				//sendmsg("Received packet id " + pid + " LEN: " + len);
+
+				// sendmsg("Received packet id " + pid + " LEN: " + len);
 				if (pid > packet.MAXPACKETID) {
 					sendmsg("§4Malformed communication");
 					break;
@@ -62,8 +63,8 @@ public class connector extends Thread {
 
 				if (packet.ValidPackets.contains(pid)) {
 					if (len > 1) {
-						//We shall serve this one
-						processpacket(pid,len);
+						// We shall serve this one
+						processpacket(pid, len);
 					}
 					// We have good one
 				} else {
@@ -83,7 +84,7 @@ public class connector extends Thread {
 		}
 		stopMe();
 	}
-	
+
 	public synchronized boolean sendtoserver(String msg) {
 		try {
 			new ChatPacket(this.sock).Write(msg);
@@ -92,53 +93,51 @@ public class connector extends Thread {
 			return false;
 		}
 	}
-	
-	private void stopMe() {
+
+	public synchronized void stopMe() {
 		bot.seticon(ICONSTATE.DISCONNECTED);
 		try {
 			sock.close();
 		} catch (IOException e) {
+		} catch (NullPointerException e) {
 		}
-		sock=null;
+		sock = null;
+		storage.changemenuitems();
 	}
 
 	private packet processpacket(int pid, int len) throws IOException {
 		packet pack = null;
 		switch (pid) {
 			default:
-			sendmsg("§4§l§nUnhandled packet "+pid);
-			new Ignored_Packet(len, pid, sock.getInputStream()).Read();
+				sendmsg("§4§l§nUnhandled packet " + pid);
+				new Ignored_Packet(len, pid, sock.getInputStream()).Read();
 			break;
-			
+
 			case 0:
 				// Keep us alive
 				pack = new KeepAlivePacket(sock);
-				byte[] resp = ((KeepAlivePacket) pack).Read(len-1);
+				byte[] resp = ((KeepAlivePacket) pack).Read(len - 1);
 				((KeepAlivePacket) pack).Write(resp);
 			break;
 
-			//Never served (We don't really care about the data here (yet)
+			// Never served (We don't really care about the data here (yet)
 			case 1:
 				// join game
 				pack = new JoinGamePacket(sock);
 				((JoinGamePacket) pack).Read();
 			break;
-/*
-			case 2:
-				// chat
-				pack = new ChatPacket(sock);
-				String msg = ((ChatPacket) pack).Read();
-				sendmsg(msg);
-			break;
-*/
+			/*
+			 * case 2: // chat pack = new ChatPacket(sock); String msg =
+			 * ((ChatPacket) pack).Read(); sendmsg(msg); break;
+			 */
 			case 64:
 				// Server closed connection
 				String reason = new ConnectionResetPacket(sock.getInputStream()).read();
-				sendmsg("§4Server closed connection. ("+reason+")");
+				sendmsg("§4Server closed connection. (" + reason + ")");
 		}
 		return pack;
 	}
-	
+
 	public String parsechat() {
 		return null;
 	}

@@ -20,6 +20,9 @@ import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+
 public class mcbotapp {
 
 	private JFrame frmReticle;
@@ -95,6 +98,13 @@ public class mcbotapp {
 		mnNewMenu_1.add(mntmNewMenuItem_2);
 
 		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Disconnect");
+		mntmNewMenuItem_3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String botname=storage.getselectedtabtitle();
+				mcbot bot=storage.getInstance().settin.bots.get(botname);
+				bot.disconnect();
+			}
+		});
 		mnNewMenu_1.add(mntmNewMenuItem_3);
 
 		JMenuItem mntmNewMenuItem_4 = new JMenuItem("Settings");
@@ -118,6 +128,11 @@ public class mcbotapp {
 		mnNewMenu_2.add(mntmNewMenuItem_7);
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				storage.changemenuitems();
+			}
+		});
 		frmReticle.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
 		storage.getInstance().tabbedPane = tabbedPane;
@@ -152,8 +167,15 @@ public class mcbotapp {
 		
 		storage.getInstance().settings=new settings();
 		
+		storage.getInstance().menu_con=mntmNewMenuItem_2;
+		storage.getInstance().menu_dis=mntmNewMenuItem_3;
+		storage.getInstance().menu_set=mntmNewMenuItem_4;
+		
 		storage.loadsettings();
 		new mcbot(new botsettings("Main"),true);
+		
+		storage.changemenuitems();
+		
 		storage.savesettings();
 		storage.firsttabload();
 	}

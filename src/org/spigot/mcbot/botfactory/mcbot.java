@@ -229,4 +229,10 @@ public class mcbot {
 		}
 	}
 
+	public void disconnect() {
+		if(this.isConnected()) {
+			this.connector.stopMe();
+		}
+	}
+
 }
