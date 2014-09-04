@@ -56,6 +56,13 @@ public class storage {
 	public static Frame getsettingwin() {
 		return storage.getInstance().winobj;
 	}
+	
+	
+	
+	public static boolean sendmessagetoactivebot(String message) {
+		mcbot bot=storage.getcurrentselectedbot();
+		return bot.sendtoserver(message);
+	}
 
 	public static void setsetvis(boolean vis) {
 		storage.getInstance().winobj.setVisible(vis);
@@ -95,6 +102,10 @@ public class storage {
 		return storage.getInstance().tabbedPane.getTitleAt(getselectedtabindex());
 	}
 
+	public static mcbot getcurrentselectedbot() {
+		return storage.getInstance().settin.bots.get(storage.getselectedtabtitle());
+	}
+	
 	public static void alert(String title, String message) {
 		Component comp = storage.gettabbedpane();
 		JOptionPane.showMessageDialog(comp, message, title, JOptionPane.ERROR_MESSAGE);

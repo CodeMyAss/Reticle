@@ -12,17 +12,18 @@ public class KeepAlivePacket extends packet {
 		this.sock =sock;
 	}
 	
-	public int Read() throws IOException {
+	public byte[] Read(int len) throws IOException {
 		super.input=sock.getInputStream();
-		//int resp=super.readVarInt();
-		int resp=super.readByte();
-		System.out.println("FOUND: "+resp);
-		return resp;
+		//Protocol neutral (LOL)
+		return super.readBytes(len);
 	}
 	
-	public void Write(int i) throws IOException {
-		super.setOutputStream(super.getVarntCount(i)+1);
-		super.writeVarInt(i);
+	public void Write(byte[] i) throws IOException {
+		super.setOutputStream(super.getVarntCount(0)+i.length);
+		//Packet id
+		super.writeVarInt(0);
+		//Keep alive data - Protocol neutral (LOL)
+		super.writeBytes(i);
 		super.Send(sock.getOutputStream());
 	}
 }

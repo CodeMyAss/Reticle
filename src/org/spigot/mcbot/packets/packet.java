@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +15,7 @@ public class packet {
 	private ByteBuffer output;
 	protected int version = 4;
 	public static int MAXPACKETID = 64;
-	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 64));
+	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0, 2, 64));
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
@@ -33,15 +34,12 @@ public class packet {
 		this.input = input;
 	}
 
-	public packet(int len) {
-
-	}
-
 	public packet(int len, InputStream input) throws IOException {
 		// sock = s;
 		this.input = input;
 		int vcount = getVarntCount(len);
 		this.output = ByteBuffer.allocate(len + vcount);
+		this.output.order(ByteOrder.BIG_ENDIAN);
 		writeVarInt(len);
 		// this.output=s.getOutputStream();
 	}
@@ -59,13 +57,36 @@ public class packet {
 		res[1] = readVarInt();
 		return res;
 	}
-
+	
+	public byte[] readBytes(int len) throws IOException {
+		byte[] b=new byte[len];
+		this.input.read(b,0,len);
+		return b;
+	}
+	
+	public void writeBytes(byte[] b) {
+		this.output.put(b);
+	}
+	
 	public int getStringLength(String s) throws IOException {
 		return s.length() + getVarntCount(s.length());
 	}
 
 	public void Send(OutputStream sockoutput) throws IOException {
 		output.position(0);
+		if(output.array().length==3) {
+			byte[] arr=output.array();
+			System.out.println("B0: "+arr[0]);
+			System.out.println("B1: "+arr[1]);
+			System.out.println("B2: "+arr[2]);
+			/*
+			sockoutput.write(arr[2]);
+			sockoutput.write(arr[1]);
+			sockoutput.write(arr[0]);
+			*/
+			//return;
+			
+		}
 		sockoutput.write(output.array());
 	}
 
@@ -76,8 +97,7 @@ public class packet {
 	}
 
 	protected void readAndIgnore(int length) throws IOException {
-		input.read(new byte[length], 0, length);
-		System.out.println("Ignoring LEN: "+length);
+		input.skip(length);
 	}
 
 	protected int readVarInt() throws IOException {
@@ -103,15 +123,18 @@ public class packet {
 	}
 
 	protected int readInt() throws IOException {
-		return (readByte() << 12) + (readByte() << 8) + (readByte() << 4) + readByte();
+		return (readByte() << 24) + (readByte() << 16) + (readByte() << 8) + readByte();
 
 	}
 
 	protected void writeInt(int i) throws IOException {
-		output.put((byte) ((i & 0xff000000) >> 3 * 8));
-		output.put((byte) ((i & 0x00ff0000) >> 2 * 8));
-		output.put((byte) ((i & 0x0000ff00) >> 1 * 8));
+		/*
+		output.put((byte) ((i & 0xff000000) >> 24));
+		output.put((byte) ((i & 0x00ff0000) >> 16));
+		output.put((byte) ((i & 0x0000ff00) >> 8));
 		output.put((byte) ((i & 0x000000ff)));
+		*/
+		output.putInt(i);
 	}
 
 	protected byte readByte() throws IOException {
@@ -189,6 +212,10 @@ public class packet {
 	}
 
 	protected void writeVarInt(int value) throws IOException {
+		if(value==0) {
+			writeByte((byte)0);
+			return;
+		}
 		int part;
 		while (true) {
 			part = value & 0x7F;

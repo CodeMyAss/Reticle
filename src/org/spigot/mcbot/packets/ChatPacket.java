@@ -20,7 +20,8 @@ public class ChatPacket extends packet {
 	}
 	
 	public void Write(String message)  throws IOException {
-		super.setOutputStream(message.length()+1);
+		super.setOutputStream(super.getStringLength(message)+super.getVarntCount(1));
+		//Packet ID
 		super.writeVarInt(1);
 		super.writeString(message);
 		super.Send(sock.getOutputStream());

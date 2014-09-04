@@ -8,8 +8,7 @@ public class Ignored_Packet extends packet {
 	private int len;
 
 	public Ignored_Packet(int len, int id, InputStream input) throws IOException {
-		//this.len = len-super.getVarntCount(id);
-		this.len=len;
+		this.len=len-super.getVarntCount(id);
 		this.input = input;
 	}
 

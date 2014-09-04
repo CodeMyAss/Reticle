@@ -13,7 +13,9 @@ public class LoginStartPacket extends packet {
 	
 	public void Write(String username) throws IOException {
 		super.setOutputStream(super.getStringLength(username)+super.getVarntCount(0));
+		//Packet id
 		super.writeVarInt(0);
+		//Username
 		super.writeString(username);
 		super.Send(sock.getOutputStream());
 	}

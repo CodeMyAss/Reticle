@@ -27,7 +27,6 @@ public class connector extends Thread {
 		sendmsg("§2Connecting");
 	}
 
-	@SuppressWarnings({ "static-access", "deprecation" })
 	@Override
 	public void run() {
 		// Main loop
@@ -47,16 +46,24 @@ public class connector extends Thread {
 				pack = reader.readNext();
 				len = pack[0];
 				pid = pack[1];
-				sendmsg("Received packet id " + pid + " LEN: " + len);
+				
 
-				if (pid > reader.MAXPACKETID) {
+				while(pid > packet.MAXPACKETID) {
+					pack = reader.readNext();
+					len = pack[0];
+					pid = pack[1];
+				}
+				
+				//sendmsg("Received packet id " + pid + " LEN: " + len);
+				if (pid > packet.MAXPACKETID) {
 					sendmsg("§4Malformed communication");
 					break;
 				}
 
-				if (reader.ValidPackets.contains(pid)) {
+				if (packet.ValidPackets.contains(pid)) {
 					if (len > 1) {
-						processpacket(pid);
+						//We shall serve this one
+						processpacket(pid,len);
 					}
 					// We have good one
 				} else {
@@ -66,9 +73,8 @@ public class connector extends Thread {
 			}
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");
-			e.printStackTrace();
 		} catch (RuntimeException e) {
-			sendmsg("§4Error happened");
+			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
 			try {
 				this.sock.close();
@@ -76,6 +82,15 @@ public class connector extends Thread {
 			}
 		}
 		stopMe();
+	}
+	
+	public synchronized boolean sendtoserver(String msg) {
+		try {
+			new ChatPacket(this.sock).Write(msg);
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 	
 	private void stopMe() {
@@ -87,35 +102,45 @@ public class connector extends Thread {
 		sock=null;
 	}
 
-	private packet processpacket(int pid) throws IOException {
+	private packet processpacket(int pid, int len) throws IOException {
 		packet pack = null;
 		switch (pid) {
+			default:
+			sendmsg("§4§l§nUnhandled packet "+pid);
+			new Ignored_Packet(len, pid, sock.getInputStream()).Read();
+			break;
+			
 			case 0:
 				// Keep us alive
 				pack = new KeepAlivePacket(sock);
-				int resp = ((KeepAlivePacket) pack).Read();
+				byte[] resp = ((KeepAlivePacket) pack).Read(len-1);
 				((KeepAlivePacket) pack).Write(resp);
 			break;
 
+			//Never served (We don't really care about the data here (yet)
 			case 1:
 				// join game
 				pack = new JoinGamePacket(sock);
 				((JoinGamePacket) pack).Read();
 			break;
-
+/*
 			case 2:
 				// chat
 				pack = new ChatPacket(sock);
 				String msg = ((ChatPacket) pack).Read();
 				sendmsg(msg);
 			break;
-
+*/
 			case 64:
 				// Server closed connection
 				String reason = new ConnectionResetPacket(sock.getInputStream()).read();
 				sendmsg("§4Server closed connection. ("+reason+")");
 		}
 		return pack;
+	}
+	
+	public String parsechat() {
+		return null;
 	}
 
 	public boolean isConnected() {

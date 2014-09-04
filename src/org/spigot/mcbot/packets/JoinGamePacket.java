@@ -25,7 +25,7 @@ public class JoinGamePacket extends packet {
 		//Level type
 		super.readString();
 		//Reduced debug info
-		super.readBoolean();
+		//super.readBoolean();
 	}
 	
 }

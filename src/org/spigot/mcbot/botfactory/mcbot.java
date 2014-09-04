@@ -2,7 +2,6 @@ package org.spigot.mcbot.botfactory;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 
@@ -12,7 +11,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Position;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -22,16 +20,13 @@ import org.spigot.mcbot.settings.botsettings;
 import org.spigot.mcbot.sockets.connector;
 
 public class mcbot {
-	private Socket sock;
 	private JTextPane chatlog;
-	private JTable tablist;
-	private JPanel panel;
 	private botsettings rawbot;
 	public boolean isconnected = false;
 	public boolean autoconnect = false;
 	public boolean exists = false;
 	public boolean ismain = false;
-	private HashMap<String, Style> styles=new HashMap<String, Style>();
+	private HashMap<String, Style> styles = new HashMap<String, Style>();
 	private connector connector;
 	public String serverip;
 	public int serverport;
@@ -49,9 +44,9 @@ public class mcbot {
 	}
 
 	public void initwin() {
-		this.serverip=this.rawbot.serverip;
-		this.serverport=this.rawbot.serverport;
-		this.username=this.rawbot.nick;
+		this.serverip = this.rawbot.serverip;
+		this.serverport = this.rawbot.serverport;
+		this.username = this.rawbot.nick;
 		botfactory.makenewtab(this);
 		if (ismain) {
 			seticon(ICONSTATE.MAIN);
@@ -78,8 +73,6 @@ public class mcbot {
 
 	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel) {
 		this.chatlog = chatlog;
-		this.tablist = tablist;
-		this.panel = panel;
 		this.exists = true;
 	}
 
@@ -139,33 +132,44 @@ public class mcbot {
 			return style;
 		}
 	}
-	
+
 	public connector getConnector() {
 		return this.connector;
 	}
 
+	public boolean isConnected() {
+		if (this.connector == null) {
+			// Initial state
+			return false;
+		} else if (this.connector.isConnected()) {
+			return true;
+		} else {
+			//Unknown state
+			return false;
+		}
+
+	}
+
+	public boolean sendtoserver(String message) {
+		if(this.isConnected()) {
+			return this.connector.sendtoserver(message);
+		} else {
+			return false;
+		}
+	}
+	
 	public void connect() {
 		if (this.rawbot.serverip != null) {
 			try {
-				if (this.connector == null) {
-					// Initial connection
-					// sock = new Socket(this.rawbot.serverip, this.rawbot.serverport);
+				if (!this.isConnected()) {
 					this.connector = new connector(this);
 					connector.start();
-				} else if (this.connector.isConnected()) {
-					// We are already connected
-					this.logmsg("§4§lAlready connected");
 				} else {
-					// We have lost connection
-					// sock = new Socket(this.rawbot.serverip, this.rawbot.serverport);
-					this.connector = new connector(this);
-					connector.start();
+					this.logmsg("§4§lAlready connected");
 				}
 			} catch (UnknownHostException e) {
-				sock = null;
 				e.printStackTrace();
 			} catch (IOException e) {
-				sock = null;
 				e.printStackTrace();
 			}
 		}
@@ -186,7 +190,7 @@ public class mcbot {
 			if (message.startsWith("§")) {
 				message = message.substring(1);
 			} else {
-				message=" "+message;
+				message = " " + message;
 			}
 			String bold = "";
 			String underline = "";
@@ -194,7 +198,7 @@ public class mcbot {
 			String italic = "";
 			String color = "f";
 			StyledDocument doc = this.chatlog.getStyledDocument();
-			String[] msgs = (message+"\n").split("§");
+			String[] msgs = (message + "\n").split("§");
 			for (String msg : msgs) {
 				String tmg = msg.substring(0, 1).toLowerCase();
 				if (tmg.equals("l")) {
