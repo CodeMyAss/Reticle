@@ -162,6 +162,8 @@ public class mcbot {
 		if (this.rawbot.serverip != null) {
 			try {
 				if (!this.isConnected()) {
+					this.serverip=this.rawbot.serverip;
+					this.serverport=this.rawbot.serverport;
 					this.connector = new connector(this);
 					connector.start();
 				} else {
@@ -173,6 +175,14 @@ public class mcbot {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void setipandport(String ip, int port, String name) {
+		this.rawbot.serverip=ip;
+		this.rawbot.serverport=port;
+		this.rawbot.servername=name;
+		this.serverip=ip;
+		this.serverport=port;
 	}
 
 	public enum ICONSTATE {

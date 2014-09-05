@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class packet {
 	}
 	
 	public int getStringLength(String s) throws IOException {
-		return s.length() + getVarntCount(s.length());
+		return s.getBytes("UTF-8").length + (getVarntCount(s.getBytes("UTF-8").length));
 	}
 
 	public void Send(OutputStream sockoutput) throws IOException {
@@ -79,13 +80,6 @@ public class packet {
 			System.out.println("B0: "+arr[0]);
 			System.out.println("B1: "+arr[1]);
 			System.out.println("B2: "+arr[2]);
-			/*
-			sockoutput.write(arr[2]);
-			sockoutput.write(arr[1]);
-			sockoutput.write(arr[0]);
-			*/
-			//return;
-			
 		}
 		sockoutput.write(output.array());
 	}
@@ -128,12 +122,6 @@ public class packet {
 	}
 
 	protected void writeInt(int i) throws IOException {
-		/*
-		output.put((byte) ((i & 0xff000000) >> 24));
-		output.put((byte) ((i & 0x00ff0000) >> 16));
-		output.put((byte) ((i & 0x0000ff00) >> 8));
-		output.put((byte) ((i & 0x000000ff)));
-		*/
 		output.putInt(i);
 	}
 
@@ -157,13 +145,13 @@ public class packet {
 		int len = readVarInt();
 		byte[] b = new byte[len];
 		input.read(b, 0, len);
-		return new String(b);
+		return new String(b,"UTF-8");
 	}
 
 	protected void writeString(String str) throws IOException {
-		int len = str.length();
-		writeVarInt(len);
-		output.put(str.getBytes());
+		byte[] utfstr=str.getBytes("UTF-8");
+		writeVarInt(utfstr.length);
+		output.put(str.getBytes("UTF-8"));
 	}
 
 	protected void writeShort(short b) throws IOException {

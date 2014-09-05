@@ -39,8 +39,7 @@ public class botsettings {
 		return true;
 	}
 
-	public boolean isDoubleExclusive() {
-		boolean hasthis = false;
+	public boolean isDoubleExclusive(boolean hasthis) {
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
 		String bottabname = gettabname().toLowerCase();
 		for (String bot : bots.keySet()) {

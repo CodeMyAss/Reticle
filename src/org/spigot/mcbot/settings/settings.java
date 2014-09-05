@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 
 import net.miginfocom.swing.MigLayout;
 
+import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
@@ -106,9 +107,10 @@ public class settings extends JFrame {
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				botsettings bs = storage.getInstance().setobj.getsettings();
-				String acti = storage.getselectedtabtitle();
+				String acti = storage.getsettingsobj().textcurtabname.getText();
+				// String acti = storage.getselectedtabtitle();
 				int anum = storage.getselectedtabindex();
-				if (storage.verifysettings(bs)) {
+				if (storage.verifysettings(acti, bs)) {
 					storage.resetset(bs, acti, anum);
 					storage.getsettingwin().setVisible(false);
 				}
@@ -126,6 +128,15 @@ public class settings extends JFrame {
 		panel.add(btnNewButton_1, "cell 2 2");
 
 		JButton btnNewButton_2 = new JButton("Remove this bot");
+		btnNewButton_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int n = JOptionPane.showConfirmDialog(contentPane, "Are you sure you want to do this?", "Warning", JOptionPane.YES_NO_OPTION);
+				if (n == JOptionPane.YES_OPTION) {
+					storage.getsettingwin().setVisible(false);
+					storage.removecurrentbot();
+				}
+			}
+		});
 		panel.add(btnNewButton_2, "cell 1 10");
 
 		JPanel panel_1 = new JPanel();
@@ -246,7 +257,7 @@ public class settings extends JFrame {
 			sobj.textlogincom = textlogincom;
 			sobj.textlogoutcom = textlogoutcom;
 			sobj.textafkcom = textafkcom;
-			sobj.textcurtabname=textcurtabname;
+			sobj.textcurtabname = textcurtabname;
 		}
 	}
 

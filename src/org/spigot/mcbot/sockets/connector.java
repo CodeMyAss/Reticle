@@ -17,6 +17,11 @@ import org.spigot.mcbot.packets.KeepAlivePacket;
 import org.spigot.mcbot.packets.LoginStartPacket;
 import org.spigot.mcbot.packets.LoginSuccessPacket;
 import org.spigot.mcbot.packets.packet;
+import org.spigot.mcbot.sockets.chatparse.chatclass;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 
 public class connector extends Thread {
 	private mcbot bot;
@@ -77,10 +82,6 @@ public class connector extends Thread {
 		} catch (RuntimeException e) {
 			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
-			try {
-				this.sock.close();
-			} catch (IOException e1) {
-			}
 		}
 		stopMe();
 	}
@@ -126,10 +127,14 @@ public class connector extends Thread {
 				pack = new JoinGamePacket(sock);
 				((JoinGamePacket) pack).Read();
 			break;
-			/*
-			 * case 2: // chat pack = new ChatPacket(sock); String msg =
-			 * ((ChatPacket) pack).Read(); sendmsg(msg); break;
-			 */
+
+			case 2:
+				pack = new ChatPacket(sock);
+				String msg = ((ChatPacket) pack).Read();
+				msg = parsechat(msg);
+				sendmsg(msg);
+			break;
+
 			case 64:
 				// Server closed connection
 				String reason = new ConnectionResetPacket(sock.getInputStream()).read();
@@ -138,8 +143,52 @@ public class connector extends Thread {
 		return pack;
 	}
 
-	public String parsechat() {
-		return null;
+	public String parsechat(String str) {
+		Gson obj = new Gson();
+		chatparse ob = null;
+		try {
+			ob = obj.fromJson(str, chatparse.class);
+		} catch (JsonSyntaxException e) {
+
+		}
+		if (ob != null) {
+			StringBuilder sb = new StringBuilder();
+			for (chatclass obg : ob.extra) {
+				//this should never happen but...
+				if(obg.color==null) {
+					obg.color="none";
+				}
+				String color = obg.color.toLowerCase();
+				if (!color.equals("none")) {
+					sb.append(MCCOLOR.valueOf(color).val);
+				}
+				if (obg.bold) {
+					sb.append("§l");
+				}
+				if (obg.strikethrough) {
+					sb.append("§m");
+				}
+				if (obg.italic) {
+					sb.append("§n");
+				}
+				if (obg.reset) {
+					sb.append("§r");
+				}
+				sb.append(obg.text);
+			}
+			return sb.toString();
+		} else {
+			return null;
+		}
+	}
+
+	public enum MCCOLOR {
+		black("§0"), dark_blue("§1"), dark_green("§2"), dark_aqua("§3"), dark_red("§4"), dark_purple("§5"), gold("§6"), gray("§7"), dark_gray("§8"), blue("§9"), green("§a"), aqua("§b"), red("§c"), light_purple("§d"), yellow("§e"), white("§f");
+		public String val;
+
+		MCCOLOR(String val) {
+			this.val = val;
+		}
 	}
 
 	public boolean isConnected() {
@@ -151,11 +200,15 @@ public class connector extends Thread {
 	}
 
 	public void sendmessage(String message) {
-		sendmsg(message);
+		if (message != null) {
+			sendmsg(message);
+		}
 	}
 
 	private void sendmsg(String message) {
-		sendrawmsg("[Connector] " + message);
+		if (message != null) {
+			sendrawmsg("[Connector] " + message);
+		}
 	}
 
 	private void sendrawmsg(String message) {

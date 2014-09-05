@@ -231,18 +231,31 @@ public class storage {
 		setting.settings.remove(acti);
 		setting.settings.put(nact, bs);
 		mcbot mbot=setting.bots.get(acti);
-		setting.bots.put(nact, mbot);
+		mbot.setipandport(bs.serverip, bs.serverport, bs.servername);
 		setting.bots.remove(acti);
+		setting.bots.put(nact, mbot);
 		storage.gettabbedpane().setTitleAt(actnum, nact);
 		storage.savesettings();
 	}
 
 	
-	public static boolean verifysettings(botsettings bot) {
-		if(!bot.isDoubleExclusive()) {
+	public static boolean verifysettings(String acti, botsettings bot) {
+		boolean namecorrection=!(acti.toLowerCase().equals(bot.gettabname().toLowerCase())); //To use in double check
+		if(!bot.isDoubleExclusive(namecorrection)) {
 			storage.alert("Configuration error", "There is another bot with this servername and nickname");
 			return false;
 		}
 		return true;
+	}
+
+	public static void removecurrentbot() {
+		int id=storage.getselectedtabindex();
+		String name=storage.getselectedtabtitle();
+		mcbot bot=storage.getcurrentselectedbot();
+		bot.disconnect();
+		storage.getInstance().settin.bots.remove(name);
+		storage.getInstance().settin.settings.remove(name);
+		storage.getInstance().tabbedPane.remove(id);
+		storage.savesettings();
 	}
 }

@@ -90,8 +90,7 @@ public class mcbotapp {
 		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Connect");
 		mntmNewMenuItem_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String botname=storage.getselectedtabtitle();
-				mcbot bot=storage.getInstance().settin.bots.get(botname);
+				mcbot bot=storage.getcurrentselectedbot();
 				bot.connect();
 			}
 		});
