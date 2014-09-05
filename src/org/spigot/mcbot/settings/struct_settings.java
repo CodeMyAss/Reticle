@@ -65,7 +65,6 @@ public class struct_settings {
 					bot.bottabname = bot.gettabname();
 					if (sb1.toString().length() > 2) {
 						bot.autologincmd = sb1.toString().substring(2).split("\r\n");
-						System.out.println("ALC: "+sb1.toString());
 					}
 					if (sb2.toString().length() > 2) {
 						bot.autologoutcmd = sb2.toString().substring(2).split("\r\n");
@@ -164,7 +163,6 @@ public class struct_settings {
 		if (!saved && bot != null) {
 			if (sb1.toString().length() > 2) {
 				bot.autologincmd = sb1.toString().substring(2).split("\r\n");
-				System.out.println("ALC: "+sb1.toString());
 			}
 			if (sb2.toString().length() > 2) {
 				bot.autologoutcmd = sb2.toString().substring(2).split("\r\n");

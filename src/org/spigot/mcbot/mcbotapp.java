@@ -29,6 +29,7 @@ import javax.swing.event.ChangeEvent;
 public class mcbotapp {
 
 	private JFrame frmReticle;
+
 	/**
 	 * Launch the application.
 	 */
@@ -49,17 +50,17 @@ public class mcbotapp {
 	 * Create the application.
 	 */
 	public mcbotapp() {
-		initialize();
+		initialize(storage.version);
 	}
 
 	/**
 	 * Initialize the contents of the frame.
 	 */
-	private void initialize() {
+	private void initialize(String version) {
 		frmReticle = new JFrame();
 		frmReticle.setFont(new Font("Bodoni MT", Font.PLAIN, 12));
 		frmReticle.setForeground(Color.BLACK);
-		frmReticle.setTitle("Reticle");
+		frmReticle.setTitle("Reticle " + version);
 		frmReticle.setBounds(100, 100, 642, 438);
 		frmReticle.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -71,12 +72,12 @@ public class mcbotapp {
 
 		JMenuItem mntmNewMenuItem = new JMenuItem("Options");
 		mnNewMenu.add(mntmNewMenuItem);
-		
+
 		JMenuItem mntmNewMenuItem_8 = new JMenuItem("Add bot");
 		mntmNewMenuItem_8.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if(storage.settingwindowopened()) {
-					storage.alert("Error","Please close settings dialog before creating new bot.");
+				if (storage.settingwindowopened()) {
+					storage.alert("Error", "Please close settings dialog before creating new bot.");
 				} else {
 					storage.addbot();
 				}
@@ -93,7 +94,7 @@ public class mcbotapp {
 		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Connect");
 		mntmNewMenuItem_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				mcbot bot=storage.getcurrentselectedbot();
+				mcbot bot = storage.getcurrentselectedbot();
 				bot.connect();
 			}
 		});
@@ -102,8 +103,8 @@ public class mcbotapp {
 		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Disconnect");
 		mntmNewMenuItem_3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String botname=storage.getselectedtabtitle();
-				mcbot bot=storage.getInstance().settin.bots.get(botname);
+				String botname = storage.getselectedtabtitle();
+				mcbot bot = storage.getInstance().settin.bots.get(botname);
 				bot.disconnect();
 			}
 		});
@@ -166,28 +167,26 @@ public class mcbotapp {
 		 * JSplitPane(JSplitPane.HORIZONTAL_SPLIT,panel_1, table);
 		 * panel.add(splitPane, "cell 0 0,grow");
 		 */
-		
+		// storage.class.
 
-		
-		storage.getInstance().settings=new settings();
-		
-		storage.getInstance().menu_con=mntmNewMenuItem_2;
-		storage.getInstance().menu_dis=mntmNewMenuItem_3;
-		storage.getInstance().menu_set=mntmNewMenuItem_4;
-		
-		storage.loadsettings();
-		mcbot main = new mcbot(new botsettings("Main"),true);
-		storage.getInstance().mainer=main;
 		redirectSystemStreams();
-		
+		storage.getInstance().settings = new settings();
+
+		storage.getInstance().menu_con = mntmNewMenuItem_2;
+		storage.getInstance().menu_dis = mntmNewMenuItem_3;
+		storage.getInstance().menu_set = mntmNewMenuItem_4;
+
+		storage.loadsettings();
+		mcbot main = new mcbot(new botsettings("Main"), true);
+		storage.getInstance().mainer = main;
+
 		storage.changemenuitems();
-		
+
 		storage.savesettings();
 		storage.firsttabload();
-		
+
 	}
-	
-	
+
 	private void redirectSystemStreams() {
 		OutputStream out = new OutputStream() {
 			@Override
@@ -197,7 +196,7 @@ public class mcbotapp {
 
 			@Override
 			public void write(byte[] b, int off, int len) throws IOException {
-				
+
 				storage.conlog(new String(b, off, len));
 			}
 

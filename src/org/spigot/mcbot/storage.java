@@ -20,12 +20,15 @@ import javax.swing.JTextField;
 
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
+import org.spigot.mcbot.resources.resources;
 import org.spigot.mcbot.settings.botsettings;
 import org.spigot.mcbot.settings.set_obj_struct;
 import org.spigot.mcbot.settings.struct_settings;
 import org.spigot.mcbot.settings.settings;
 
 public class storage {
+	public static String version="1.01";
+	
 	private static storage instance = null;
 
 	private static String settingfile = "settings.ini";
@@ -54,10 +57,11 @@ public class storage {
 
 	public set_obj_struct setobj = new set_obj_struct();
 
-	public static Icon icon_off = new ImageIcon("resources/icon_off.PNG");
-	public static Icon icon_on = new ImageIcon("resources/icon_on.PNG");
-	public static Icon icon_dis = new ImageIcon("resources/icon_dis.PNG");
-	public static Icon icon_con = new ImageIcon("resources/icon_con.PNG");
+	final static Class<?> thisClass = resources.class;
+	public static Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.PNG"));
+	public static Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.PNG"));
+	public static Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.PNG"));
+	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.PNG"));
 
 	public static JTabbedPane gettabbedpane() {
 		return storage.getInstance().tabbedPane;
