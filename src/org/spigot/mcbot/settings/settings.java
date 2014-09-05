@@ -45,6 +45,9 @@ public class settings extends JFrame {
 	private JCheckBox checkBox;
 
 	public settings thisobj;
+	private JTextField textantiafkdelay;
+	private JTextField textreconnectdelay;
+	private JCheckBox checkautoreconnect;
 
 	/**
 	 * Launch the application.
@@ -189,56 +192,76 @@ public class settings extends JFrame {
 
 		panel_3 = new JPanel();
 		tabbedPane.addTab("Behavior", null, panel_3, null);
-		panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][]"));
-
-		JLabel lblActivateTabOn = new JLabel("Activate tab on new message:");
-		panel_3.add(lblActivateTabOn, "cell 1 1,alignx right");
-
-		checkactiv = new JCheckBox("");
-		panel_3.add(checkactiv, "cell 2 1");
-
-		JLabel lblUseLogoutCommands = new JLabel("Use logout commands upon disconnect:");
-		panel_3.add(lblUseLogoutCommands, "cell 1 2,alignx right");
-
-		checkdisccom = new JCheckBox("");
-		panel_3.add(checkdisccom, "cell 2 2");
-
-		JLabel lblSendLoginCommands = new JLabel("Send login commands upon connect:");
-		panel_3.add(lblSendLoginCommands, "cell 1 3,alignx right");
-
-		checkconcom = new JCheckBox("");
-		panel_3.add(checkconcom, "cell 2 3");
-
-		JLabel lblSendAntiafkCommands = new JLabel("Send anti-afk commands periodically:");
-		panel_3.add(lblSendAntiafkCommands, "cell 1 4,alignx right");
-
-		checkafkcom = new JCheckBox("");
-		panel_3.add(checkafkcom, "cell 2 4");
+		panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][]"));
+		
+				JLabel lblActivateTabOn = new JLabel("Activate tab on new message:");
+				panel_3.add(lblActivateTabOn, "cell 1 0,alignx right");
+		
+				checkactiv = new JCheckBox("");
+				panel_3.add(checkactiv, "cell 2 0");
+		
+				JLabel lblUseLogoutCommands = new JLabel("Use logout commands upon disconnect:");
+				panel_3.add(lblUseLogoutCommands, "cell 1 1,alignx right");
+		
+				checkdisccom = new JCheckBox("");
+				panel_3.add(checkdisccom, "cell 2 1");
+		
+				JLabel lblSendLoginCommands = new JLabel("Send login commands upon connect:");
+				panel_3.add(lblSendLoginCommands, "cell 1 2,alignx right");
+		
+				checkconcom = new JCheckBox("");
+				panel_3.add(checkconcom, "cell 2 2");
+		
+				JLabel lblSendAntiafkCommands = new JLabel("Send anti-afk commands periodically:");
+				panel_3.add(lblSendAntiafkCommands, "cell 1 3,alignx right");
+		
+				checkafkcom = new JCheckBox("");
+				panel_3.add(checkafkcom, "cell 2 3");
+		
+		JLabel lblAntiafkCommandsPeriod = new JLabel("Anti-afk commands period:");
+		panel_3.add(lblAntiafkCommandsPeriod, "cell 1 4,alignx trailing");
+		
+		textantiafkdelay = new JTextField();
+		panel_3.add(textantiafkdelay, "cell 2 4,growx");
+		textantiafkdelay.setColumns(10);
+		
+		JLabel lblReconnectAutomatically = new JLabel("Reconnect automatically:");
+		panel_3.add(lblReconnectAutomatically, "cell 1 5,alignx right");
+		
+		checkautoreconnect = new JCheckBox("");
+		panel_3.add(checkautoreconnect, "cell 2 5");
+		
+		JLabel lblReconnectDelay = new JLabel("Reconnect delay:");
+		panel_3.add(lblReconnectDelay, "cell 1 6,alignx trailing");
+		
+		textreconnectdelay = new JTextField();
+		panel_3.add(textreconnectdelay, "cell 2 6,growx");
+		textreconnectdelay.setColumns(10);
 
 		JLabel lblNewLabel_4 = new JLabel("Logout commands:");
-		panel_3.add(lblNewLabel_4, "cell 1 7,alignx right,aligny top");
+		panel_3.add(lblNewLabel_4, "cell 1 8,alignx right,aligny top");
 
 		textlogoutcom = new JTextArea();
 		JScrollPane scrollPane = new JScrollPane(textlogoutcom);
 		scrollPane.setMinimumSize(new Dimension(21, 50));
-		panel_3.add(scrollPane, "cell 2 7,grow");
+		panel_3.add(scrollPane, "cell 2 8,grow");
 
 		JLabel lblNewLabel_6 = new JLabel("Login commands:");
-		panel_3.add(lblNewLabel_6, "cell 1 8,alignx trailing,aligny top");
+		panel_3.add(lblNewLabel_6, "cell 1 9,alignx trailing,aligny top");
 
 		JScrollPane scrollPane_1 = new JScrollPane((Component) null);
 		scrollPane_1.setMinimumSize(new Dimension(21, 50));
-		panel_3.add(scrollPane_1, "cell 2 8,grow");
+		panel_3.add(scrollPane_1, "cell 2 9,grow");
 
 		textlogincom = new JTextArea();
 		scrollPane_1.setViewportView(textlogincom);
 
 		JLabel lblNewLabel_7 = new JLabel("Anti-afk commands:");
-		panel_3.add(lblNewLabel_7, "cell 1 9,alignx right,aligny top");
+		panel_3.add(lblNewLabel_7, "cell 1 10,alignx right,aligny top");
 
 		JScrollPane scrollPane_2 = new JScrollPane((Component) null);
 		scrollPane_2.setMinimumSize(new Dimension(21, 50));
-		panel_3.add(scrollPane_2, "cell 2 9,grow");
+		panel_3.add(scrollPane_2, "cell 2 10,grow");
 
 		textafkcom = new JTextArea();
 		scrollPane_2.setViewportView(textafkcom);
@@ -258,7 +281,19 @@ public class settings extends JFrame {
 			sobj.textlogoutcom = textlogoutcom;
 			sobj.textafkcom = textafkcom;
 			sobj.textcurtabname = textcurtabname;
+			sobj.textantiafkdelay = textantiafkdelay;
+			sobj.checkautoreconnect=checkautoreconnect;
+			sobj.textreconnectdelay=textreconnectdelay;
 		}
 	}
 
+	public JTextField getTextantiafkdelay() {
+		return textantiafkdelay;
+	}
+	public JCheckBox getCheckautoreconnect() {
+		return checkautoreconnect;
+	}
+	public JTextField getTextreconnectdelay() {
+		return textreconnectdelay;
+	}
 }

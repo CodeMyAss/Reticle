@@ -20,6 +20,9 @@ public class set_obj_struct {
 	public JTextArea textafkcom;
 	public JTextField textcurtabname;
 	
+	public JTextField textantiafkdelay;
+	public JCheckBox checkautoreconnect;
+	public JTextField textreconnectdelay;
 	
 	
 
@@ -37,6 +40,10 @@ public class set_obj_struct {
 		this.textlogoutcom.setText(implode("\n", set.autologoutcmd));
 		this.textafkcom.setText(implode("\n", set.autoantiafkcmd));
 		this.textcurtabname.setText(set.gettabname());
+		this.textantiafkdelay.setText(set.afkperiod+"");
+		this.checkautoreconnect.setSelected(set.autoreconnect);
+		this.textreconnectdelay.setText(set.autoreconnectdelay+"");
+		
 	}
 
 	public botsettings getsettings() {
@@ -53,6 +60,9 @@ public class set_obj_struct {
 		struct.autoantiafkcmd = this.textafkcom.getText().split("\n");
 		struct.autologincmd = this.textlogincom.getText().split("\n");
 		struct.autologoutcmd = this.textlogoutcom.getText().split("\n");
+		struct.afkperiod=Integer.parseInt(this.textantiafkdelay.getText());
+		struct.autoreconnect=this.checkautoreconnect.isSelected();
+		struct.autoreconnectdelay=Integer.parseInt(this.textreconnectdelay.getText());
 		return struct;
 	}
 

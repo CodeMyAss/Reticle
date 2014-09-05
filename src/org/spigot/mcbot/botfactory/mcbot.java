@@ -4,12 +4,13 @@ import java.awt.Color;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
@@ -23,6 +24,7 @@ import org.spigot.mcbot.sockets.connector;
 public class mcbot {
 	private JTextPane chatlog;
 	private JTable tabler;
+	private JCheckBox autoscroll;
 	private botsettings rawbot;
 	public boolean isconnected = false;
 	public boolean autoconnect = false;
@@ -76,9 +78,10 @@ public class mcbot {
 		storage.gettabbedpane().setIconAt(gettabid(), state.icon);
 	}
 
-	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel) {
+	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll) {
 		this.chatlog = chatlog;
 		this.tabler = tablist;
+		this.autoscroll = autoscroll;
 		this.exists = true;
 	}
 
@@ -144,8 +147,40 @@ public class mcbot {
 		}
 	}
 
+	public int getantiafkperiod() {
+		return this.rawbot.afkperiod;
+	}
+
+	public String[] getlogincommands() {
+		return this.rawbot.autologincmd;
+	}
+
+	public String[] getlogoutcommands() {
+		return this.rawbot.autologoutcmd;
+	}
+
+	public String[] getafkcommands() {
+		return this.rawbot.autoantiafkcmd;
+	}
+
+	public boolean sendlogincommands() {
+		return this.rawbot.autologin;
+	}
+
+	public boolean sendlogoutcommands() {
+		return this.rawbot.autologout;
+	}
+
+	public boolean sendafkcommands() {
+		return this.rawbot.autoantiafk;
+	}
+
 	public connector getConnector() {
 		return this.connector;
+	}
+
+	private boolean goscroll() {
+		return this.autoscroll.isSelected();
 	}
 
 	public boolean isConnected() {
@@ -248,6 +283,12 @@ public class mcbot {
 					e.printStackTrace();
 				}
 			}
+			if (this.goscroll()) {
+				this.chatlog.setCaretPosition(this.chatlog.getDocument().getLength());
+			}
+			if (this.rawbot.activenotify) {
+				storage.setselectedtable(this.gettabname());
+			}
 		}
 	}
 
@@ -270,6 +311,9 @@ public class mcbot {
 				cols[o] = "Column " + o;
 			}
 			for (String name : tablist.keySet()) {
+				if (i == max) {
+					break;
+				}
 				int locx = i % x;
 				int locy = i / x;
 				redim[locy][locx] = name;
@@ -280,8 +324,12 @@ public class mcbot {
 				int locy = i / x;
 				redim[locy][locx] = " ";
 			}
-			DefaultTableModel model = new DefaultTableModel(redim, cols);
-			this.tabler.setModel(model);
+			final DefaultTableModel model = new DefaultTableModel(redim, cols);
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					tabler.setModel(model);
+				}
+			});
 		}
 	}
 }

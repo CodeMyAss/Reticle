@@ -15,7 +15,7 @@ public class packet {
 	private ByteBuffer output;
 	protected int version = 4;
 	public static int MAXPACKETID = 64;
-	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0,1, 2, 56,64));
+	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 56, 61, 64));
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
@@ -57,29 +57,23 @@ public class packet {
 		res[1] = readVarInt();
 		return res;
 	}
-	
+
 	public byte[] readBytes(int len) throws IOException {
-		byte[] b=new byte[len];
-		this.input.read(b,0,len);
+		byte[] b = new byte[len];
+		this.input.read(b, 0, len);
 		return b;
 	}
-	
+
 	public void writeBytes(byte[] b) {
 		this.output.put(b);
 	}
-	
+
 	public int getStringLength(String s) throws IOException {
 		return s.getBytes("UTF-8").length + (getVarntCount(s.getBytes("UTF-8").length));
 	}
 
 	public void Send(OutputStream sockoutput) throws IOException {
 		output.position(0);
-		if(output.array().length==3) {
-			byte[] arr=output.array();
-			System.out.println("B0: "+arr[0]);
-			System.out.println("B1: "+arr[1]);
-			System.out.println("B2: "+arr[2]);
-		}
 		sockoutput.write(output.array());
 	}
 
@@ -144,11 +138,11 @@ public class packet {
 		int len = readVarInt();
 		byte[] b = new byte[len];
 		input.read(b, 0, len);
-		return new String(b,"UTF-8");
+		return new String(b, "UTF-8");
 	}
 
 	protected void writeString(String str) throws IOException {
-		byte[] utfstr=str.getBytes("UTF-8");
+		byte[] utfstr = str.getBytes("UTF-8");
 		writeVarInt(utfstr.length);
 		output.put(str.getBytes("UTF-8"));
 	}
@@ -199,8 +193,8 @@ public class packet {
 	}
 
 	protected void writeVarInt(int value) throws IOException {
-		if(value==0) {
-			writeByte((byte)0);
+		if (value == 0) {
+			writeByte((byte) 0);
 			return;
 		}
 		int part;

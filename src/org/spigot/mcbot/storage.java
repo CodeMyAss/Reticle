@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -35,7 +36,7 @@ public class storage {
 
 	// Main win tabs
 	public JTabbedPane tabbedPane;
-	
+
 	// Main win menu
 	public JMenuItem menu_con;
 	public JMenuItem menu_dis;
@@ -50,11 +51,11 @@ public class storage {
 
 	public set_obj_struct setobj = new set_obj_struct();
 
-
 	public static Icon icon_off = new ImageIcon("resources/icon_off.PNG");
 	public static Icon icon_on = new ImageIcon("resources/icon_on.PNG");
 	public static Icon icon_dis = new ImageIcon("resources/icon_dis.PNG");
 	public static Icon icon_con = new ImageIcon("resources/icon_con.PNG");
+
 
 	public static JTabbedPane gettabbedpane() {
 		return storage.getInstance().tabbedPane;
@@ -63,44 +64,64 @@ public class storage {
 	public static Frame getsettingwin() {
 		return storage.getInstance().winobj;
 	}
-	
+
 	public static void changemenuitems() {
-		mcbot bot=storage.getcurrentselectedbot();
-		if(bot==null) {
+		mcbot bot = storage.getcurrentselectedbot();
+		if (bot == null) {
 			storage.setdisabled();
-		} else
-		if(bot.ismain) {
+		} else if (bot.ismain) {
 			storage.setdisabled();
-		} else
-		if(bot.isConnected()) {
+		} else if (bot.isConnected()) {
 			storage.setconnected();
-		} else  {
+		} else {
 			storage.setdisconnected();
 		}
 	}
-	
+
+	public static void setselectedtable(int i) {
+		//+1 because main is not in settin
+		storage.getInstance().tabbedPane.setSelectedIndex(i+1);
+	}
+
+	public static void setselectedtable(String str) {
+		Set<String> indexes = storage.getInstance().settin.bots.keySet();
+		int i=0;
+		for(String index:indexes) {
+			if(index.equals(str)) {
+				setselectedtable(i);
+				break;
+			}
+			i++;
+		}
+	}
+
 	public static boolean sendmessagetoactivebot(String message) {
-		mcbot bot=storage.getcurrentselectedbot();
-		return bot.sendtoserver(message);
+		mcbot bot = storage.getcurrentselectedbot();
+		if(bot!=null) {
+			return bot.sendtoserver(message);
+		} else {
+			//Main
+			return false;
+		}
 	}
 
 	public static void setsetvis(boolean vis) {
 		storage.getInstance().winobj.setVisible(vis);
 	}
-	
+
 	public static void setconnected() {
 		storage.getInstance().menu_con.setEnabled(false);
 		storage.getInstance().menu_dis.setEnabled(true);
 		storage.getInstance().menu_set.setEnabled(true);
-		
+
 	}
-	
+
 	public static void setdisconnected() {
 		storage.getInstance().menu_con.setEnabled(true);
 		storage.getInstance().menu_dis.setEnabled(false);
 		storage.getInstance().menu_set.setEnabled(true);
 	}
-	
+
 	public static void setdisabled() {
 		storage.getInstance().menu_con.setEnabled(false);
 		storage.getInstance().menu_dis.setEnabled(false);
@@ -130,7 +151,8 @@ public class storage {
 	}
 
 	public static void getselectedtab() {
-		//Component component = storage.getInstance().tabbedPane.getSelectedComponent();
+		// Component component =
+		// storage.getInstance().tabbedPane.getSelectedComponent();
 	}
 
 	public static int getselectedtabindex() {
@@ -144,7 +166,7 @@ public class storage {
 	public static mcbot getcurrentselectedbot() {
 		return storage.getInstance().settin.bots.get(storage.getselectedtabtitle());
 	}
-	
+
 	public static void alert(String title, String message) {
 		Component comp = storage.gettabbedpane();
 		JOptionPane.showMessageDialog(comp, message, title, JOptionPane.ERROR_MESSAGE);
@@ -224,13 +246,12 @@ public class storage {
 		return instance;
 	}
 
-
 	public static void resetset(botsettings bs, String acti, int actnum) {
 		struct_settings setting = storage.getInstance().settin;
-		String nact=bs.gettabname();
+		String nact = bs.gettabname();
 		setting.settings.remove(acti);
 		setting.settings.put(nact, bs);
-		mcbot mbot=setting.bots.get(acti);
+		mcbot mbot = setting.bots.get(acti);
 		mbot.setipandport(bs.serverip, bs.serverport, bs.servername);
 		setting.bots.remove(acti);
 		setting.bots.put(nact, mbot);
@@ -238,10 +259,13 @@ public class storage {
 		storage.savesettings();
 	}
 
-	
 	public static boolean verifysettings(String acti, botsettings bot) {
-		boolean namecorrection=!(acti.toLowerCase().equals(bot.gettabname().toLowerCase())); //To use in double check
-		if(!bot.isDoubleExclusive(namecorrection)) {
+		boolean namecorrection = !(acti.toLowerCase().equals(bot.gettabname().toLowerCase())); // To
+																								// use
+																								// in
+																								// double
+																								// check
+		if (!bot.isDoubleExclusive(namecorrection)) {
 			storage.alert("Configuration error", "There is another bot with this servername and nickname");
 			return false;
 		}
@@ -249,9 +273,9 @@ public class storage {
 	}
 
 	public static void removecurrentbot() {
-		int id=storage.getselectedtabindex();
-		String name=storage.getselectedtabtitle();
-		mcbot bot=storage.getcurrentselectedbot();
+		int id = storage.getselectedtabindex();
+		String name = storage.getselectedtabtitle();
+		mcbot bot = storage.getcurrentselectedbot();
 		bot.disconnect();
 		storage.getInstance().settin.bots.remove(name);
 		storage.getInstance().settin.settings.remove(name);

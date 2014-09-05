@@ -12,6 +12,7 @@ import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.packets.ChatPacket;
 import org.spigot.mcbot.packets.ConnectionResetPacket;
+import org.spigot.mcbot.packets.DisplayScoreBoardPacket;
 import org.spigot.mcbot.packets.HandShakePacket;
 import org.spigot.mcbot.packets.Ignored_Packet;
 import org.spigot.mcbot.packets.JoinGamePacket;
@@ -28,12 +29,42 @@ import com.google.gson.JsonSyntaxException;
 public class connector extends Thread {
 	private mcbot bot;
 	private Socket sock;
+	private AntiAFK afkter;
 	private HashMap<String, Short> Tablist = new HashMap<String, Short>();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		sock = new Socket(bot.serverip, bot.serverport);
 		this.bot = bot;
 		sendmsg("§2Connecting");
+	}
+	
+
+	public int getantiafkperiod() {
+		return this.bot.getantiafkperiod();
+	}
+	
+	public String[] getlogincommands() {
+		return this.bot.getlogincommands();
+	}
+
+	public String[] getlogoutcommands() {
+		return this.bot.getlogoutcommands();
+	}
+
+	public String[] getafkcommands() {
+		return this.bot.getafkcommands();
+	}
+
+	public boolean sendlogincommands() {
+		return this.bot.sendlogincommands();
+	}
+
+	public boolean sendlogoutcommands() {
+		return this.bot.sendlogoutcommands();
+	}
+
+	public boolean sendafkcommands() {
+		return this.bot.sendafkcommands();
 	}
 
 	@Override
@@ -52,6 +83,11 @@ public class connector extends Thread {
 			int pid;
 			int len;
 			int[] pack = new int[2];
+			
+			//Connection established, time to create AntiAFK
+			this.afkter=new AntiAFK(this);
+			this.afkter.start();
+			
 			while (true) {
 				pack = reader.readNext();
 				len = pack[0];
@@ -98,8 +134,10 @@ public class connector extends Thread {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public synchronized void stopMe() {
 		bot.seticon(ICONSTATE.DISCONNECTED);
+		this.afkter.stop();
 		try {
 			sock.close();
 		} catch (IOException e) {
@@ -146,6 +184,11 @@ public class connector extends Thread {
 				bot.refreshtablist(Tablist);
 			break;
 
+			case 61:
+				// Scoreboard display
+				new DisplayScoreBoardPacket(sock).Read();
+			break;
+
 			case 64:
 				// Server closed connection
 				String reason = new ConnectionResetPacket(sock.getInputStream()).read();
@@ -163,7 +206,7 @@ public class connector extends Thread {
 
 	private String reparser(Collection<chatclass> extra) {
 		StringBuilder sb = new StringBuilder();
-		boolean finalreset=false;
+		boolean finalreset = false;
 		for (chatclass obg : extra) {
 			// this should never happen but...
 			if (obg.color == null) {
@@ -172,23 +215,23 @@ public class connector extends Thread {
 			String color = obg.color.toLowerCase();
 			if (finalreset) {
 				sb.append("§r");
-				finalreset=false;
+				finalreset = false;
 			}
 			if (obg.bold) {
 				sb.append("§l");
-				finalreset=true;
+				finalreset = true;
 			}
 			if (obg.strikethrough) {
 				sb.append("§m");
-				finalreset=true;
+				finalreset = true;
 			}
 			if (obg.italic) {
 				sb.append("§o");
-				finalreset=true;
+				finalreset = true;
 			}
 			if (obg.underlined) {
 				sb.append("§n");
-				finalreset=true;
+				finalreset = true;
 			}
 			if (!color.equals("none")) {
 				sb.append(MCCOLOR.valueOf(color).val);
@@ -200,7 +243,6 @@ public class connector extends Thread {
 			if (obg.extra != null) {
 				sb.append(reparser(extra));
 			}
-			
 		}
 		return sb.toString();
 	}
@@ -213,7 +255,7 @@ public class connector extends Thread {
 		} catch (JsonSyntaxException e) {
 		}
 		if (ob != null) {
-			String strr=reparser(ob.extra);
+			String strr = reparser(ob.extra);
 			return strr;
 		} else {
 			return null;

@@ -7,6 +7,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -47,7 +48,7 @@ public class botfactory {
 
 		tabbedPane.addTab(bot.gettabname(), storage.icon_dis, panel, bot.gettabname());
 
-		panel.setLayout(new MigLayout("", "[615px,grow]", "[34px]"));
+		panel.setLayout(new MigLayout("", "[615px,grow]", "[340px,grow]"));
 
 		JPanel panel_1 = new JPanel();
 		panel.add(panel_1, "cell 0 0,grow");
@@ -77,7 +78,12 @@ public class botfactory {
 		txtCommands.setText("");
 		panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 		txtCommands.setColumns(10);
-
+		
+		JCheckBox autostroll = new JCheckBox();
+		autostroll.setBackground(txtpnText.getBackground());
+		autostroll.setSelected(true);
+		panel_1.add(autostroll, "cell 0 1");
+		
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -103,7 +109,7 @@ public class botfactory {
 
 		if (bot.ismain) {
 			panel.add(panel_1, "cell 0 0,grow");
-			bot.setconfig(txtpnText, null, panel_1);
+			bot.setconfig(txtpnText, null, panel_1,autostroll);
 		} else {
 			JTable table = new JTable();
 			table.setModel(new DefaultTableModel(new Object[][] { { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, }, new String[] { "New column", "New column", "New column" }));
@@ -113,7 +119,7 @@ public class botfactory {
 			splitPane.setDividerSize(5);
 			splitPane.setDividerLocation(500);
 			panel.add(splitPane, "cell 0 0,grow");
-			bot.setconfig(txtpnText, table, panel_1);
+			bot.setconfig(txtpnText, table, panel_1,autostroll);
 		}
 		
 	}

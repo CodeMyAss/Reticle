@@ -19,7 +19,10 @@ public class struct_settings {
 			sb.append("\tNick: " + set.nick + "\r\n");
 			sb.append("\tAutologin: " + set.autologin + "\r\n");
 			sb.append("\tAutologout: " + set.autologout + "\r\n");
+			sb.append("\tAutoreconnect: " + set.autoreconnect + "\r\n");
+			sb.append("\tAutoreconnect delay: " + set.autoreconnectdelay + "\r\n");
 			sb.append("\tAutoanti-afk: " + set.autoantiafk + "\r\n");
+			sb.append("\tAutoanti-afk period: " + set.afkperiod + "\r\n");
 			sb.append("\tAutonotify: " + set.activenotify + "\r\n");
 			sb.append("\tAutologin commands:\r\n");
 			for (String com : set.autologincmd) {
@@ -137,8 +140,17 @@ public class struct_settings {
 						case "Autologout":
 							bot.autologout = Boolean.parseBoolean(param);
 						break;
+						case "Autoreconnect delay":
+							bot.autoreconnectdelay=Integer.parseInt(param);
+						break;
+						case "Autoreconnect":
+							bot.autoreconnect=Boolean.parseBoolean(param);
+						break;
 						case "Autoanti-afk":
 							bot.autoantiafk = Boolean.parseBoolean(param);
+						break;
+						case "Autoanti-afk period":
+							bot.afkperiod = Integer.parseInt(param);
 						break;
 						case "Autonotify":
 							bot.activenotify = Boolean.parseBoolean(param);

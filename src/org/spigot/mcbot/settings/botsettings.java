@@ -9,11 +9,14 @@ public class botsettings {
 	public String serverip = "127.0.0.1";
 	public int serverport = 25565;
 	public String nick = "Reticle";
+	public int afkperiod = 60;
 	public boolean autoconnect = false;
 	public boolean autologin = false;
 	public boolean autologout = false;
 	public boolean autoantiafk = true;
 	public boolean activenotify = false;
+	public boolean autoreconnect = true;
+	public int autoreconnectdelay = 2;
 	public String[] autologincmd = new String[0];
 	public String[] autologoutcmd = new String[0];
 	public String[] autoantiafkcmd = new String[0];
