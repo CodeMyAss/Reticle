@@ -69,7 +69,7 @@ public class mcbot {
 		JTabbedPane cpanel = storage.gettabbedpane();
 		int len = cpanel.getComponentCount();
 		int i;
-		for (i=0; i < len; i++) {
+		for (i = 0; i < len; i++) {
 			if (cpanel.getTitleAt(i).equals(this.gettabname())) {
 				return i;
 			}
@@ -243,11 +243,11 @@ public class mcbot {
 		this.rawbot.serverip = ip;
 		this.rawbot.serverport = port;
 		this.rawbot.servername = name;
-		this.rawbot.nick=nick;
+		this.rawbot.nick = nick;
 		this.serverip = ip;
 		this.serverport = port;
-		this.username=nick;
-		
+		this.username = nick;
+
 	}
 
 	public enum ICONSTATE {
@@ -354,9 +354,11 @@ public class mcbot {
 
 	public void updaterawbot(botsettings bs) {
 		// To make it reconnect if this change is necessary
-		if (bs != null && this.connector!=null) {
+		if (bs != null) {
 			this.rawbot = bs;
-			this.connector.reconnect = bs.autoreconnect;
+			if (this.connector != null) {
+				this.connector.reconnect = bs.autoreconnect;
+			}
 		}
 	}
 

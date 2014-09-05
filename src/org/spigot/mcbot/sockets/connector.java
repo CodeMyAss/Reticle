@@ -20,6 +20,8 @@ import org.spigot.mcbot.packets.KeepAlivePacket;
 import org.spigot.mcbot.packets.LoginStartPacket;
 import org.spigot.mcbot.packets.LoginSuccessPacket;
 import org.spigot.mcbot.packets.PlayerListItemPacket;
+import org.spigot.mcbot.packets.RespawnPacket;
+import org.spigot.mcbot.packets.SpawnPositionPacket;
 import org.spigot.mcbot.packets.packet;
 import org.spigot.mcbot.sockets.chatparse.chatclass;
 
@@ -30,6 +32,7 @@ public class connector extends Thread {
 	private mcbot bot;
 	private Socket sock;
 	private AntiAFK afkter;
+	private boolean haslogged = false;
 	public boolean reconnect = false;
 	private HashMap<String, String> Tablist = new HashMap<String, String>();
 
@@ -150,7 +153,7 @@ public class connector extends Thread {
 		// Change icon
 		bot.seticon(ICONSTATE.DISCONNECTED);
 		// Stop afkter process
-		if(this.afkter!=null) {
+		if (this.afkter != null) {
 			this.afkter.stop();
 		}
 		// Reset tablist
@@ -158,7 +161,7 @@ public class connector extends Thread {
 		// Deal with socket
 		try {
 			sock.close();
-			sock=null;
+			sock = null;
 		} catch (IOException e) {
 		} catch (NullPointerException e) {
 		}
@@ -203,22 +206,30 @@ public class connector extends Thread {
 				((JoinGamePacket) pack).Read(this);
 				// In reaction to this packet, send commands are sent (If
 				// enabled)
-				if (bot.sendlogincommands()) {
-					String[] cmds = bot.getlogincommands();
-					for (String cmd : cmds) {
-						this.sendtoserver(cmd);
-					}
-				}
 
 			break;
 
 			case 2:
+				// Chat
 				pack = new ChatPacket(sock);
 				String msg = ((ChatPacket) pack).Read();
 				msg = parsechat(msg);
 				sendmsg(msg);
+				tryandsendlogin();
 			break;
 
+			case 5:
+				// Spawn position
+				pack = new SpawnPositionPacket(sock, len);
+				((SpawnPositionPacket) pack).Read();
+			break;
+			
+			case 7:
+				//Respawn
+				pack=new RespawnPacket(sock);
+				((RespawnPacket)pack).Read();
+			break;
+			
 			case 56:
 				// We got tablist update (yay)
 				pack = new PlayerListItemPacket(sock);
@@ -245,6 +256,20 @@ public class connector extends Thread {
 		dim[0] = x;
 		dim[1] = y;
 		bot.tablistsize = dim;
+	}
+
+	private void tryandsendlogin() {
+		// First invocation gets it
+		if (!this.haslogged) {
+			this.haslogged = true;
+			if (bot.sendlogincommands()) {
+				this.sendmessage("§bSending login commands");
+				String[] cmds = bot.getlogincommands();
+				for (String cmd : cmds) {
+					this.sendtoserver(cmd);
+				}
+			}
+		}
 	}
 
 	private String reparser(Collection<chatclass> extra) {

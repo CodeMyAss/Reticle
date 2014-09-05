@@ -236,10 +236,10 @@ public class storage {
 	public static void loadsettings() {
 		try {
 			String setraw = new String(Files.readAllBytes(Paths.get(settingfile)));
+			//If this is initial settings load
 			if (storage.getInstance().settin == null) {
 				storage.getInstance().settin = new struct_settings();
 			}
-
 			storage.getInstance().settin.loadFromString(setraw);
 		} catch (NoSuchFileException e) {
 			storage.getInstance().settin = new struct_settings();
