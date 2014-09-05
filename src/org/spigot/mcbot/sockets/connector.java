@@ -30,6 +30,7 @@ public class connector extends Thread {
 	private mcbot bot;
 	private Socket sock;
 	private AntiAFK afkter;
+	public boolean reconnect=false;
 	private HashMap<String, Short> Tablist = new HashMap<String, Short>();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
@@ -37,12 +38,11 @@ public class connector extends Thread {
 		this.bot = bot;
 		sendmsg("§2Connecting");
 	}
-	
 
 	public int getantiafkperiod() {
 		return this.bot.getantiafkperiod();
 	}
-	
+
 	public String[] getlogincommands() {
 		return this.bot.getlogincommands();
 	}
@@ -83,11 +83,11 @@ public class connector extends Thread {
 			int pid;
 			int len;
 			int[] pack = new int[2];
-			
-			//Connection established, time to create AntiAFK
-			this.afkter=new AntiAFK(this);
+
+			// Connection established, time to create AntiAFK
+			this.afkter = new AntiAFK(this);
 			this.afkter.start();
-			
+
 			while (true) {
 				pack = reader.readNext();
 				len = pack[0];
@@ -116,6 +116,7 @@ public class connector extends Thread {
 					new Ignored_Packet(len, pid, input).Read();
 				}
 			}
+		} catch (NullPointerException e) {
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");
 		} catch (RuntimeException e) {
@@ -136,6 +137,13 @@ public class connector extends Thread {
 
 	@SuppressWarnings("deprecation")
 	public synchronized void stopMe() {
+		//Send logout commands
+		if(bot.sendlogoutcommands()) {
+			String[] cmds=bot.getlogoutcommands();
+			for(String cmd:cmds) {
+				bot.sendtoserver(cmd);
+			}
+		}
 		bot.seticon(ICONSTATE.DISCONNECTED);
 		this.afkter.stop();
 		try {
@@ -145,6 +153,18 @@ public class connector extends Thread {
 		}
 		sock = null;
 		storage.changemenuitems();
+		//If we are intended to restart, we wait and do so
+		if(this.reconnect) {
+			Object sync=new Object();
+			synchronized(sync) {
+				try {
+					sync.wait(bot.getautoreconnectdelay()*1000);
+				} catch (InterruptedException e) {
+				}
+			}
+			//And the magic of restart
+			run();
+		}
 	}
 
 	private packet processpacket(int pid, int len) throws IOException {
@@ -167,6 +187,15 @@ public class connector extends Thread {
 				// join game
 				pack = new JoinGamePacket(sock);
 				((JoinGamePacket) pack).Read(this);
+				// In reaction to this packet, send commands are sent (If
+				// enabled)
+				if (bot.sendlogincommands()) {
+					String[] cmds = bot.getlogincommands();
+					for(String cmd:cmds) {
+						this.sendtoserver(cmd);
+					}
+				}
+
 			break;
 
 			case 2:

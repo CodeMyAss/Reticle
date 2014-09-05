@@ -3,7 +3,10 @@ package org.spigot.mcbot.botfactory;
 import java.awt.Color;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -74,7 +77,7 @@ public class mcbot {
 		return i;
 	}
 
-	public void seticon(ICONSTATE state) {
+	public void seticon(final ICONSTATE state) {
 		storage.gettabbedpane().setIconAt(gettabid(), state.icon);
 	}
 
@@ -175,6 +178,14 @@ public class mcbot {
 		return this.rawbot.autoantiafk;
 	}
 
+	public boolean getautoreconnect() {
+		return this.rawbot.autoreconnect;
+	}
+
+	public int getautoreconnectdelay() {
+		return this.rawbot.autoreconnectdelay;
+	}
+
 	public connector getConnector() {
 		return this.connector;
 	}
@@ -211,6 +222,7 @@ public class mcbot {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
+					connector.reconnect = this.rawbot.autoreconnect;
 					connector.start();
 				} else {
 					this.logmsg("§4§lAlready connected");
@@ -243,11 +255,8 @@ public class mcbot {
 
 	public synchronized void logmsg(String message) {
 		if (message.length() > 0) {
-			if (message.startsWith("§")) {
-				message = message.substring(1);
-			} else {
-				message = " " + message;
-			}
+			// Extra space because the split method and following loop
+			message = " [" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + message;
 			String bold = "";
 			String underline = "";
 			String strike = "";
@@ -294,6 +303,9 @@ public class mcbot {
 
 	public void disconnect() {
 		if (this.isConnected()) {
+			// To prevent automatic restart
+			this.connector.reconnect = false;
+			// Go for it
 			this.connector.stopMe();
 		}
 	}
@@ -331,5 +343,11 @@ public class mcbot {
 				}
 			});
 		}
+	}
+
+	public void updaterawbot(botsettings bs) {
+		this.rawbot = bs;
+		// To make it reconnect if this change is necessary
+		this.connector.reconnect = bs.autoreconnect;
 	}
 }

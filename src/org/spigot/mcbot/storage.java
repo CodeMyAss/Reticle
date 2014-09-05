@@ -253,6 +253,7 @@ public class storage {
 		setting.settings.put(nact, bs);
 		mcbot mbot = setting.bots.get(acti);
 		mbot.setipandport(bs.serverip, bs.serverport, bs.servername);
+		mbot.updaterawbot(bs);
 		setting.bots.remove(acti);
 		setting.bots.put(nact, mbot);
 		storage.gettabbedpane().setTitleAt(actnum, nact);
