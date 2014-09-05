@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.HashMap;
 
 import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
@@ -16,16 +18,17 @@ import org.spigot.mcbot.packets.JoinGamePacket;
 import org.spigot.mcbot.packets.KeepAlivePacket;
 import org.spigot.mcbot.packets.LoginStartPacket;
 import org.spigot.mcbot.packets.LoginSuccessPacket;
+import org.spigot.mcbot.packets.PlayerListItemPacket;
 import org.spigot.mcbot.packets.packet;
 import org.spigot.mcbot.sockets.chatparse.chatclass;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
 public class connector extends Thread {
 	private mcbot bot;
 	private Socket sock;
+	private HashMap<String, Short> Tablist = new HashMap<String, Short>();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		sock = new Socket(bot.serverip, bot.serverport);
@@ -125,7 +128,7 @@ public class connector extends Thread {
 			case 1:
 				// join game
 				pack = new JoinGamePacket(sock);
-				((JoinGamePacket) pack).Read();
+				((JoinGamePacket) pack).Read(this);
 			break;
 
 			case 2:
@@ -133,6 +136,14 @@ public class connector extends Thread {
 				String msg = ((ChatPacket) pack).Read();
 				msg = parsechat(msg);
 				sendmsg(msg);
+			break;
+
+			case 56:
+				// We got tablist update (yay)
+				pack = new PlayerListItemPacket(sock);
+				((PlayerListItemPacket) pack).Read();
+				((PlayerListItemPacket) pack).Serve(Tablist);
+				bot.refreshtablist(Tablist);
 			break;
 
 			case 64:
@@ -143,40 +154,67 @@ public class connector extends Thread {
 		return pack;
 	}
 
+	public void settablesize(int x, int y) {
+		int[] dim = new int[2];
+		dim[0] = x;
+		dim[1] = y;
+		bot.tablistsize = dim;
+	}
+
+	private String reparser(Collection<chatclass> extra) {
+		StringBuilder sb = new StringBuilder();
+		boolean finalreset=false;
+		for (chatclass obg : extra) {
+			// this should never happen but...
+			if (obg.color == null) {
+				obg.color = "none";
+			}
+			String color = obg.color.toLowerCase();
+			if (finalreset) {
+				sb.append("§r");
+				finalreset=false;
+			}
+			if (obg.bold) {
+				sb.append("§l");
+				finalreset=true;
+			}
+			if (obg.strikethrough) {
+				sb.append("§m");
+				finalreset=true;
+			}
+			if (obg.italic) {
+				sb.append("§o");
+				finalreset=true;
+			}
+			if (obg.underlined) {
+				sb.append("§n");
+				finalreset=true;
+			}
+			if (!color.equals("none")) {
+				sb.append(MCCOLOR.valueOf(color).val);
+			}
+			if (obg.reset) {
+				sb.append("§r");
+			}
+			sb.append(obg.text);
+			if (obg.extra != null) {
+				sb.append(reparser(extra));
+			}
+			
+		}
+		return sb.toString();
+	}
+
 	public String parsechat(String str) {
 		Gson obj = new Gson();
 		chatparse ob = null;
 		try {
 			ob = obj.fromJson(str, chatparse.class);
 		} catch (JsonSyntaxException e) {
-
 		}
 		if (ob != null) {
-			StringBuilder sb = new StringBuilder();
-			for (chatclass obg : ob.extra) {
-				//this should never happen but...
-				if(obg.color==null) {
-					obg.color="none";
-				}
-				String color = obg.color.toLowerCase();
-				if (!color.equals("none")) {
-					sb.append(MCCOLOR.valueOf(color).val);
-				}
-				if (obg.bold) {
-					sb.append("§l");
-				}
-				if (obg.strikethrough) {
-					sb.append("§m");
-				}
-				if (obg.italic) {
-					sb.append("§n");
-				}
-				if (obg.reset) {
-					sb.append("§r");
-				}
-				sb.append(obg.text);
-			}
-			return sb.toString();
+			String strr=reparser(ob.extra);
+			return strr;
 		} else {
 			return null;
 		}
