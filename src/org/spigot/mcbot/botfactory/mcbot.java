@@ -34,7 +34,7 @@ public class mcbot {
 	public boolean exists = false;
 	public boolean ismain = false;
 	private HashMap<String, Style> styles = new HashMap<String, Style>();
-	private connector connector;
+	public connector connector;
 	public String serverip;
 	public int serverport;
 	public String username;
@@ -78,7 +78,11 @@ public class mcbot {
 	}
 
 	public void seticon(final ICONSTATE state) {
-		storage.gettabbedpane().setIconAt(gettabid(), state.icon);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				storage.gettabbedpane().setIconAt(gettabid(), state.icon);
+			}
+		});
 	}
 
 	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll) {
@@ -349,5 +353,11 @@ public class mcbot {
 		this.rawbot = bs;
 		// To make it reconnect if this change is necessary
 		this.connector.reconnect = bs.autoreconnect;
+	}
+
+	public void resettablist() {
+		tablistsize[0]=1;
+		tablistsize[1]=20;
+		refreshtablist(new HashMap<String, Short>());
 	}
 }

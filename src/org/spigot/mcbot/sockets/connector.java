@@ -30,11 +30,10 @@ public class connector extends Thread {
 	private mcbot bot;
 	private Socket sock;
 	private AntiAFK afkter;
-	public boolean reconnect=false;
+	public boolean reconnect = false;
 	private HashMap<String, Short> Tablist = new HashMap<String, Short>();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
-		sock = new Socket(bot.serverip, bot.serverport);
 		this.bot = bot;
 		sendmsg("§2Connecting");
 	}
@@ -69,8 +68,10 @@ public class connector extends Thread {
 
 	@Override
 	public void run() {
+
 		// Main loop
 		try {
+			sock = new Socket(bot.serverip, bot.serverport);
 			InputStream input = sock.getInputStream();
 			packet reader = new packet(input);
 			bot.seticon(ICONSTATE.CONNECTING);
@@ -116,6 +117,8 @@ public class connector extends Thread {
 					new Ignored_Packet(len, pid, input).Read();
 				}
 			}
+		} catch (IllegalArgumentException e) {
+			sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
 		} catch (NullPointerException e) {
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");
@@ -137,33 +140,40 @@ public class connector extends Thread {
 
 	@SuppressWarnings("deprecation")
 	public synchronized void stopMe() {
-		//Send logout commands
-		if(bot.sendlogoutcommands()) {
-			String[] cmds=bot.getlogoutcommands();
-			for(String cmd:cmds) {
+		// Send logout commands
+		if (bot.sendlogoutcommands()) {
+			String[] cmds = bot.getlogoutcommands();
+			for (String cmd : cmds) {
 				bot.sendtoserver(cmd);
 			}
 		}
+		// Change icon
 		bot.seticon(ICONSTATE.DISCONNECTED);
+		// Stop afkter process
 		this.afkter.stop();
+		// Reset tablist
+		bot.resettablist();
+		// Deal with socket
 		try {
 			sock.close();
+			sock=null;
 		} catch (IOException e) {
 		} catch (NullPointerException e) {
 		}
-		sock = null;
+		// Modify menu items
 		storage.changemenuitems();
-		//If we are intended to restart, we wait and do so
-		if(this.reconnect) {
-			Object sync=new Object();
-			synchronized(sync) {
+		// If we are intended to restart, we wait and do so
+		if (this.reconnect) {
+			Object sync = new Object();
+			synchronized (sync) {
 				try {
-					sync.wait(bot.getautoreconnectdelay()*1000);
+					sync.wait(bot.getautoreconnectdelay() * 1000);
 				} catch (InterruptedException e) {
 				}
 			}
-			//And the magic of restart
-			run();
+			// And the magic of restart
+			this.sock = null;
+			bot.connect();
 		}
 	}
 
@@ -191,7 +201,7 @@ public class connector extends Thread {
 				// enabled)
 				if (bot.sendlogincommands()) {
 					String[] cmds = bot.getlogincommands();
-					for(String cmd:cmds) {
+					for (String cmd : cmds) {
 						this.sendtoserver(cmd);
 					}
 				}
