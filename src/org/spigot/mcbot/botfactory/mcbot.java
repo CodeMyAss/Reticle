@@ -226,7 +226,6 @@ public class mcbot {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
-					connector.reconnect = this.rawbot.autoreconnect;
 					connector.start();
 				} else {
 					this.logmsg("§4§lAlready connected");

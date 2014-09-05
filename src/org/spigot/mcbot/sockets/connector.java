@@ -84,6 +84,7 @@ public class connector extends Thread {
 			new LoginStartPacket(sock).Write(bot.username);
 			new LoginSuccessPacket(sock, this).read();
 			bot.seticon(ICONSTATE.CONNECTED);
+			this.reconnect=bot.getautoreconnect();
 			int pid;
 			int len;
 			int[] pack = new int[2];
