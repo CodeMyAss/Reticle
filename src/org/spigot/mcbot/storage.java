@@ -34,6 +34,9 @@ public class storage {
 
 	public settings settings;
 
+	// Main win
+	public mcbot mainer;
+
 	// Main win tabs
 	public JTabbedPane tabbedPane;
 
@@ -55,7 +58,6 @@ public class storage {
 	public static Icon icon_on = new ImageIcon("resources/icon_on.PNG");
 	public static Icon icon_dis = new ImageIcon("resources/icon_dis.PNG");
 	public static Icon icon_con = new ImageIcon("resources/icon_con.PNG");
-
 
 	public static JTabbedPane gettabbedpane() {
 		return storage.getInstance().tabbedPane;
@@ -79,15 +81,15 @@ public class storage {
 	}
 
 	public static void setselectedtable(int i) {
-		//+1 because main is not in settin
-		storage.getInstance().tabbedPane.setSelectedIndex(i+1);
+		// +1 because main is not in settin
+		storage.getInstance().tabbedPane.setSelectedIndex(i + 1);
 	}
 
 	public static void setselectedtable(String str) {
 		Set<String> indexes = storage.getInstance().settin.bots.keySet();
-		int i=0;
-		for(String index:indexes) {
-			if(index.equals(str)) {
+		int i = 0;
+		for (String index : indexes) {
+			if (index.equals(str)) {
 				setselectedtable(i);
 				break;
 			}
@@ -97,10 +99,10 @@ public class storage {
 
 	public static boolean sendmessagetoactivebot(String message) {
 		mcbot bot = storage.getcurrentselectedbot();
-		if(bot!=null) {
+		if (bot != null) {
 			return bot.sendtoserver(message);
 		} else {
-			//Main
+			// Main
 			return false;
 		}
 	}
@@ -187,6 +189,17 @@ public class storage {
 		}
 	}
 
+	public static String stripcolors(String str) {
+		return str.replaceAll("/§./", "");
+	}
+
+	public static void conlog(String message) {
+		if (message.length() > 0) {
+			mcbot bot = storage.getInstance().mainer;
+			bot.logmsg(message);
+		}
+	}
+
 	public static void firsttabload() {
 		HashMap<String, botsettings> tabs = storage.getInstance().settin.settings;
 		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
@@ -252,7 +265,7 @@ public class storage {
 		setting.settings.remove(acti);
 		setting.settings.put(nact, bs);
 		mcbot mbot = setting.bots.get(acti);
-		mbot.setipandport(bs.serverip, bs.serverport, bs.servername);
+		mbot.setipandport(bs.serverip, bs.serverport, bs.servername, bs.nick);
 		mbot.updaterawbot(bs);
 		setting.bots.remove(acti);
 		setting.bots.put(nact, mbot);

@@ -19,6 +19,9 @@ import org.spigot.mcbot.settings.settings;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -164,6 +167,8 @@ public class mcbotapp {
 		 * panel.add(splitPane, "cell 0 0,grow");
 		 */
 		
+
+		
 		storage.getInstance().settings=new settings();
 		
 		storage.getInstance().menu_con=mntmNewMenuItem_2;
@@ -171,12 +176,38 @@ public class mcbotapp {
 		storage.getInstance().menu_set=mntmNewMenuItem_4;
 		
 		storage.loadsettings();
-		new mcbot(new botsettings("Main"),true);
+		mcbot main = new mcbot(new botsettings("Main"),true);
+		storage.getInstance().mainer=main;
+		redirectSystemStreams();
 		
 		storage.changemenuitems();
 		
 		storage.savesettings();
 		storage.firsttabload();
+		
+	}
+	
+	
+	private void redirectSystemStreams() {
+		OutputStream out = new OutputStream() {
+			@Override
+			public void write(int b) throws IOException {
+				storage.conlog(String.valueOf((char) b));
+			}
+
+			@Override
+			public void write(byte[] b, int off, int len) throws IOException {
+				
+				storage.conlog(new String(b, off, len));
+			}
+
+			@Override
+			public void write(byte[] b) throws IOException {
+				write(b, 0, b.length);
+			}
+		};
+		System.setOut(new PrintStream(out, true));
+		System.setErr(new PrintStream(out, true));
 	}
 
 }

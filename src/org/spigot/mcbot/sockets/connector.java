@@ -31,7 +31,7 @@ public class connector extends Thread {
 	private Socket sock;
 	private AntiAFK afkter;
 	public boolean reconnect = false;
-	private HashMap<String, Short> Tablist = new HashMap<String, Short>();
+	private HashMap<String, String> Tablist = new HashMap<String, String>();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
@@ -150,7 +150,9 @@ public class connector extends Thread {
 		// Change icon
 		bot.seticon(ICONSTATE.DISCONNECTED);
 		// Stop afkter process
-		this.afkter.stop();
+		if(this.afkter!=null) {
+			this.afkter.stop();
+		}
 		// Reset tablist
 		bot.resettablist();
 		// Deal with socket
@@ -174,6 +176,8 @@ public class connector extends Thread {
 			// And the magic of restart
 			this.sock = null;
 			bot.connect();
+		} else {
+			storage.changemenuitems();
 		}
 	}
 

@@ -68,10 +68,10 @@ public class mcbot {
 	private int gettabid() {
 		JTabbedPane cpanel = storage.gettabbedpane();
 		int len = cpanel.getComponentCount();
-		int i = 0;
-		for (; i < len; i++) {
+		int i;
+		for (i=0; i < len; i++) {
 			if (cpanel.getTitleAt(i).equals(this.gettabname())) {
-				break;
+				return i;
 			}
 		}
 		return i;
@@ -239,12 +239,15 @@ public class mcbot {
 		}
 	}
 
-	public void setipandport(String ip, int port, String name) {
+	public void setipandport(String ip, int port, String name, String nick) {
 		this.rawbot.serverip = ip;
 		this.rawbot.serverport = port;
 		this.rawbot.servername = name;
+		this.rawbot.nick=nick;
 		this.serverip = ip;
 		this.serverport = port;
+		this.username=nick;
+		
 	}
 
 	public enum ICONSTATE {
@@ -314,7 +317,7 @@ public class mcbot {
 		}
 	}
 
-	public void refreshtablist(HashMap<String, Short> tablist) {
+	public void refreshtablist(HashMap<String, String> tablist) {
 		// First thing we need is new table model
 		int i = 0;
 		int x = this.tablistsize[0];
@@ -332,7 +335,7 @@ public class mcbot {
 				}
 				int locx = i % x;
 				int locy = i / x;
-				redim[locy][locx] = name;
+				redim[locy][locx] = tablist.get(name);
 				i++;
 			}
 			for (; i < max; i++) {
@@ -350,14 +353,16 @@ public class mcbot {
 	}
 
 	public void updaterawbot(botsettings bs) {
-		this.rawbot = bs;
 		// To make it reconnect if this change is necessary
-		this.connector.reconnect = bs.autoreconnect;
+		if (bs != null && this.connector!=null) {
+			this.rawbot = bs;
+			this.connector.reconnect = bs.autoreconnect;
+		}
 	}
 
 	public void resettablist() {
-		tablistsize[0]=1;
-		tablistsize[1]=20;
-		refreshtablist(new HashMap<String, Short>());
+		tablistsize[0] = 1;
+		tablistsize[1] = 20;
+		refreshtablist(new HashMap<String, String>());
 	}
 }
