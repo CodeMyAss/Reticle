@@ -1,10 +1,12 @@
 package org.spigot.mcbot;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Frame;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
@@ -13,6 +15,8 @@ import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
@@ -22,15 +26,19 @@ import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.resources.resources;
 import org.spigot.mcbot.settings.botsettings;
+import org.spigot.mcbot.settings.optionswin;
+import org.spigot.mcbot.settings.aboutwin;
 import org.spigot.mcbot.settings.set_obj_struct;
 import org.spigot.mcbot.settings.struct_settings;
 import org.spigot.mcbot.settings.settings;
 
 public class storage {
-	public static String version="1.01";
-	
+	public static String version = "1.02";
+
 	private static storage instance = null;
 
+	public final static String homepage="http://reticle.mc-atlantida.eu/";
+	
 	private static String settingfile = "settings.ini";
 
 	public struct_settings settin;
@@ -50,6 +58,12 @@ public class storage {
 
 	// Settings window
 	public settings setwin;
+	
+	// About window
+	public aboutwin aboutwin;
+	
+	// Updating thread (Single)
+	public updater updater;
 
 	public Frame winobj;
 
@@ -57,11 +71,114 @@ public class storage {
 
 	public set_obj_struct setobj = new set_obj_struct();
 
+	// Global settings window
+	private optionswin optwin;
+
+	// Main window object
+	public JFrame mainframe;
+
 	final static Class<?> thisClass = resources.class;
 	public static Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.PNG"));
 	public static Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.PNG"));
 	public static Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.PNG"));
 	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.PNG"));
+
+	public synchronized static void closeoptionswin() {
+		if (storage.getInstance().optwin != null) {
+			storage.getInstance().optwin.dispose();
+			storage.getInstance().optwin = null;
+		}
+	}
+	
+	public synchronized static void checkforupdates() {
+			if(storage.getInstance().updater==null) {
+				storage.getInstance().updater=new updater();
+				storage.conlog("Updater service is now running");
+				storage.getInstance().updater.start();
+			} else {
+				storage.conlog("Updater service is already running");
+			}
+	}
+	
+	public synchronized static void openaboutwin() {
+		if(storage.getInstance().aboutwin==null) {
+			//Does not exist, must be created
+			storage.getInstance().aboutwin = new aboutwin();
+			storage.getInstance().aboutwin.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			storage.getInstance().aboutwin.setVisible(true);
+		} else {
+			// Options dialog already exists
+			storage.getInstance().aboutwin.setVisible(true);
+		}
+	}
+	
+	public synchronized static void closeaboutwin() {
+		if(storage.getInstance().aboutwin!=null) {
+			storage.getInstance().aboutwin.dispose();
+			storage.getInstance().aboutwin=null;
+		}
+	}
+	
+	public static void openweb(String url) {
+	    try {
+	        Desktop.getDesktop().browse(new URL(url).toURI());
+	    } catch (Exception e) {
+	        storage.conlog("Opening URL operation is not supported by this system");
+	    }
+	}
+
+	public static boolean getAutoupdate() {
+		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
+		if (setting.containsKey("autoupdate")) {
+			Boolean bool = Boolean.parseBoolean(setting.get("autoupdate"));
+			if (bool != null) {
+				return bool;
+			}
+		}
+		return false;
+	}
+
+	public static boolean getAutodebug() {
+		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
+		if (setting.containsKey("autosenddebug")) {
+			Boolean bool = Boolean.parseBoolean(setting.get("autosenddebug"));
+			if (bool != null) {
+				return bool;
+			}
+		}
+		return false;
+	}
+
+	public static boolean getAutoplugin() {
+		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
+		if (setting.containsKey("loadplugins")) {
+			Boolean bool = Boolean.parseBoolean(setting.get("loadplugins"));
+			if (bool != null) {
+				return bool;
+			}
+		}
+		return false;
+	}
+
+	public synchronized static void displayoptionswin() {
+		if (storage.getInstance().optwin == null) {
+			// Options dialog does not exist (yet)
+			storage.getInstance().optwin = new optionswin();
+			storage.getInstance().optwin.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			storage.getInstance().optwin.setVisible(true);
+		} else {
+			// Options dialog already exists
+			storage.getInstance().optwin.setVisible(true);
+		}
+	}
+
+	public static void setglobalsettings(HashMap<String, String> map) {
+		storage.getInstance().settin.globalsettings = map;
+	}
+
+	public static HashMap<String, String> getglobalsettings() {
+		return storage.getInstance().settin.globalsettings;
+	}
 
 	public static JTabbedPane gettabbedpane() {
 		return storage.getInstance().tabbedPane;
@@ -69,6 +186,14 @@ public class storage {
 
 	public static Frame getsettingwin() {
 		return storage.getInstance().winobj;
+	}
+
+	public static void killall() {
+		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
+		for (String name : bots.keySet()) {
+			mcbot bot = bots.get(name);
+			bot.disconnect();
+		}
 	}
 
 	public static void changemenuitems() {
@@ -240,7 +365,7 @@ public class storage {
 	public static void loadsettings() {
 		try {
 			String setraw = new String(Files.readAllBytes(Paths.get(settingfile)));
-			//If this is initial settings load
+			// If this is initial settings load
 			if (storage.getInstance().settin == null) {
 				storage.getInstance().settin = new struct_settings();
 			}

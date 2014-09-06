@@ -6,6 +6,8 @@ import javax.swing.JTextField;
 
 public class set_obj_struct {
 
+	
+	//Settings window
 	public JTextField txtservername;
 	public JTextField textserverip;
 	public JTextField textserverport;
@@ -19,12 +21,20 @@ public class set_obj_struct {
 	public JTextArea textlogoutcom;
 	public JTextArea textafkcom;
 	public JTextField textcurtabname;
-	
 	public JTextField textantiafkdelay;
 	public JCheckBox checkautoreconnect;
 	public JTextField textreconnectdelay;
 	
+	//Global settings window
+	public JCheckBox autoupdate;
+	public JCheckBox autodebug;
+	public JCheckBox autoplugins;
 	
+	public void setglobals(JCheckBox b1,JCheckBox b2,JCheckBox b3) {
+		this.autoupdate=b1;
+		this.autodebug=b2;
+		this.autoplugins=b3;
+	}
 
 	public void setsettings(botsettings set) {
 		this.txtservername.setText(set.servername);

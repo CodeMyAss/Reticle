@@ -6,35 +6,40 @@ import org.spigot.mcbot.botfactory.mcbot;
 public class struct_settings {
 	public HashMap<String, botsettings> settings;
 	public HashMap<String, mcbot> bots = new HashMap<String, mcbot>();
+	public HashMap<String, String> globalsettings = new HashMap<String, String>();
 
 	public String saveToString() {
 		StringBuilder sb = new StringBuilder();
+		for(String key:globalsettings.keySet()) {
+			String val=globalsettings.get(key);
+			sb.append(key+": "+val+"\r\n");
+		}
 		for (String key : settings.keySet()) {
-			sb.append(key + "\r\n");
+			sb.append("\t" + key + "\r\n");
 			botsettings set = settings.get(key);
-			sb.append("\tServername: " + set.servername + "\r\n");
-			sb.append("\tServer ip: " + set.serverip + "\r\n");
-			sb.append("\tServer port: " + set.serverport + "\r\n");
-			sb.append("\tAutoconnect: " + set.autoconnect + "\r\n");
-			sb.append("\tNick: " + set.nick + "\r\n");
-			sb.append("\tAutologin: " + set.autologin + "\r\n");
-			sb.append("\tAutologout: " + set.autologout + "\r\n");
-			sb.append("\tAutoreconnect: " + set.autoreconnect + "\r\n");
-			sb.append("\tAutoreconnect delay: " + set.autoreconnectdelay + "\r\n");
-			sb.append("\tAutoanti-afk: " + set.autoantiafk + "\r\n");
-			sb.append("\tAutoanti-afk period: " + set.afkperiod + "\r\n");
-			sb.append("\tAutonotify: " + set.activenotify + "\r\n");
-			sb.append("\tAutologin commands:\r\n");
+			sb.append("\t\tServername: " + set.servername + "\r\n");
+			sb.append("\t\tServer ip: " + set.serverip + "\r\n");
+			sb.append("\t\tServer port: " + set.serverport + "\r\n");
+			sb.append("\t\tAutoconnect: " + set.autoconnect + "\r\n");
+			sb.append("\t\tNick: " + set.nick + "\r\n");
+			sb.append("\t\tAutologin: " + set.autologin + "\r\n");
+			sb.append("\t\tAutologout: " + set.autologout + "\r\n");
+			sb.append("\t\tAutoreconnect: " + set.autoreconnect + "\r\n");
+			sb.append("\t\tAutoreconnect delay: " + set.autoreconnectdelay + "\r\n");
+			sb.append("\t\tAutoanti-afk: " + set.autoantiafk + "\r\n");
+			sb.append("\t\tAutoanti-afk period: " + set.afkperiod + "\r\n");
+			sb.append("\t\tAutonotify: " + set.activenotify + "\r\n");
+			sb.append("\t\tAutologin commands:\r\n");
 			for (String com : set.autologincmd) {
-				sb.append("\t\t" + com + "\r\n");
+				sb.append("\t\t\t" + com + "\r\n");
 			}
-			sb.append("\tAutologout commands:\r\n");
+			sb.append("\t\tAutologout commands:\r\n");
 			for (String com : set.autologoutcmd) {
-				sb.append("\t\t" + com + "\r\n");
+				sb.append("\t\t\t" + com + "\r\n");
 			}
-			sb.append("\tAutoantiafk commands:\r\n");
+			sb.append("\t\tAutoantiafk commands:\r\n");
 			for (String com : set.autoantiafkcmd) {
-				sb.append("\t\t" + com + "\r\n");
+				sb.append("\t\t\t" + com + "\r\n");
 			}
 		}
 		return sb.toString();
@@ -54,12 +59,85 @@ public class struct_settings {
 		StringBuilder sb3 = new StringBuilder();
 
 		for (String line : lines) {
-			if (line.equals("") || line.equals("\r\n") || line.startsWith("#")) {
+			if (line.equals("") || line.equals("\r\n") || line.startsWith("#") || line.equals("\n")) {
 				continue;
 			}
-			if (!line.startsWith("\t")) {
+			
+			if(line.startsWith("\t\t\t")) {
+				saved=false;
+				//Login/Logout/Antiafk commands
+				if (pos == 1) {
+					// We are getting list of login commands
+					sb1.append("\r\n" + line.substring(3));
+				} else if (pos == 2) {
+					// We are getting list of logout commands
+					sb2.append("\r\n" + line.substring(3));
+				} else if (pos == 3) {
+					// We are getting list of anti-afk commands
+					sb3.append("\r\n" + line.substring(3));
+				}	
+			} else if (line.startsWith("\t\t")) {
+				saved=false;
+				//Regular local bot settings
+				// What exactly is the settings
+				String op = line.substring(2).split(":")[0];
+				// What is the parameter (+2 because 1 for \t and 1 for
+				// spawn between delimiter and value)
+				String param = line.substring(op.length() + 3);
+				if (param.startsWith(" ")) {
+					param = param.substring(1);
+				}
+				switch (op) {
+					case "Autologin commands":
+						pos = 1;
+					break;
+					case "Autologout commands":
+						pos = 2;
+					break;
+					case "Autoantiafk commands":
+						pos = 3;
+					break;
+					case "Servername":
+						bot.servername = param;
+					break;
+					case "Server ip":
+						bot.serverip = param;
+					break;
+					case "Server port":
+						bot.serverport = Integer.parseInt(param);
+					break;
+					case "Autoconnect":
+						bot.autoconnect = Boolean.parseBoolean(param);
+					break;
+					case "Nick":
+						bot.nick = param;
+					break;
+					case "Autologin":
+						bot.autologin = Boolean.parseBoolean(param);
+					break;
+					case "Autologout":
+						bot.autologout = Boolean.parseBoolean(param);
+					break;
+					case "Autoreconnect delay":
+						bot.autoreconnectdelay = Integer.parseInt(param);
+					break;
+					case "Autoreconnect":
+						bot.autoreconnect = Boolean.parseBoolean(param);
+					break;
+					case "Autoanti-afk":
+						bot.autoantiafk = Boolean.parseBoolean(param);
+					break;
+					case "Autoanti-afk period":
+						bot.afkperiod = Integer.parseInt(param);
+					break;
+					case "Autonotify":
+						bot.activenotify = Boolean.parseBoolean(param);
+					break;
+				}
+				
+			} else if(line.startsWith("\t")) {
+				saved = true;
 				// Bot name here
-
 				if (bot != null) {
 					// Previous bot exists, not saved yet
 					bot.bottabname = bot.gettabname();
@@ -73,7 +151,6 @@ public class struct_settings {
 						bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
 					}
 					settings.put(bot.bottabname, bot);
-					saved = true;
 					bot = new botsettings(null);
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
@@ -81,85 +158,20 @@ public class struct_settings {
 				} else {
 					// We are first bot ever
 					bot = new botsettings(null);
-					saved = true;
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
 					sb3 = new StringBuilder();
 				}
-
 			} else {
-				saved = false;
-				if (line.startsWith("\t\t")) {
-					if (pos == 1) {
-						// We are getting list of login commands
-						sb1.append("\r\n" + line.substring(2));
-					} else if (pos == 2) {
-						// We are getting list of logout commands
-						sb2.append("\r\n" + line.substring(2));
-					} else if (pos == 3) {
-						// We are getting list of anti-afk commands
-						sb3.append("\r\n" + line.substring(2));
-					}
-				} else if (line.startsWith("\t")) {
-					// What exactly is the settings
-					String op = line.substring(1).split(":")[0];
-					// What is the parameter (+2 because 1 for \t and 1 for
-					// spawn between delimiter and value)
-					String param = line.substring(op.length() + 2);
-					if (param.startsWith(" ")) {
-						param = param.substring(1);
-					}
-					switch (op) {
-						case "Autologin commands":
-							pos = 1;
-						break;
-						case "Autologout commands":
-							pos = 2;
-						break;
-						case "Autoantiafk commands":
-							pos = 3;
-						break;
-						case "Servername":
-							bot.servername = param;
-						break;
-						case "Server ip":
-							bot.serverip = param;
-						break;
-						case "Server port":
-							bot.serverport = Integer.parseInt(param);
-						break;
-						case "Autoconnect":
-							bot.autoconnect = Boolean.parseBoolean(param);
-						break;
-						case "Nick":
-							bot.nick = param;
-						break;
-						case "Autologin":
-							bot.autologin = Boolean.parseBoolean(param);
-						break;
-						case "Autologout":
-							bot.autologout = Boolean.parseBoolean(param);
-						break;
-						case "Autoreconnect delay":
-							bot.autoreconnectdelay=Integer.parseInt(param);
-						break;
-						case "Autoreconnect":
-							bot.autoreconnect=Boolean.parseBoolean(param);
-						break;
-						case "Autoanti-afk":
-							bot.autoantiafk = Boolean.parseBoolean(param);
-						break;
-						case "Autoanti-afk period":
-							bot.afkperiod = Integer.parseInt(param);
-						break;
-						case "Autonotify":
-							bot.activenotify = Boolean.parseBoolean(param);
-						break;
-					}
-				}
+				//Global options
+				String op = line.split(":")[0];
+				// What is the parameter (+2 because 1 for \t and 1 for
+				// spawn between delimiter and value)
+				String param = line.substring(op.length() + 2);
+				globalsettings.put(op, param);
 			}
 		}
-		//Last bot to be saved
+		// Last bot to be saved
 		if (!saved && bot != null) {
 			if (sb1.toString().length() > 2) {
 				bot.autologincmd = sb1.toString().substring(2).split("\r\n");

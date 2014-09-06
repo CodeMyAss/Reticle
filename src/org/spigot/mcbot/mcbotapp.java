@@ -71,6 +71,11 @@ public class mcbotapp {
 		menuBar.add(mnNewMenu);
 
 		JMenuItem mntmNewMenuItem = new JMenuItem("Options");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				storage.displayoptionswin();
+			}
+		});
 		mnNewMenu.add(mntmNewMenuItem);
 
 		JMenuItem mntmNewMenuItem_8 = new JMenuItem("Add bot");
@@ -86,6 +91,12 @@ public class mcbotapp {
 		mnNewMenu.add(mntmNewMenuItem_8);
 
 		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Quit");
+		mntmNewMenuItem_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				storage.killall();
+				System.exit(0);
+			}
+		});
 		mnNewMenu.add(mntmNewMenuItem_1);
 
 		JMenu mnNewMenu_1 = new JMenu("Bot");
@@ -122,12 +133,27 @@ public class mcbotapp {
 		menuBar.add(mnNewMenu_2);
 
 		JMenuItem mntmNewMenuItem_5 = new JMenuItem("Website");
+		mntmNewMenuItem_5.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				storage.openweb(storage.homepage);
+			}
+		});
 		mnNewMenu_2.add(mntmNewMenuItem_5);
 
 		JMenuItem mntmNewMenuItem_6 = new JMenuItem("Check for updates");
+		mntmNewMenuItem_6.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				storage.checkforupdates();
+			}
+		});
 		mnNewMenu_2.add(mntmNewMenuItem_6);
 
 		JMenuItem mntmNewMenuItem_7 = new JMenuItem("About");
+		mntmNewMenuItem_7.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				storage.openaboutwin();
+			}
+		});
 		mnNewMenu_2.add(mntmNewMenuItem_7);
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -138,40 +164,10 @@ public class mcbotapp {
 		});
 		frmReticle.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
+		//redirectSystemStreams();
+		
 		storage.getInstance().tabbedPane = tabbedPane;
-		/*
-		 * 
-		 * JPanel panel = new JPanel(); tabbedPane.addTab("New tab", null,
-		 * panel, null); panel.setLayout(new MigLayout("", "[615px,grow]",
-		 * "[344px,grow]"));
-		 * 
-		 * JPanel panel_1 = new JPanel(); panel.add(panel_1, "cell 0 0,grow");
-		 * panel_1.setLayout(new MigLayout("", "[grow]", "[grow][]"));
-		 * 
-		 * JScrollPane scrollPane = new JScrollPane(); panel_1.add(scrollPane,
-		 * "cell 0 0,grow");
-		 * 
-		 * JTextPane txtpnText = new JTextPane(); txtpnText.setText("TExt");
-		 * scrollPane.setViewportView(txtpnText);
-		 * 
-		 * txtCommands = new JTextField(); txtCommands.setText("Commands");
-		 * panel_1.add(txtCommands, "flowx,cell 0 1,growx");
-		 * txtCommands.setColumns(10);
-		 * 
-		 * JButton btnNewButton = new JButton("Odeslat");
-		 * panel_1.add(btnNewButton, "cell 0 1");
-		 * 
-		 * table = new JTable();
-		 * 
-		 * JSplitPane splitPane = new
-		 * JSplitPane(JSplitPane.HORIZONTAL_SPLIT,panel_1, table);
-		 * panel.add(splitPane, "cell 0 0,grow");
-		 */
-		// storage.class.
-
-		redirectSystemStreams();
 		storage.getInstance().settings = new settings();
-
 		storage.getInstance().menu_con = mntmNewMenuItem_2;
 		storage.getInstance().menu_dis = mntmNewMenuItem_3;
 		storage.getInstance().menu_set = mntmNewMenuItem_4;
@@ -187,7 +183,7 @@ public class mcbotapp {
 
 	}
 
-	private void redirectSystemStreams() {
+	public void redirectSystemStreams() {
 		OutputStream out = new OutputStream() {
 			@Override
 			public void write(int b) throws IOException {
