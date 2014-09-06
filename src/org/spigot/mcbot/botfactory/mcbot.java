@@ -204,11 +204,8 @@ public class mcbot {
 		if (this.connector == null) {
 			// Initial state
 			return false;
-		} else if (this.connector.isConnected()) {
-			return true;
 		} else {
-			// Unknown state
-			return false;
+			return this.connector.isConnected();
 		}
 
 	}
@@ -220,14 +217,16 @@ public class mcbot {
 			return false;
 		}
 	}
+	
 
-	public void connect() {
+	public void connect(boolean reconnect) {
 		if (this.rawbot.serverip != null) {
 			try {
 				if (!this.isConnected()) {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
+					connector.reconnect=reconnect;
 					connector.start();
 				} else {
 					this.logmsg("§4§lAlready connected");
@@ -370,5 +369,4 @@ public class mcbot {
 		tablistsize[1] = 20;
 		refreshtablist(new ArrayList<String>());
 	}
-
 }

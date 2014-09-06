@@ -11,6 +11,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class loader extends JFrame implements Runnable {
+	public loader() {
+	}
 	private static final long serialVersionUID = 1L;
 
 	protected JFrame frame;
@@ -26,6 +28,7 @@ public class loader extends JFrame implements Runnable {
 	public void run() {
 		frame = new JFrame();
 		frame.setUndecorated(true);
+		frame.setResizable(false);
 		frame.setTitle("Reticle loader");
 		ImagePanel panel = new ImagePanel(storage.icon_loader.getImage());
 		frame.getContentPane().add(panel, BorderLayout.CENTER);

@@ -181,7 +181,7 @@ public class connector extends Thread {
 			}
 			// And the magic of restart
 			this.sock = null;
-			bot.connect();
+			bot.connect(this.reconnect);
 		} else {
 			storage.changemenuitems();
 		}

@@ -19,23 +19,9 @@ public class aboutwin extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		try {
-			aboutwin dialog = new aboutwin();
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
-	/**
-	 * Create the dialog.
-	 */
 	public aboutwin() {
+		setResizable(false);
 		setTitle("About");
 		setBounds(100, 100, 268, 151);
 		getContentPane().setLayout(new BorderLayout());

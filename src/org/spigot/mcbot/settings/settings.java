@@ -64,6 +64,7 @@ public class settings extends JFrame {
 	 */
 
 	public settings(final botsettings set) {
+		setResizable(false);
 		setType(Type.UTILITY);
 		setTitle("Settings");
 		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

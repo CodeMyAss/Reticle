@@ -339,7 +339,7 @@ public class storage {
 				mcbot bot = new mcbot(set);
 				bot.ismain = false;
 				if (set.autoconnect) {
-					bot.connect();
+					bot.connect(false);
 				}
 				bots.put(key, bot);
 			}

@@ -103,7 +103,7 @@ public class mcbotapp {
 		mntmNewMenuItem_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				mcbot bot = storage.getcurrentselectedbot();
-				bot.connect();
+				bot.connect(false);
 			}
 		});
 		mnNewMenu_1.add(mntmNewMenuItem_2);
