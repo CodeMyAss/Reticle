@@ -28,7 +28,8 @@ import javax.swing.event.ChangeEvent;
 
 public class mcbotapp {
 
-	private JFrame frmReticle;
+	protected JFrame frmReticle;
+	private static Thread loader;
 
 	/**
 	 * Launch the application.
@@ -179,7 +180,6 @@ public class mcbotapp {
 		storage.changemenuitems();
 		storage.savesettings();
 		storage.firsttabload();
-
 	}
 
 	public void redirectSystemStreams() {

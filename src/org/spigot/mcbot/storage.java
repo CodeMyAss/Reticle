@@ -85,6 +85,9 @@ public class storage {
 	public static Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.png"));
 	public static Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.png"));
 	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.png"));
+	public static ImageIcon icon_loader = new ImageIcon(thisClass.getResource("logo.png"));
+	public static String icon_loader_path = thisClass.getResource("logo.png").getFile();
+	
 
 	public synchronized static void closeoptionswin() {
 		if (storage.getInstance().optwin != null) {

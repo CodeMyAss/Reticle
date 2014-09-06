@@ -18,7 +18,7 @@ public class updater extends Thread {
 		try {
 			String updateurl = "http://reticle.mc-atlantida.eu/update.php?version=" + storage.version;
 			String changlogurl = "http://reticle.mc-atlantida.eu/versions/current/changelog.txt";
-			String currentversionurl="http://reticle.mc-atlantida.eu/versions/current/Reticlse.jar";
+			String currentversionurl="http://reticle.mc-atlantida.eu/versions/current/Reticle.jar";
 			String res = readurl(updateurl);
 			if (res.startsWith("NV:")) {
 				// New version is found!
@@ -49,6 +49,7 @@ public class updater extends Thread {
 			storage.getInstance().updater = null;
 		} catch (IOException e) {
 			sendmsg("Update service not available!");
+			e.printStackTrace();
 		}
 
 	}

@@ -6,7 +6,7 @@
         <jar destfile="C:/www/minecraft server/atlantida/admin/cchat/Reticle.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
-                <attribute name="Rsrc-Main-Class" value="org.spigot.mcbot.mcbotapp"/>
+                <attribute name="Rsrc-Main-Class" value="org.spigot.mcbot.MAIN"/>
                 <attribute name="Class-Path" value="."/>
                 <attribute name="Rsrc-Class-Path" value="./ miglayout15-swing.jar forms-1.3.0.jar netty-all-5.0.0.Alpha1.jar gson-2.2.4.jar"/>
             </manifest>
