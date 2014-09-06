@@ -9,6 +9,8 @@ import java.net.URLConnection;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 
+import org.apache.commons.io.FileUtils;
+
 public class updater extends Thread {
 
 	@Override
@@ -34,6 +36,7 @@ public class updater extends Thread {
 				
 				if (n == JOptionPane.YES_OPTION) {
 					String destfile="Reticle_"+newver+".jar";
+					sendmsg("Download started");
 					getfilefromurl(currentversionurl,destfile);
 					storage.alert("Update", "Update was saved as "+destfile);
 					sendmsg("Update was saved as "+destfile);
@@ -51,7 +54,7 @@ public class updater extends Thread {
 	}
 
 	public void getfilefromurl(String url,String destfile) throws IOException {
-		org.apache.commons.io.FileUtils.copyURLToFile(new URL(url), new File(destfile));
+		FileUtils.copyURLToFile(new URL(url), new File(destfile));
 	}
 
 	public String readurl(String str) throws IOException {

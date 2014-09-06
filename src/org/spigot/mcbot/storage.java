@@ -37,8 +37,8 @@ public class storage {
 
 	private static storage instance = null;
 
-	public final static String homepage="http://reticle.mc-atlantida.eu/";
-	
+	public final static String homepage = "http://reticle.mc-atlantida.eu/";
+
 	private static String settingfile = "settings.ini";
 
 	public struct_settings settin;
@@ -58,10 +58,10 @@ public class storage {
 
 	// Settings window
 	public settings setwin;
-	
+
 	// About window
 	public aboutwin aboutwin;
-	
+
 	// Updating thread (Single)
 	public updater updater;
 
@@ -77,11 +77,14 @@ public class storage {
 	// Main window object
 	public JFrame mainframe;
 
+	// It apparently does not depend on the logics itself but on the compilers
+	// mood
+
 	final static Class<?> thisClass = resources.class;
-	public static Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.PNG"));
-	public static Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.PNG"));
-	public static Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.PNG"));
-	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.PNG"));
+	public static Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.png"));
+	public static Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.png"));
+	public static Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.png"));
+	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.png"));
 
 	public synchronized static void closeoptionswin() {
 		if (storage.getInstance().optwin != null) {
@@ -89,20 +92,20 @@ public class storage {
 			storage.getInstance().optwin = null;
 		}
 	}
-	
+
 	public synchronized static void checkforupdates() {
-			if(storage.getInstance().updater==null) {
-				storage.getInstance().updater=new updater();
-				storage.conlog("Updater service is now running");
-				storage.getInstance().updater.start();
-			} else {
-				storage.conlog("Updater service is already running");
-			}
+		if (storage.getInstance().updater == null) {
+			storage.getInstance().updater = new updater();
+			storage.conlog("Updater service is now running");
+			storage.getInstance().updater.start();
+		} else {
+			storage.conlog("Updater service is already running");
+		}
 	}
-	
+
 	public synchronized static void openaboutwin() {
-		if(storage.getInstance().aboutwin==null) {
-			//Does not exist, must be created
+		if (storage.getInstance().aboutwin == null) {
+			// Does not exist, must be created
 			storage.getInstance().aboutwin = new aboutwin();
 			storage.getInstance().aboutwin.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			storage.getInstance().aboutwin.setVisible(true);
@@ -111,20 +114,20 @@ public class storage {
 			storage.getInstance().aboutwin.setVisible(true);
 		}
 	}
-	
+
 	public synchronized static void closeaboutwin() {
-		if(storage.getInstance().aboutwin!=null) {
+		if (storage.getInstance().aboutwin != null) {
 			storage.getInstance().aboutwin.dispose();
-			storage.getInstance().aboutwin=null;
+			storage.getInstance().aboutwin = null;
 		}
 	}
-	
+
 	public static void openweb(String url) {
-	    try {
-	        Desktop.getDesktop().browse(new URL(url).toURI());
-	    } catch (Exception e) {
-	        storage.conlog("Opening URL operation is not supported by this system");
-	    }
+		try {
+			Desktop.getDesktop().browse(new URL(url).toURI());
+		} catch (Exception e) {
+			storage.conlog("Opening URL operation is not supported by this system");
+		}
 	}
 
 	public static boolean getAutoupdate() {

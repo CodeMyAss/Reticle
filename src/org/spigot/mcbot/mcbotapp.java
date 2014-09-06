@@ -172,12 +172,11 @@ public class mcbotapp {
 		storage.getInstance().menu_dis = mntmNewMenuItem_3;
 		storage.getInstance().menu_set = mntmNewMenuItem_4;
 
+
 		storage.loadsettings();
 		mcbot main = new mcbot(new botsettings("Main"), true);
 		storage.getInstance().mainer = main;
-
 		storage.changemenuitems();
-
 		storage.savesettings();
 		storage.firsttabload();
 
