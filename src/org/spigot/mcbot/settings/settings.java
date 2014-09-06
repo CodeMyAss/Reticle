@@ -2,8 +2,6 @@ package org.spigot.mcbot.settings;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -58,30 +56,14 @@ public class settings extends JFrame {
 	 * frame.setVisible(true); } catch (Exception e) { e.printStackTrace(); } }
 	 * }); }
 	 */
+	/*
+	 * public settings(botsettings set) { EventQueue.invokeLater(new Runnable()
+	 * { public void run() { try { settings frame = new settings(1);
+	 * frame.setVisible(false); frame.thisobj = frame; } catch (Exception e) {
+	 * e.printStackTrace(); } } }); }
+	 */
 
-	public settings() {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					settings frame = new settings(1);
-					frame.setVisible(false);
-					frame.thisobj = frame;
-					/*
-					 * frame.addWindowListener(new
-					 * java.awt.event.WindowAdapter() {
-					 * 
-					 * @Override public void
-					 * windowClosing(java.awt.event.WindowEvent windowEvent) {
-					 * windowEvent.getComponent().setVisible(false); } });
-					 */
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	public settings(int r) {
+	public settings(final botsettings set) {
 		setType(Type.UTILITY);
 		setTitle("Settings");
 		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -109,13 +91,16 @@ public class settings extends JFrame {
 		JButton btnNewButton = new JButton("Save settings");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				// New settings from user
 				botsettings bs = storage.getInstance().setobj.getsettings();
-				String acti = storage.getsettingsobj().textcurtabname.getText();
-				// String acti = storage.getselectedtabtitle();
-				int anum = storage.getselectedtabindex();
+				// Old bot name used to identification
+				//String acti = storage.getsettingsobj().textcurtabname.getText();
+				String acti=set.gettabname();
 				if (storage.verifysettings(acti, bs)) {
+					// Tab index
+					int anum = storage.getselectedtabindex();
 					storage.resetset(bs, acti, anum);
-					storage.getsettingwin().setVisible(false);
+					storage.closesettingswindow();
 				}
 			}
 		});
@@ -193,47 +178,47 @@ public class settings extends JFrame {
 		panel_3 = new JPanel();
 		tabbedPane.addTab("Behavior", null, panel_3, null);
 		panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][]"));
-		
-				JLabel lblActivateTabOn = new JLabel("Activate tab on new message:");
-				panel_3.add(lblActivateTabOn, "cell 1 0,alignx right");
-		
-				checkactiv = new JCheckBox("");
-				panel_3.add(checkactiv, "cell 2 0");
-		
-				JLabel lblUseLogoutCommands = new JLabel("Use logout commands upon disconnect:");
-				panel_3.add(lblUseLogoutCommands, "cell 1 1,alignx right");
-		
-				checkdisccom = new JCheckBox("");
-				panel_3.add(checkdisccom, "cell 2 1");
-		
-				JLabel lblSendLoginCommands = new JLabel("Send login commands upon connect:");
-				panel_3.add(lblSendLoginCommands, "cell 1 2,alignx right");
-		
-				checkconcom = new JCheckBox("");
-				panel_3.add(checkconcom, "cell 2 2");
-		
-				JLabel lblSendAntiafkCommands = new JLabel("Send anti-afk commands periodically:");
-				panel_3.add(lblSendAntiafkCommands, "cell 1 3,alignx right");
-		
-				checkafkcom = new JCheckBox("");
-				panel_3.add(checkafkcom, "cell 2 3");
-		
+
+		JLabel lblActivateTabOn = new JLabel("Activate tab on new message:");
+		panel_3.add(lblActivateTabOn, "cell 1 0,alignx right");
+
+		checkactiv = new JCheckBox("");
+		panel_3.add(checkactiv, "cell 2 0");
+
+		JLabel lblUseLogoutCommands = new JLabel("Use logout commands upon disconnect:");
+		panel_3.add(lblUseLogoutCommands, "cell 1 1,alignx right");
+
+		checkdisccom = new JCheckBox("");
+		panel_3.add(checkdisccom, "cell 2 1");
+
+		JLabel lblSendLoginCommands = new JLabel("Send login commands upon connect:");
+		panel_3.add(lblSendLoginCommands, "cell 1 2,alignx right");
+
+		checkconcom = new JCheckBox("");
+		panel_3.add(checkconcom, "cell 2 2");
+
+		JLabel lblSendAntiafkCommands = new JLabel("Send anti-afk commands periodically:");
+		panel_3.add(lblSendAntiafkCommands, "cell 1 3,alignx right");
+
+		checkafkcom = new JCheckBox("");
+		panel_3.add(checkafkcom, "cell 2 3");
+
 		JLabel lblAntiafkCommandsPeriod = new JLabel("Anti-afk commands period:");
 		panel_3.add(lblAntiafkCommandsPeriod, "cell 1 4,alignx trailing");
-		
+
 		textantiafkdelay = new JTextField();
 		panel_3.add(textantiafkdelay, "cell 2 4,growx");
 		textantiafkdelay.setColumns(10);
-		
+
 		JLabel lblReconnectAutomatically = new JLabel("Reconnect automatically:");
 		panel_3.add(lblReconnectAutomatically, "cell 1 5,alignx right");
-		
+
 		checkautoreconnect = new JCheckBox("");
 		panel_3.add(checkautoreconnect, "cell 2 5");
-		
+
 		JLabel lblReconnectDelay = new JLabel("Reconnect delay:");
 		panel_3.add(lblReconnectDelay, "cell 1 6,alignx trailing");
-		
+
 		textreconnectdelay = new JTextField();
 		panel_3.add(textreconnectdelay, "cell 2 6,growx");
 		textreconnectdelay.setColumns(10);
@@ -266,33 +251,35 @@ public class settings extends JFrame {
 		textafkcom = new JTextArea();
 		scrollPane_2.setViewportView(textafkcom);
 		storage.getInstance().winobj = getFrames()[2];
-		if (this.txtservername != null) {
-			set_obj_struct sobj = storage.getsettingsobj();
-			sobj.txtservername = txtservername;
-			sobj.textserverip = textserverip;
-			sobj.textserverport = textserverport;
-			sobj.checkBox = checkBox;
-			sobj.txtNick = txtNick;
-			sobj.checkactiv = checkactiv;
-			sobj.checkconcom = checkconcom;
-			sobj.checkdisccom = checkdisccom;
-			sobj.checkafkcom = checkafkcom;
-			sobj.textlogincom = textlogincom;
-			sobj.textlogoutcom = textlogoutcom;
-			sobj.textafkcom = textafkcom;
-			sobj.textcurtabname = textcurtabname;
-			sobj.textantiafkdelay = textantiafkdelay;
-			sobj.checkautoreconnect=checkautoreconnect;
-			sobj.textreconnectdelay=textreconnectdelay;
-		}
+		set_obj_struct sobj = storage.getsettingsobj();
+		sobj.txtservername = txtservername;
+		sobj.textserverip = textserverip;
+		sobj.textserverport = textserverport;
+		sobj.checkBox = checkBox;
+		sobj.txtNick = txtNick;
+		sobj.checkactiv = checkactiv;
+		sobj.checkconcom = checkconcom;
+		sobj.checkdisccom = checkdisccom;
+		sobj.checkafkcom = checkafkcom;
+		sobj.textlogincom = textlogincom;
+		sobj.textlogoutcom = textlogoutcom;
+		sobj.textafkcom = textafkcom;
+		sobj.textcurtabname = textcurtabname;
+		sobj.textantiafkdelay = textantiafkdelay;
+		sobj.checkautoreconnect = checkautoreconnect;
+		sobj.textreconnectdelay = textreconnectdelay;
+		storage.getInstance().setobj.setsettings(set);
+		this.setVisible(true);
 	}
 
 	public JTextField getTextantiafkdelay() {
 		return textantiafkdelay;
 	}
+
 	public JCheckBox getCheckautoreconnect() {
 		return checkautoreconnect;
 	}
+
 	public JTextField getTextreconnectdelay() {
 		return textreconnectdelay;
 	}

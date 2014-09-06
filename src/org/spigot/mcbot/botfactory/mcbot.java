@@ -93,7 +93,7 @@ public class mcbot {
 	}
 
 	public String gettabname() {
-		return this.rawbot.bottabname;
+		return this.rawbot.gettabname();
 	}
 
 	public Style getstyle(String combo) {

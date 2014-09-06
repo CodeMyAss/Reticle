@@ -20,11 +20,11 @@ public class botsettings {
 	public String[] autologincmd = new String[0];
 	public String[] autologoutcmd = new String[0];
 	public String[] autoantiafkcmd = new String[0];
-	public String bottabname = "???";
+	//@Deprecated
+	//public String bottabname = "???";
 
 	public botsettings(String name) {
 		this.nick = name;
-		this.bottabname = gettabname();
 	}
 
 	public String gettabname() {
@@ -64,17 +64,15 @@ public class botsettings {
 	}
 
 	public void registerbot() {
-		this.bottabname = gettabname();
-		storage.getInstance().settin.settings.put(bottabname, this);
+		storage.getInstance().settin.settings.put(gettabname(), this);
 	}
 
 	public void unregisterbot() {
-		storage.getInstance().settin.settings.remove(bottabname);
+		storage.getInstance().settin.settings.remove(gettabname());
 	}
 
 	public void renamebot(String newname) {
 		unregisterbot();
-		bottabname = newname;
 		registerbot();
 	}
 

@@ -33,7 +33,7 @@ import org.spigot.mcbot.settings.struct_settings;
 import org.spigot.mcbot.settings.settings;
 
 public class storage {
-	public static String version = "1.02";
+	public static String version = "1.04";
 
 	private static storage instance = null;
 
@@ -87,7 +87,6 @@ public class storage {
 	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.png"));
 	public static ImageIcon icon_loader = new ImageIcon(thisClass.getResource("logo.png"));
 	public static String icon_loader_path = thisClass.getResource("logo.png").getFile();
-	
 
 	public synchronized static void closeoptionswin() {
 		if (storage.getInstance().optwin != null) {
@@ -242,6 +241,11 @@ public class storage {
 		}
 	}
 
+	public static void closesettingswindow() {
+		storage.getInstance().winobj.dispose();
+		storage.getInstance().winobj = null;
+	}
+
 	public static void setsetvis(boolean vis) {
 		storage.getInstance().winobj.setVisible(vis);
 	}
@@ -270,26 +274,18 @@ public class storage {
 	}
 
 	public static boolean settingwindowopened() {
-		return storage.getInstance().winobj.isVisible();
+		return (storage.getInstance().winobj != null);
 	}
 
-	public static void opensettingswindow() {
+	public synchronized static void opensettingswindow() {
 		if (settingwindowopened()) {
 			storage.setsetvis(true);
 		} else {
 			botsettings set = getcurrenttabsettings();
 			if (set != null) {
-				Frame swin = getsettingwin();
-				swin.setVisible(true);
-				set_obj_struct sobj = storage.getsettingsobj();
-				sobj.setsettings(set);
+				storage.getInstance().winobj = new settings(set);
 			}
 		}
-	}
-
-	public static void getselectedtab() {
-		// Component component =
-		// storage.getInstance().tabbedPane.getSelectedComponent();
 	}
 
 	public static int getselectedtabindex() {
@@ -317,7 +313,7 @@ public class storage {
 		} else {
 			mcbot mbot = new mcbot(bot);
 			mbot.ismain = false;
-			storage.getInstance().settin.settings.put(bot.bottabname, bot);
+			storage.getInstance().settin.settings.put(bot.gettabname(), bot);
 			storage.getInstance().settin.bots.put(mbot.gettabname(), mbot);
 			mbot.seticon(ICONSTATE.DISCONNECTED);
 			savesettings();
@@ -325,7 +321,7 @@ public class storage {
 	}
 
 	public static String stripcolors(String str) {
-		return str.replaceAll("/§./", "");
+		return str.replaceAll("/(§)./", "");
 	}
 
 	public static void conlog(String message) {
@@ -341,7 +337,6 @@ public class storage {
 		if (tabs != null) {
 			for (String key : tabs.keySet()) {
 				botsettings set = tabs.get(key);
-				set.bottabname = key;
 				mcbot bot = new mcbot(set);
 				bot.ismain = false;
 				if (set.autoconnect) {
@@ -409,11 +404,8 @@ public class storage {
 	}
 
 	public static boolean verifysettings(String acti, botsettings bot) {
-		boolean namecorrection = !(acti.toLowerCase().equals(bot.gettabname().toLowerCase())); // To
-																								// use
-																								// in
-																								// double
-																								// check
+		boolean namecorrection = !(acti.toLowerCase().equals(bot.gettabname().toLowerCase()));
+		// To use in double check
 		if (!bot.isDoubleExclusive(namecorrection)) {
 			storage.alert("Configuration error", "There is another bot with this servername and nickname");
 			return false;

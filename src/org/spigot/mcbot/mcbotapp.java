@@ -14,8 +14,6 @@ import javax.swing.JMenuItem;
 
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.settings.botsettings;
-import org.spigot.mcbot.settings.settings;
-
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -29,8 +27,6 @@ import javax.swing.event.ChangeEvent;
 public class mcbotapp {
 
 	protected JFrame frmReticle;
-	private static Thread loader;
-
 	/**
 	 * Launch the application.
 	 */
@@ -165,10 +161,9 @@ public class mcbotapp {
 		});
 		frmReticle.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
-		//redirectSystemStreams();
+		redirectSystemStreams();
 		
 		storage.getInstance().tabbedPane = tabbedPane;
-		storage.getInstance().settings = new settings();
 		storage.getInstance().menu_con = mntmNewMenuItem_2;
 		storage.getInstance().menu_dis = mntmNewMenuItem_3;
 		storage.getInstance().menu_set = mntmNewMenuItem_4;

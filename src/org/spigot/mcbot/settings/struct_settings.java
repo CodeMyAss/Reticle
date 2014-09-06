@@ -140,7 +140,6 @@ public class struct_settings {
 				// Bot name here
 				if (bot != null) {
 					// Previous bot exists, not saved yet
-					bot.bottabname = bot.gettabname();
 					if (sb1.toString().length() > 2) {
 						bot.autologincmd = sb1.toString().substring(2).split("\r\n");
 					}
@@ -150,7 +149,7 @@ public class struct_settings {
 					if (sb3.toString().length() > 2) {
 						bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
 					}
-					settings.put(bot.bottabname, bot);
+					settings.put(bot.gettabname(), bot);
 					bot = new botsettings(null);
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
@@ -182,8 +181,7 @@ public class struct_settings {
 			if (sb3.toString().length() > 2) {
 				bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
 			}
-			bot.bottabname = bot.gettabname();
-			settings.put(bot.bottabname, bot);
+			settings.put(bot.gettabname(), bot);
 		}
 	}
 }
