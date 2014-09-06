@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 
 import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
@@ -34,7 +35,7 @@ public class connector extends Thread {
 	private AntiAFK afkter;
 	private boolean haslogged = false;
 	public boolean reconnect = false;
-	private HashMap<String, String> Tablist = new HashMap<String, String>();
+	private List<String> Tablist = new ArrayList<String>();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
@@ -123,6 +124,7 @@ public class connector extends Thread {
 			}
 		} catch (IllegalArgumentException e) {
 			sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
+			e.printStackTrace();
 		} catch (NullPointerException e) {
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");

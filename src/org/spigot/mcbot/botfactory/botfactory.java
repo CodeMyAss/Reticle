@@ -62,8 +62,6 @@ public class botfactory {
 		}
 		JScrollPane scrollPane = new JScrollPane();
 
-
-		
 		JTextPane txtpnText = new JTextPane();
 		txtpnText.setText("");
 		if (bot.ismain) {
@@ -81,12 +79,12 @@ public class botfactory {
 		txtCommands.setText("");
 		panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 		txtCommands.setColumns(10);
-		
+
 		JCheckBox autostroll = new JCheckBox();
 		autostroll.setBackground(txtpnText.getBackground());
 		autostroll.setSelected(true);
 		panel_1.add(autostroll, "cell 0 1");
-		
+
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -95,36 +93,38 @@ public class botfactory {
 				}
 			}
 		});
-		
-		
+
 		txtCommands.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode()=='\n') {
+				if (e.getKeyCode() == '\n') {
 					if (storage.sendmessagetoactivebot(txtCommands.getText())) {
 						txtCommands.setText("");
 					}
 				}
 			}
 		});
-		
+
 		panel_1.add(btnNewButton, "cell 0 1");
 
 		if (bot.ismain) {
 			panel.add(panel_1, "cell 0 0,grow");
-			bot.setconfig(txtpnText, null, panel_1,autostroll);
+			bot.setconfig(txtpnText, null, panel_1, autostroll);
 		} else {
+
 			JTable table = new JTable();
 			table.setModel(new DefaultTableModel(new Object[][] { { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, }, new String[] { "New column", "New column", "New column" }));
 			table.setBackground(Color.BLACK);
 			table.setForeground(Color.WHITE);
+			table.setEnabled(false);
 			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel_1, table);
 			splitPane.setDividerSize(5);
+			splitPane.setResizeWeight(0.9);
 			splitPane.setDividerLocation(500);
 			panel.add(splitPane, "cell 0 0,grow");
-			bot.setconfig(txtpnText, table, panel_1,autostroll);
+			bot.setconfig(txtpnText, table, panel_1, autostroll);
 		}
-		
+
 	}
 
 }

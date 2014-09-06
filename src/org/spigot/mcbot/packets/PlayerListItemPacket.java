@@ -2,9 +2,7 @@ package org.spigot.mcbot.packets;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashMap;
-
-import org.spigot.mcbot.storage;
+import java.util.List;
 
 public class PlayerListItemPacket extends packet {
 
@@ -32,8 +30,8 @@ public class PlayerListItemPacket extends packet {
 
 	}
 
-	public void Serve(HashMap<String, String> tablist) {
-		if(tablist.containsKey(name)) {
+	public void Serve(List<String> tablist) {
+		if(tablist.contains(name)) {
 			//We are already in tablist
 			if(online) {
 				//And online (Correct)
@@ -45,7 +43,7 @@ public class PlayerListItemPacket extends packet {
 			//We are not in tablist yet
 			if(online) {
 				//But online (Must add)
-				tablist.put(name, storage.stripcolors(name));
+				tablist.add(name);
 			} else {
 				//And not online (correct)
 			}

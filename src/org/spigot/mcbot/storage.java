@@ -21,7 +21,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.resources.resources;
@@ -422,5 +421,94 @@ public class storage {
 		storage.getInstance().settin.settings.remove(name);
 		storage.getInstance().tabbedPane.remove(id);
 		storage.savesettings();
+	}
+
+	private static String getcolorfromtypeashex(String type) {
+		switch(type) {
+			case "0":
+				return "#333333";
+			case "1":
+				return "#0000aa";
+			case "2":
+				return "#00aa00";
+			case "3":
+				return "#00aaaa";
+			case "4":
+				return "#aa0000";
+			case "5":
+				return "#aa00aa";
+			case "6":
+				return "#ffaa00";
+			case "7":
+				return "#aaaaaa";
+			case "8":
+				return "#555555";
+			case "9":
+				return "#5555ff";
+			case "a":
+				return "#55ff55";
+			case "b":
+				return "#55ffff";
+			case "c":
+				return "#ff5555";
+			case "d":
+				return "#ff55ff";
+			case "e":
+				return "#ffff55";
+			case "f":
+				return "#ffffff";
+		}
+		return "#ffffff";
+	}
+
+	public static String parsecolorashtml(String message) {
+		if (message.length() > 0) {
+			StringBuilder sb=new StringBuilder();
+			message = " " + message;
+			String bold = "";
+			String rebold = "";
+			String underline = "";
+			String reunderline = "";
+			String strike = "";
+			String restrike = "";
+			String italic = "";
+			String reitalic ="";
+			String color = "<font color=#ffffff>";
+			String recolor="</font>";
+			String[] msgs = (message + "\n").split("§");
+			for (String msg : msgs) {
+				String tmg = msg.substring(0, 1).toLowerCase();
+				if (tmg.equals("l")) {
+					bold = "<b>";
+					rebold="</b>";
+				} else if (tmg.equals("m")) {
+					strike = "<m>";
+					restrike="</m>";
+				} else if (tmg.equals("n")) {
+					underline = "<n>";
+					reunderline="</n>";
+				} else if (tmg.equals("o")) {
+					italic = "<i>";
+					reitalic="</i>";
+				} else if (tmg.equals("r")) {
+					bold = "";
+					rebold="";
+					strike = "";
+					restrike="";
+					underline = "";
+					reunderline="";
+					italic = "";
+					reitalic="";
+					color = "f";
+				} else {
+					color = "<font color="+getcolorfromtypeashex(tmg)+">";
+				}
+				String restmsg = msg.substring(1);
+				sb.append("<html>"+italic+underline+strike+bold+color+restmsg+recolor+rebold+restrike+reunderline+reitalic+"</html>");
+			}
+			return sb.toString();
+		} else {
+			return "";
+		}
 	}
 }

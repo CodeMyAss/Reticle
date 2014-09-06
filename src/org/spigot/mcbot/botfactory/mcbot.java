@@ -4,8 +4,10 @@ import java.awt.Color;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
@@ -316,7 +318,7 @@ public class mcbot {
 		}
 	}
 
-	public void refreshtablist(HashMap<String, String> tablist) {
+	public void refreshtablist(List<String> tablist) {
 		// First thing we need is new table model
 		int i = 0;
 		int x = this.tablistsize[0];
@@ -326,21 +328,23 @@ public class mcbot {
 			String[][] redim = new String[y][x];
 			String[] cols = new String[x];
 			for (int o = 0; o < x; o++) {
-				cols[o] = "Column " + o;
+				cols[o] = new String("Column " + o);
 			}
-			for (String name : tablist.keySet()) {
+			for(String name:tablist) {
 				if (i == max) {
 					break;
 				}
 				int locx = i % x;
 				int locy = i / x;
-				redim[locy][locx] = tablist.get(name);
+				redim[locy][locx] = storage.parsecolorashtml(name);
+				//System.out.println(storage.parsecolorashtml(name));
+				// redim[locy][locx] = new String("<html><font color=#00ffff>TAble</font></html>");
 				i++;
 			}
 			for (; i < max; i++) {
 				int locx = i % x;
 				int locy = i / x;
-				redim[locy][locx] = " ";
+				redim[locy][locx] = new String(" ");
 			}
 			final DefaultTableModel model = new DefaultTableModel(redim, cols);
 			SwingUtilities.invokeLater(new Runnable() {
@@ -364,6 +368,7 @@ public class mcbot {
 	public void resettablist() {
 		tablistsize[0] = 1;
 		tablistsize[1] = 20;
-		refreshtablist(new HashMap<String, String>());
+		refreshtablist(new ArrayList<String>());
 	}
+
 }
