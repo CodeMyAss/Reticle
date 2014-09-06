@@ -29,8 +29,9 @@ public class PlayerListItemPacket extends packet {
 		super.readShort();
 
 	}
-
-	public void Serve(List<String> tablist) {
+	
+	// Meaning of true return value is to update tablist
+	public boolean Serve(List<String> tablist) {
 		if(tablist.contains(name)) {
 			//We are already in tablist
 			if(online) {
@@ -38,15 +39,18 @@ public class PlayerListItemPacket extends packet {
 			} else {
 				//Bot not online (Suicide)
 				tablist.remove(name);
+				return true;
 			}
 		} else {
 			//We are not in tablist yet
 			if(online) {
 				//But online (Must add)
 				tablist.add(name);
+				return true;
 			} else {
 				//And not online (correct)
 			}
 		}
+		return false;
 	}
 }

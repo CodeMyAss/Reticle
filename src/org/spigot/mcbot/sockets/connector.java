@@ -85,7 +85,7 @@ public class connector extends Thread {
 			new LoginStartPacket(sock).Write(bot.username);
 			new LoginSuccessPacket(sock, this).read();
 			bot.seticon(ICONSTATE.CONNECTED);
-			this.reconnect=bot.getautoreconnect();
+			this.reconnect = bot.getautoreconnect();
 			int pid;
 			int len;
 			int[] pack = new int[2];
@@ -207,8 +207,8 @@ public class connector extends Thread {
 				// join game
 				pack = new JoinGamePacket(sock);
 				((JoinGamePacket) pack).Read(this);
-				// In reaction to this packet, send commands are sent (If
-				// enabled)
+			// In reaction to this packet, send commands are sent (If
+			// enabled)
 
 			break;
 
@@ -226,19 +226,21 @@ public class connector extends Thread {
 				pack = new SpawnPositionPacket(sock, len);
 				((SpawnPositionPacket) pack).Read();
 			break;
-			
+
 			case 7:
-				//Respawn
-				pack=new RespawnPacket(sock);
-				((RespawnPacket)pack).Read();
+				// Respawn
+				pack = new RespawnPacket(sock);
+				((RespawnPacket) pack).Read();
 			break;
-			
+
 			case 56:
 				// We got tablist update (yay)
 				pack = new PlayerListItemPacket(sock);
 				((PlayerListItemPacket) pack).Read();
-				((PlayerListItemPacket) pack).Serve(Tablist);
-				bot.refreshtablist(Tablist);
+				if (((PlayerListItemPacket) pack).Serve(Tablist)) {
+					//Tablist needs to be refreshed
+					bot.refreshtablist(Tablist);
+				}
 			break;
 
 			case 61:
