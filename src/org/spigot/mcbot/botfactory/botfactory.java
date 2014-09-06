@@ -61,8 +61,9 @@ public class botfactory {
 			panel_1.setBackground(Color.BLACK);
 		}
 		JScrollPane scrollPane = new JScrollPane();
-		panel_1.add(scrollPane, "cell 0 0,grow");
 
+
+		
 		JTextPane txtpnText = new JTextPane();
 		txtpnText.setText("");
 		if (bot.ismain) {
@@ -72,6 +73,8 @@ public class botfactory {
 			txtpnText.setBackground(Color.BLACK);
 			txtpnText.setForeground(Color.WHITE);
 		}
+		panel_1.add(scrollPane, "cell 0 0,grow");
+		scrollPane.add(txtpnText);
 		scrollPane.setViewportView(txtpnText);
 
 		final JTextField txtCommands = new JTextField();

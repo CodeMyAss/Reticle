@@ -161,7 +161,7 @@ public class mcbotapp {
 		});
 		frmReticle.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
-		redirectSystemStreams();
+		//redirectSystemStreams();
 		
 		storage.getInstance().tabbedPane = tabbedPane;
 		storage.getInstance().menu_con = mntmNewMenuItem_2;

@@ -321,7 +321,7 @@ public class storage {
 	}
 
 	public static String stripcolors(String str) {
-		return str.replaceAll("/(§)./", "");
+		return str.replaceAll("(\\§.)", "");
 	}
 
 	public static void conlog(String message) {

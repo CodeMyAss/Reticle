@@ -250,7 +250,7 @@ public class settings extends JFrame {
 
 		textafkcom = new JTextArea();
 		scrollPane_2.setViewportView(textafkcom);
-		storage.getInstance().winobj = getFrames()[2];
+		storage.getInstance().winobj = getFrames()[0];
 		set_obj_struct sobj = storage.getsettingsobj();
 		sobj.txtservername = txtservername;
 		sobj.textserverip = textserverip;
