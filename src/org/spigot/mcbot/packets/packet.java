@@ -58,6 +58,15 @@ public class packet {
 		return res;
 	}
 
+	public byte[] readArray() throws Exception {
+		short len = readShort();
+		if(len <= Short.MAX_VALUE) {
+			throw new Exception("Byte array error");
+		}
+		byte[] ret = readBytes(len);
+		return ret;
+	}
+
 	public byte[] readBytes(int len) throws IOException {
 		byte[] b = new byte[len];
 		this.input.read(b, 0, len);

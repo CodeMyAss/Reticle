@@ -6,10 +6,18 @@ import java.awt.Frame;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -21,8 +29,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
+import org.spigot.mcbot.events.event;
 import org.spigot.mcbot.resources.resources;
 import org.spigot.mcbot.settings.botsettings;
 import org.spigot.mcbot.settings.optionswin;
@@ -32,6 +42,8 @@ import org.spigot.mcbot.settings.struct_settings;
 import org.spigot.mcbot.settings.settings;
 
 public class storage {
+	public Collection<Method> handlers = new ArrayList<Method>();
+
 	public static String version = "1.04";
 
 	private static storage instance = null;
@@ -86,6 +98,67 @@ public class storage {
 	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.png"));
 	public static ImageIcon icon_loader = new ImageIcon(thisClass.getResource("logo.png"));
 	public static String icon_loader_path = thisClass.getResource("logo.png").getFile();
+
+	public void addHandler(Method handler) {
+		handlers.add(handler);
+	}
+
+	public void removeHandler(Method handler) {
+		handlers.remove(handler);
+	}
+
+	public void dispatchEvent(event event) {
+		for (Object handler : handlers) {
+			dispatchEventTo(event, handler);
+
+		}
+	}
+
+	private Collection<Method> findMatchingEventHandlerMethods(Object handler, String eventName) {
+		Method[] methods = handler.getClass().getDeclaredMethods();
+		Collection<Method> result = new ArrayList<Method>();
+		for (Method method : methods) {
+			if (canHandleEvent(method, eventName)) {
+				result.add(method);
+			}
+		}
+		return result;
+	}
+
+	protected void dispatchEventTo(event event, Object handler) {
+		Collection<Method> methods = findMatchingEventHandlerMethods(handler, event.getEventName());
+		for (Method method : methods) {
+			try {
+				// Make sure the method is accessible (JDK bug ?)
+				method.setAccessible(true);
+
+				if (method.getParameterTypes().length == 0)
+					method.invoke(handler);
+				if (method.getParameterTypes().length == 1)
+					method.invoke(handler, event);
+				if (method.getParameterTypes().length == 2)
+					method.invoke(handler, this, event);
+			} catch (Exception e) {
+				System.err.println("Could not invoke event handler!");
+				e.printStackTrace(System.err);
+			}
+		}
+	}
+
+	private boolean canHandleEvent(Method method, String eventName) {
+		HandleEvent handleEventAnnotation = method.getAnnotation(HandleEvent.class);
+		if (handleEventAnnotation != null) {
+			String[] values = handleEventAnnotation.value();
+			return Arrays.asList(values).contains(eventName);
+		}
+		return false;
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface HandleEvent {
+		String[] value();
+	}
 
 	public synchronized static void closeoptionswin() {
 		if (storage.getInstance().optwin != null) {
@@ -424,7 +497,7 @@ public class storage {
 	}
 
 	private static String getcolorfromtypeashex(String type) {
-		switch(type) {
+		switch (type) {
 			case "0":
 				return "#333333";
 			case "1":
@@ -463,7 +536,7 @@ public class storage {
 
 	public static String parsecolorashtml(String message) {
 		if (message.length() > 0) {
-			StringBuilder sb=new StringBuilder();
+			StringBuilder sb = new StringBuilder();
 			message = " " + message;
 			String bold = "";
 			String rebold = "";
@@ -472,39 +545,39 @@ public class storage {
 			String strike = "";
 			String restrike = "";
 			String italic = "";
-			String reitalic ="";
+			String reitalic = "";
 			String color = "<font color=#ffffff>";
-			String recolor="</font>";
+			String recolor = "</font>";
 			String[] msgs = (message + "\n").split("§");
 			for (String msg : msgs) {
 				String tmg = msg.substring(0, 1).toLowerCase();
 				if (tmg.equals("l")) {
 					bold = "<b>";
-					rebold="</b>";
+					rebold = "</b>";
 				} else if (tmg.equals("m")) {
 					strike = "<m>";
-					restrike="</m>";
+					restrike = "</m>";
 				} else if (tmg.equals("n")) {
 					underline = "<n>";
-					reunderline="</n>";
+					reunderline = "</n>";
 				} else if (tmg.equals("o")) {
 					italic = "<i>";
-					reitalic="</i>";
+					reitalic = "</i>";
 				} else if (tmg.equals("r")) {
 					bold = "";
-					rebold="";
+					rebold = "";
 					strike = "";
-					restrike="";
+					restrike = "";
 					underline = "";
-					reunderline="";
+					reunderline = "";
 					italic = "";
-					reitalic="";
+					reitalic = "";
 					color = "f";
 				} else {
-					color = "<font color="+getcolorfromtypeashex(tmg)+">";
+					color = "<font color=" + getcolorfromtypeashex(tmg) + ">";
 				}
 				String restmsg = msg.substring(1);
-				sb.append("<html>"+italic+underline+strike+bold+color+restmsg+recolor+rebold+restrike+reunderline+reitalic+"</html>");
+				sb.append("<html>" + italic + underline + strike + bold + color + restmsg + recolor + rebold + restrike + reunderline + reitalic + "</html>");
 			}
 			return sb.toString();
 		} else {

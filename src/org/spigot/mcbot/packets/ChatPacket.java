@@ -3,6 +3,8 @@ package org.spigot.mcbot.packets;
 import java.io.IOException;
 import java.net.Socket;
 
+import org.spigot.mcbot.events.ChatEvent;
+
 public class ChatPacket extends packet {
 	private Socket sock;
 
@@ -10,13 +12,13 @@ public class ChatPacket extends packet {
 		this.sock = sock;
 	}
 	
-	public String Read() throws IOException {
+	public ChatEvent Read() throws IOException {
 		super.input=sock.getInputStream();
 		//The string itself
 		String chat=super.readString();
 		//Position byte
 		//super.readByte();
-		return chat;
+		return new ChatEvent(chat);
 	}
 	
 	public void Write(String message)  throws IOException {

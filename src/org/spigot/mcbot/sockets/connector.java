@@ -11,6 +11,7 @@ import java.util.List;
 import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
+import org.spigot.mcbot.events.ChatEvent;
 import org.spigot.mcbot.packets.ChatPacket;
 import org.spigot.mcbot.packets.ConnectionResetPacket;
 import org.spigot.mcbot.packets.DisplayScoreBoardPacket;
@@ -215,8 +216,8 @@ public class connector extends Thread {
 			case 2:
 				// Chat
 				pack = new ChatPacket(sock);
-				String msg = ((ChatPacket) pack).Read();
-				msg = parsechat(msg);
+				ChatEvent event = ((ChatPacket) pack).Read();
+				String msg = parsechat(event.getMessage());
 				sendmsg(msg);
 				tryandsendlogin();
 			break;
