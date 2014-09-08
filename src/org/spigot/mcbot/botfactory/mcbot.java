@@ -337,7 +337,6 @@ public class mcbot {
 				int locx = i % x;
 				int locy = i / x;
 				// Now we should parse player name by his team
-				System.out.println("Namer: "+name);
 				String realname=name;
 				if(playerteams.containsKey(name)) {
 					//He is in a team
