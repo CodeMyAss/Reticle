@@ -6,18 +6,10 @@ import java.awt.Frame;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -32,7 +24,6 @@ import javax.swing.JTextField;
 
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
-import org.spigot.mcbot.events.event;
 import org.spigot.mcbot.resources.resources;
 import org.spigot.mcbot.settings.botsettings;
 import org.spigot.mcbot.settings.optionswin;
@@ -42,9 +33,9 @@ import org.spigot.mcbot.settings.struct_settings;
 import org.spigot.mcbot.settings.settings;
 
 public class storage {
-	public Collection<Method> handlers = new ArrayList<Method>();
-
 	public static String version = "1.04";
+
+	protected EventHandler handler = new EventHandler();
 
 	private static storage instance = null;
 
@@ -98,67 +89,6 @@ public class storage {
 	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.png"));
 	public static ImageIcon icon_loader = new ImageIcon(thisClass.getResource("logo.png"));
 	public static String icon_loader_path = thisClass.getResource("logo.png").getFile();
-
-	public void addHandler(Method handler) {
-		handlers.add(handler);
-	}
-
-	public void removeHandler(Method handler) {
-		handlers.remove(handler);
-	}
-
-	public void dispatchEvent(event event) {
-		for (Object handler : handlers) {
-			dispatchEventTo(event, handler);
-
-		}
-	}
-
-	private Collection<Method> findMatchingEventHandlerMethods(Object handler, String eventName) {
-		Method[] methods = handler.getClass().getDeclaredMethods();
-		Collection<Method> result = new ArrayList<Method>();
-		for (Method method : methods) {
-			if (canHandleEvent(method, eventName)) {
-				result.add(method);
-			}
-		}
-		return result;
-	}
-
-	protected void dispatchEventTo(event event, Object handler) {
-		Collection<Method> methods = findMatchingEventHandlerMethods(handler, event.getEventName());
-		for (Method method : methods) {
-			try {
-				// Make sure the method is accessible (JDK bug ?)
-				method.setAccessible(true);
-
-				if (method.getParameterTypes().length == 0)
-					method.invoke(handler);
-				if (method.getParameterTypes().length == 1)
-					method.invoke(handler, event);
-				if (method.getParameterTypes().length == 2)
-					method.invoke(handler, this, event);
-			} catch (Exception e) {
-				System.err.println("Could not invoke event handler!");
-				e.printStackTrace(System.err);
-			}
-		}
-	}
-
-	private boolean canHandleEvent(Method method, String eventName) {
-		HandleEvent handleEventAnnotation = method.getAnnotation(HandleEvent.class);
-		if (handleEventAnnotation != null) {
-			String[] values = handleEventAnnotation.value();
-			return Arrays.asList(values).contains(eventName);
-		}
-		return false;
-	}
-
-	@Target(ElementType.METHOD)
-	@Retention(RetentionPolicy.RUNTIME)
-	public @interface HandleEvent {
-		String[] value();
-	}
 
 	public synchronized static void closeoptionswin() {
 		if (storage.getInstance().optwin != null) {
@@ -572,14 +502,18 @@ public class storage {
 					reunderline = "";
 					italic = "";
 					reitalic = "";
-					color = "f";
+					color = "";
+					recolor= "";
 				} else {
 					color = "<font color=" + getcolorfromtypeashex(tmg) + ">";
 				}
 				String restmsg = msg.substring(1);
-				sb.append("<html>" + italic + underline + strike + bold + color + restmsg + recolor + rebold + restrike + reunderline + reitalic + "</html>");
+				if (restmsg.length() > 0) {
+					restmsg=restmsg.replace("<","&lt;").replace(">","&gt;");
+					sb.append(italic + underline + strike + bold + color + restmsg + recolor + rebold + restrike + reunderline + reitalic);
+				}
 			}
-			return sb.toString();
+			return "<html>" + sb.toString() + "</html>";
 		} else {
 			return "";
 		}

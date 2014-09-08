@@ -6,12 +6,14 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.events.ChatEvent;
+import org.spigot.mcbot.events.TeamEvent;
 import org.spigot.mcbot.packets.ChatPacket;
 import org.spigot.mcbot.packets.ConnectionResetPacket;
 import org.spigot.mcbot.packets.DisplayScoreBoardPacket;
@@ -24,7 +26,9 @@ import org.spigot.mcbot.packets.LoginSuccessPacket;
 import org.spigot.mcbot.packets.PlayerListItemPacket;
 import org.spigot.mcbot.packets.RespawnPacket;
 import org.spigot.mcbot.packets.SpawnPositionPacket;
+import org.spigot.mcbot.packets.TeamPacket;
 import org.spigot.mcbot.packets.packet;
+import org.spigot.mcbot.settings.team_struct;
 import org.spigot.mcbot.sockets.chatparse.chatclass;
 
 import com.google.gson.Gson;
@@ -37,6 +41,8 @@ public class connector extends Thread {
 	private boolean haslogged = false;
 	public boolean reconnect = false;
 	private List<String> Tablist = new ArrayList<String>();
+	private HashMap<String, String> playerTeams = new HashMap<String, String>();
+	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
@@ -86,6 +92,8 @@ public class connector extends Thread {
 			new LoginStartPacket(sock).Write(bot.username);
 			new LoginSuccessPacket(sock, this).read();
 			bot.seticon(ICONSTATE.CONNECTED);
+			// Init routine
+
 			this.reconnect = bot.getautoreconnect();
 			int pid;
 			int len;
@@ -239,14 +247,19 @@ public class connector extends Thread {
 				pack = new PlayerListItemPacket(sock);
 				((PlayerListItemPacket) pack).Read();
 				if (((PlayerListItemPacket) pack).Serve(Tablist)) {
-					//Tablist needs to be refreshed
-					bot.refreshtablist(Tablist);
+					// Tablist needs to be refreshed
+					this.refreshTablist();
 				}
 			break;
 
 			case 61:
 				// Scoreboard display
 				new DisplayScoreBoardPacket(sock).Read();
+			break;
+
+			case 62:
+				// Teams
+				this.handleteam(new TeamPacket(sock).Read(len));
 			break;
 
 			case 64:
@@ -262,6 +275,52 @@ public class connector extends Thread {
 		dim[0] = x;
 		dim[1] = y;
 		bot.tablistsize = dim;
+	}
+
+	private void handleteam(TeamEvent teamevent) {
+		String teamname = teamevent.getTeamName();
+		if (teamevent.TeamIsBeingCreated()) {
+			if (this.TeamsByNames.containsKey(teamname)) {
+				// Team already exists in structure
+			} else {
+				team_struct Team = new team_struct(teamname);
+				List<String> players = teamevent.getPlayers();
+				Team.players = players;
+				Team.teamName = teamevent.getTeamDisplayName();
+				Team.setDisplayFormat(teamevent.getPrefix(), teamevent.getSuffix(), teamevent.getColorAsFormatedString());
+				// Add to structure
+				this.TeamsByNames.put(teamname, Team);
+				// Add this team to every listed player
+				for (String player : players) {
+					this.playerTeams.put(player, teamname);
+				}
+			}
+		} else if (teamevent.TeamIsBeingRemoved()) {
+			if (this.TeamsByNames.containsKey(teamname)) {
+				// Remove this team from all existing players
+				List<String> players = this.TeamsByNames.get(teamname).players;
+				for (String player : players) {
+					this.playerTeams.remove(player);
+				}
+				// Remove team from structure
+				this.TeamsByNames.remove(teamname);
+			}
+		} else if (teamevent.TeamInformationAreBeingUpdated()) {
+			if (this.TeamsByNames.containsKey(teamname)) {
+				this.TeamsByNames.get(teamname).setDisplayFormat(teamevent.getPrefix(), teamevent.getSuffix(), teamevent.getColorAsFormatedString());
+			}
+		} else if (teamevent.PlayersBeingAdded()) {
+			if (this.TeamsByNames.containsKey(teamname)) {
+				List<String> players = teamevent.getPlayers();
+				this.TeamsByNames.get(teamname).AddPlayers(players);
+			}
+		} else if (teamevent.PlayersBeingRemoved()) {
+			if (this.TeamsByNames.containsKey(teamname)) {
+				List<String> players = teamevent.getPlayers();
+				this.TeamsByNames.get(teamname).RemovePlayers(players);
+			}
+		}
+		refreshTablist();
 	}
 
 	private void tryandsendlogin() {
@@ -334,6 +393,10 @@ public class connector extends Thread {
 		} else {
 			return null;
 		}
+	}
+
+	public void refreshTablist() {
+		bot.refreshtablist(Tablist, playerTeams, TeamsByNames);
 	}
 
 	public enum MCCOLOR {

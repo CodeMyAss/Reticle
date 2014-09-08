@@ -24,6 +24,7 @@ import javax.swing.text.StyledDocument;
 
 import org.spigot.mcbot.storage;
 import org.spigot.mcbot.settings.botsettings;
+import org.spigot.mcbot.settings.team_struct;
 import org.spigot.mcbot.sockets.connector;
 
 public class mcbot {
@@ -317,7 +318,7 @@ public class mcbot {
 		}
 	}
 
-	public void refreshtablist(List<String> tablist) {
+	public void refreshtablist(List<String> tablist,HashMap<String,String> playerteams,HashMap<String,team_struct> teams) {
 		// First thing we need is new table model
 		int i = 0;
 		int x = this.tablistsize[0];
@@ -335,9 +336,17 @@ public class mcbot {
 				}
 				int locx = i % x;
 				int locy = i / x;
-				redim[locy][locx] = storage.parsecolorashtml(name);
-				//System.out.println(storage.parsecolorashtml(name));
-				// redim[locy][locx] = new String("<html><font color=#00ffff>TAble</font></html>");
+				// Now we should parse player name by his team
+				String realname=name;
+				if(playerteams.containsKey(name)) {
+					//He is in a team
+					String teamname=playerteams.get(name);
+					if(teams.containsKey(teamname)) {
+						//His team exists
+						realname=teams.get(teamname).getFormatedPlayer(realname);
+					}
+				}
+				redim[locy][locx] = storage.parsecolorashtml(realname);
 				i++;
 			}
 			for (; i < max; i++) {
@@ -353,7 +362,7 @@ public class mcbot {
 			});
 		}
 	}
-
+	
 	public void updaterawbot(botsettings bs) {
 		// To make it reconnect if this change is necessary
 		if (bs != null) {
@@ -367,6 +376,6 @@ public class mcbot {
 	public void resettablist() {
 		tablistsize[0] = 1;
 		tablistsize[1] = 20;
-		refreshtablist(new ArrayList<String>());
+		refreshtablist(new ArrayList<String>(),new HashMap<String,String>(),new HashMap<String,team_struct>());
 	}
 }

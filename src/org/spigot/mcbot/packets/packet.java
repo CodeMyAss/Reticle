@@ -15,7 +15,7 @@ public class packet {
 	private ByteBuffer output;
 	protected int version = 4;
 	public static int MAXPACKETID = 64;
-	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 56, 61, 64));
+	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 56, 61,62, 64));
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
@@ -29,7 +29,7 @@ public class packet {
 	public packet() {
 
 	}
-
+	
 	public packet(InputStream input) {
 		this.input = input;
 	}
@@ -145,6 +145,10 @@ public class packet {
 
 	protected String readString() throws IOException {
 		int len = readVarInt();
+		if(len>1024) {
+			System.err.println("Can't read "+len);
+			throw new IOException();
+		}
 		byte[] b = new byte[len];
 		input.read(b, 0, len);
 		return new String(b, "UTF-8");
