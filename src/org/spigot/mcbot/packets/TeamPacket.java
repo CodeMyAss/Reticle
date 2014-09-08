@@ -15,7 +15,7 @@ public class TeamPacket extends packet {
 		this.sock = sock;
 	}
 
-	public TeamEvent Read(int len) throws IOException {
+	public TeamEvent Read() throws IOException {
 		super.input = sock.getInputStream();
 		String teamdisplayname = null, prefix = null, suffix = null;
 		String nametag = null;
@@ -44,6 +44,7 @@ public class TeamPacket extends packet {
 			break;
 
 			case 3: // New players are added
+				color = super.readByte();
 				int pcount0 = super.readVarInt();
 				for (int i = 0; i < pcount0; i++) {
 					players.add(super.readString());
@@ -51,6 +52,7 @@ public class TeamPacket extends packet {
 			break;
 
 			case 4: // Players are removed from team
+				color = super.readByte();
 				int pcount1 = super.readVarInt();
 				for (int i = 0; i < pcount1; i++) {
 					players.add(super.readString());

@@ -114,7 +114,6 @@ public class connector extends Thread {
 					pid = pack[1];
 				}
 
-				// sendmsg("Received packet id " + pid + " LEN: " + len);
 				if (pid > packet.MAXPACKETID) {
 					sendmsg("§4Malformed communication");
 					break;
@@ -259,7 +258,7 @@ public class connector extends Thread {
 
 			case 62:
 				// Teams
-				this.handleteam(new TeamPacket(sock).Read(len));
+				this.handleteam(new TeamPacket(sock).Read());
 			break;
 
 			case 64:
