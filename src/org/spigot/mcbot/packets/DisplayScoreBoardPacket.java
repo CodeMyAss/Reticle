@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class DisplayScoreBoardPacket extends packet {
-
+	public static final int ID=61;
 	private Socket sock;
 
 	public DisplayScoreBoardPacket(Socket sock) {

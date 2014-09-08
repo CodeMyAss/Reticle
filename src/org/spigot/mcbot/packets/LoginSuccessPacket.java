@@ -7,6 +7,7 @@ import org.spigot.mcbot.sockets.connector;
 
 public class LoginSuccessPacket extends packet {
 	connector con;
+	public static final int ID=2;
 	
 	public LoginSuccessPacket(Socket sock, connector connector) throws IOException {
 		super(sock.getInputStream());

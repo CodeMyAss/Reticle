@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class packet {
@@ -15,7 +14,7 @@ public class packet {
 	private ByteBuffer output;
 	protected int version = 4;
 	public static int MAXPACKETID = 64;
-	public static List<Integer> ValidPackets = new ArrayList<Integer>(Arrays.asList(0, 1, 2, 56, 61, 62, 64));
+	public static List<Integer> ValidPackets = new ArrayList<Integer>();
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
@@ -59,9 +58,9 @@ public class packet {
 	}
 
 	public byte[] readArray() throws Exception {
-		short len = readShort();
-		if (len >= Short.MAX_VALUE) {
-			throw new Exception("Byte array error ("+len+" <= "+Short.MAX_VALUE+")");
+		byte len = readByte();
+		if (len >= Byte.MAX_VALUE) {
+			throw new Exception("Byte array error (" + len + " <= " + Short.MAX_VALUE + ")");
 		}
 		byte[] ret = readBytes(len);
 		return ret;
@@ -97,25 +96,27 @@ public class packet {
 	}
 
 	protected int readVarInt() throws IOException {
-		/*
-		 * int out = 0; int bytes = 0; byte in; while (true) { in = readByte();
-		 * out |= (in & 0x7F) << (bytes++ * 7); if (bytes > 6) { throw new
-		 * RuntimeException("VarInt too big"); } if ((in & 0x80) != 0x80) {
-		 * break; } } return out;
-		 */
-
-		int value = 0;
-		int i = 0;
-		int b;
-		while (((b = readByte()) & 0x80) != 0) {
-			value |= (b & 0x7F) << i;
-			i += 7;
-			if (i > 35) {
-				throw new IllegalArgumentException("Variable length quantity is too long");
+		int out = 0;
+		int bytes = 0;
+		byte in;
+		while (true) {
+			in = readByte();
+			out |= (in & 0x7F) << (bytes++ * 7);
+			if (bytes > 5) {
+				throw new RuntimeException("VarInt too big");
+			}
+			if ((in & 0x80) != 0x80) {
+				break;
 			}
 		}
-		return value | (b << i);
+		return out;
 
+		/*
+		 * int value = 0; int i = 0; int b; while (((b = readByte()) & 0x80) !=
+		 * 0) { value |= (b & 0x7F) << i; i += 7; if (i > 35) { throw new
+		 * IllegalArgumentException("Variable length quantity is too long"); } }
+		 * return value | (b << i);
+		 */
 	}
 
 	protected int readInt() throws IOException {

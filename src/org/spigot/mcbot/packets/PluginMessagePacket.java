@@ -6,6 +6,7 @@ import org.spigot.mcbot.events.PluginMessageEvent;
 
 public class PluginMessagePacket extends packet {
 	private Socket sock;
+	public static final int ID=63;
 	
 	public PluginMessagePacket(Socket sock) {
 		this.sock=sock;

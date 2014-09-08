@@ -12,6 +12,7 @@ import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.events.ChatEvent;
+import org.spigot.mcbot.events.JoinGameEvent;
 import org.spigot.mcbot.events.PluginMessageEvent;
 import org.spigot.mcbot.events.TeamEvent;
 import org.spigot.mcbot.packets.ChatPacket;
@@ -30,6 +31,7 @@ import org.spigot.mcbot.packets.SpawnPositionPacket;
 import org.spigot.mcbot.packets.TeamPacket;
 import org.spigot.mcbot.packets.packet;
 import org.spigot.mcbot.settings.team_struct;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -48,6 +50,15 @@ public class connector extends Thread {
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		sendmsg("§2Connecting");
+		//Define served packets
+		packet.ValidPackets.add(ChatPacket.ID);
+		packet.ValidPackets.add(KeepAlivePacket.ID);
+		packet.ValidPackets.add(JoinGamePacket.ID);
+		packet.ValidPackets.add(PlayerListItemPacket.ID);
+		packet.ValidPackets.add(RespawnPacket.ID);
+		packet.ValidPackets.add(TeamPacket.ID);
+		packet.ValidPackets.add(SpawnPositionPacket.ID);
+		packet.ValidPackets.add(ConnectionResetPacket.ID);
 	}
 
 	public int getantiafkperiod() {
@@ -108,13 +119,6 @@ public class connector extends Thread {
 				pack = reader.readNext();
 				len = pack[0];
 				pid = pack[1];
-
-				while (pid > packet.MAXPACKETID) {
-					pack = reader.readNext();
-					len = pack[0];
-					pid = pack[1];
-				}
-
 				if (pid > packet.MAXPACKETID) {
 					sendmsg("§4Malformed communication");
 					break;
@@ -137,6 +141,7 @@ public class connector extends Thread {
 		} catch (NullPointerException e) {
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");
+			e.printStackTrace();
 		} catch (RuntimeException e) {
 			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
@@ -199,7 +204,7 @@ public class connector extends Thread {
 		}
 	}
 
-	private packet processpacket(int pid, int len) throws Exception {
+	private void processpacket(int pid, int len) throws Exception {
 		packet pack = null;
 		switch (pid) {
 			default:
@@ -207,45 +212,49 @@ public class connector extends Thread {
 				new Ignored_Packet(len, pid, sock.getInputStream()).Read();
 			break;
 
-			case 0:
+			case KeepAlivePacket.ID:
 				// Keep us alive
 				pack = new KeepAlivePacket(sock);
 				byte[] resp = ((KeepAlivePacket) pack).Read(len - 1);
 				((KeepAlivePacket) pack).Write(resp);
 			break;
 
-			// Never served (We don't really care about the data here (yet)
-			case 1:
+			case JoinGamePacket.ID:
 				// join game
-				pack = new JoinGamePacket(sock);
-				((JoinGamePacket) pack).Read(this);
-			// In reaction to this packet, send commands are sent (If
-			// enabled)
-
+				JoinGameEvent joingameevent=new JoinGamePacket(sock).Read();
+				if(joingameevent.getMaxPlayers()>30 && joingameevent.getMaxPlayers() <50) {
+					//2 Columns 20 rows
+					settablesize(2, 20);
+				} else if(joingameevent.getMaxPlayers() >= 50) {
+					//3 Columns 20 rows
+					settablesize(3, 20);
+				} else {
+					//1 Columns 20 rows
+					settablesize(1, 20);
+				}
 			break;
 
-			case 2:
+			case ChatPacket.ID:
 				// Chat
 				pack = new ChatPacket(sock);
 				ChatEvent event = ((ChatPacket) pack).Read();
 				String msg = parsechat(event.getMessage());
-				sendmsg(msg);
+				sendchatmsg(msg);
 				tryandsendlogin();
 			break;
 
-			case 5:
+			case SpawnPositionPacket.ID:
 				// Spawn position
-				pack = new SpawnPositionPacket(sock, len);
-				((SpawnPositionPacket) pack).Read();
+				new SpawnPositionPacket(sock).Read();
 			break;
 
-			case 7:
+			case RespawnPacket.ID:
 				// Respawn
 				pack = new RespawnPacket(sock);
 				((RespawnPacket) pack).Read();
 			break;
 
-			case 56:
+			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)
 				pack = new PlayerListItemPacket(sock);
 				((PlayerListItemPacket) pack).Read();
@@ -255,29 +264,26 @@ public class connector extends Thread {
 				}
 			break;
 
-			case 61:
+			case DisplayScoreBoardPacket.ID:
 				// Scoreboard display
 				new DisplayScoreBoardPacket(sock).Read();
 			break;
 
-			case 62:
+			case TeamPacket.ID:
 				// Teams
 				this.handleteam(new TeamPacket(sock).Read());
 			break;
 
-			case 63:
+			case PluginMessagePacket.ID:
 				// Plugin message
-				PluginMessageEvent plmsge = new PluginMessagePacket(sock).Read();
-				plmsge.getChannel();
+				new PluginMessagePacket(sock).Read();
 			break;
-
-			case 64:
+			case ConnectionResetPacket.ID:
 				// Server closed connection
-				String reason = new ConnectionResetPacket(sock.getInputStream()).read();
+				String reason = parsechat(new ConnectionResetPacket(sock.getInputStream()).read());
 				sendmsg("§4Server closed connection. (" + reason + ")");
 			break;
 		}
-		return pack;
 	}
 
 	public void settablesize(int x, int y) {
@@ -438,6 +444,12 @@ public class connector extends Thread {
 			return false;
 		} else {
 			return sock.isConnected();
+		}
+	}
+	
+	public void sendchatmsg(String message) {
+		if (message != null) {
+			sendrawmsg("[Server] "+message);
 		}
 	}
 

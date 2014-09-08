@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
+
 public class ConnectionResetPacket extends packet {
 	private InputStream input;
+	public static final int ID=64;
 	
 	public ConnectionResetPacket(InputStream s) {
 		this.input=s;

@@ -5,6 +5,7 @@ import java.net.Socket;
 
 public class HandShakePacket extends packet {
 	public Socket sock;
+	public static final int ID=0;
 
 	public HandShakePacket(Socket sock) {
 		this.sock = sock;

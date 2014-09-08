@@ -4,28 +4,21 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class SpawnPositionPacket extends packet {
-
+	public static final int ID = 5;
 	private Socket sock;
-	private int len;
 
-	public SpawnPositionPacket(Socket sock, int len) {
+	public SpawnPositionPacket(Socket sock) {
 		this.sock = sock;
 	}
 
 	public void Read() throws IOException {
 		super.input = sock.getInputStream();
-		if (len == 16) {
-			// Old packet
-			// X
-			super.readInt();
-			// Y
-			super.readInt();
-			// Z
-			super.readInt();
-		} else if (len == 12) {
-			// New packet
-			// Data
-			super.readLong();
-		}
+		// Old packet
+		// X
+		super.readInt();
+		// Y
+		super.readInt();
+		// Z
+		super.readInt();
 	}
 }

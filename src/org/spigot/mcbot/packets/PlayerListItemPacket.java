@@ -5,7 +5,7 @@ import java.net.Socket;
 import java.util.List;
 
 public class PlayerListItemPacket extends packet {
-
+	public static final int ID=56;
 	private Socket sock;
 	private String name;
 	private boolean online;

@@ -8,7 +8,7 @@ import java.util.List;
 import org.spigot.mcbot.events.TeamEvent;
 
 public class TeamPacket extends packet {
-
+	public static final int ID=62;
 	private Socket sock;
 
 	public TeamPacket(Socket sock) {
