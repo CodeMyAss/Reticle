@@ -14,11 +14,7 @@ public class ChatPacket extends packet {
 	
 	public ChatEvent Read() throws IOException {
 		super.input=sock.getInputStream();
-		//The string itself
-		String chat=super.readString();
-		//Position byte
-		//super.readByte();
-		return new ChatEvent(chat);
+		return new ChatEvent(super.readString());
 	}
 	
 	public void Write(String message)  throws IOException {

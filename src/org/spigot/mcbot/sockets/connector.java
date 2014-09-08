@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -13,6 +12,7 @@ import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.events.ChatEvent;
+import org.spigot.mcbot.events.PluginMessageEvent;
 import org.spigot.mcbot.events.TeamEvent;
 import org.spigot.mcbot.packets.ChatPacket;
 import org.spigot.mcbot.packets.ConnectionResetPacket;
@@ -24,15 +24,16 @@ import org.spigot.mcbot.packets.KeepAlivePacket;
 import org.spigot.mcbot.packets.LoginStartPacket;
 import org.spigot.mcbot.packets.LoginSuccessPacket;
 import org.spigot.mcbot.packets.PlayerListItemPacket;
+import org.spigot.mcbot.packets.PluginMessagePacket;
 import org.spigot.mcbot.packets.RespawnPacket;
 import org.spigot.mcbot.packets.SpawnPositionPacket;
 import org.spigot.mcbot.packets.TeamPacket;
 import org.spigot.mcbot.packets.packet;
 import org.spigot.mcbot.settings.team_struct;
-import org.spigot.mcbot.sockets.chatparse.chatclass;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class connector extends Thread {
 	private mcbot bot;
@@ -139,6 +140,9 @@ public class connector extends Thread {
 		} catch (RuntimeException e) {
 			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
+		} catch (Exception e) {
+			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
+			e.printStackTrace();
 		}
 		stopMe();
 	}
@@ -195,7 +199,7 @@ public class connector extends Thread {
 		}
 	}
 
-	private packet processpacket(int pid, int len) throws IOException {
+	private packet processpacket(int pid, int len) throws Exception {
 		packet pack = null;
 		switch (pid) {
 			default:
@@ -261,10 +265,17 @@ public class connector extends Thread {
 				this.handleteam(new TeamPacket(sock).Read());
 			break;
 
+			case 63:
+				// Plugin message
+				PluginMessageEvent plmsge = new PluginMessagePacket(sock).Read();
+				plmsge.getChannel();
+			break;
+
 			case 64:
 				// Server closed connection
 				String reason = new ConnectionResetPacket(sock.getInputStream()).read();
 				sendmsg("§4Server closed connection. (" + reason + ")");
+			break;
 		}
 		return pack;
 	}
@@ -336,62 +347,77 @@ public class connector extends Thread {
 		}
 	}
 
-	private String reparser(Collection<chatclass> extra) {
-		StringBuilder sb = new StringBuilder();
-		boolean finalreset = false;
-		for (chatclass obg : extra) {
-			// this should never happen but...
-			if (obg.color == null) {
-				obg.color = "none";
-			}
-			String color = obg.color.toLowerCase();
-			if (finalreset) {
-				sb.append("§r");
-				finalreset = false;
-			}
-			if (obg.bold) {
-				sb.append("§l");
-				finalreset = true;
-			}
-			if (obg.strikethrough) {
-				sb.append("§m");
-				finalreset = true;
-			}
-			if (obg.italic) {
-				sb.append("§o");
-				finalreset = true;
-			}
-			if (obg.underlined) {
-				sb.append("§n");
-				finalreset = true;
-			}
-			if (!color.equals("none")) {
-				sb.append(MCCOLOR.valueOf(color).val);
-			}
-			if (obg.reset) {
-				sb.append("§r");
-			}
-			sb.append(obg.text);
-			if (obg.extra != null) {
-				sb.append(reparser(extra));
-			}
-		}
-		return sb.toString();
-	}
-
+	@SuppressWarnings({})
 	public String parsechat(String str) {
-		Gson obj = new Gson();
-		chatparse ob = null;
+		JsonParser parser = new JsonParser();
 		try {
-			ob = obj.fromJson(str, chatparse.class);
-		} catch (JsonSyntaxException e) {
-		}
-		if (ob != null) {
-			String strr = reparser(ob.extra);
-			return strr;
-		} else {
+			JsonObject obf = parser.parse(str).getAsJsonObject();
+
+			return jsonreparse(obf);
+		} catch (IllegalStateException e) {
 			return null;
 		}
+	}
+
+	private String jsonreparse(JsonObject obj) {
+		StringBuilder sb = new StringBuilder();
+		// It will always contain text
+		String text = obj.getAsJsonPrimitive("text").getAsString();
+		sb.append(text);
+		// And will also contain extras
+		JsonArray extra = obj.getAsJsonArray("extra");
+		for (JsonElement extr : extra) {
+			if (extr.isJsonPrimitive()) {
+				// There is string only
+				sb.append(extr.getAsString());
+			} else {
+				//There is something out there
+				text = "";
+				String bold = "";
+				String reset = "";
+				String underline = "";
+				String strike = "";
+				String color = "";
+				String italic = "";
+				// Not just string
+				JsonObject nobj = extr.getAsJsonObject();
+				if (nobj.has("bold")) {
+					if (nobj.get("bold").getAsBoolean()) {
+						bold = "§l";
+					}
+				}
+				if (nobj.has("strikethrough")) {
+					if (nobj.get("strikethrough").getAsBoolean()) {
+						strike = "§m";
+					}
+				}
+				if (nobj.has("underlined")) {
+					if (nobj.get("underlined").getAsBoolean()) {
+						underline = "§n";
+					}
+				}
+				if (nobj.has("reset")) {
+					if (nobj.get("reset").getAsBoolean()) {
+						reset = "§r";
+					}
+				}
+				if (nobj.has("italic")) {
+					if (nobj.get("italic").getAsBoolean()) {
+						italic = "§o";
+					}
+				}
+				if (nobj.has("color")) {
+					color = MCCOLOR.valueOf(nobj.get("color").getAsString()).val;
+				}
+				if (nobj.has("text")) {
+					text = nobj.get("text").getAsString();
+				}
+
+				sb.append(bold + underline + strike + italic + color + reset + text);
+			}
+		}
+
+		return sb.toString();
 	}
 
 	public void refreshTablist() {

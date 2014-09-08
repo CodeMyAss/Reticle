@@ -33,7 +33,7 @@ import org.spigot.mcbot.settings.struct_settings;
 import org.spigot.mcbot.settings.settings;
 
 public class storage {
-	public static String version = "1.04";
+	public static String version = "1.05";
 
 	protected EventHandler handler = new EventHandler();
 

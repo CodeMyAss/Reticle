@@ -29,8 +29,7 @@ public class TeamPacket extends packet {
 				prefix = super.readString();
 				suffix = super.readString();
 				ffire = super.readByte();
-				color = super.readByte();
-				int pcount = super.readVarInt();
+				int pcount = super.readShort();
 				for (int i = 0; i < pcount; i++) {
 					players.add(super.readString());
 				}
@@ -40,20 +39,19 @@ public class TeamPacket extends packet {
 				teamdisplayname = super.readString();
 				prefix = super.readString();
 				suffix = super.readString();
-				color = super.readByte();
+				ffire = super.readByte();
 			break;
 
 			case 3: // New players are added
-				color = super.readByte();
-				int pcount0 = super.readVarInt();
+				int pcount0=super.readShort();
 				for (int i = 0; i < pcount0; i++) {
 					players.add(super.readString());
 				}
 			break;
 
 			case 4: // Players are removed from team
-				color = super.readByte();
-				int pcount1 = super.readVarInt();
+				//color = super.readByte();
+				int pcount1 = super.readShort();
 				for (int i = 0; i < pcount1; i++) {
 					players.add(super.readString());
 				}
