@@ -17,8 +17,8 @@ public class updater extends Thread {
 	public void run() {
 		try {
 			String updateurl = "http://reticle.mc-atlantida.eu/update.php?version=" + storage.version;
-			String changlogurl = "http://reticle.mc-atlantida.eu/versions/current/changelog.txt";
-			String currentversionurl="http://reticle.mc-atlantida.eu/versions/current/Reticle.jar";
+			String changlogurl = "http://reticle.mc-atlantida.eu/changelog.php?ver="+storage.version;
+			String currentversionurl="http://reticle.mc-atlantida.eu/Reticle.jar";
 			String res = readurl(updateurl);
 			if (res.startsWith("NV:")) {
 				// New version is found!
@@ -32,14 +32,14 @@ public class updater extends Thread {
 
 				// Ask user if he wants to update
 				JTabbedPane contentPane = storage.gettabbedpane();
-				int n = JOptionPane.showConfirmDialog(contentPane, "New version was found!\n\nCurrent version: " + storage.version + "\nLatest version :" + newver + "\n\nUpdate?", "Update", JOptionPane.YES_NO_OPTION);
+				int n = JOptionPane.showConfirmDialog(contentPane, "New version was found!\n\nCurrent version: " + storage.version + "\nLatest version: " + newver + "\n\nUpdate?", "Update", JOptionPane.YES_NO_OPTION);
 				
 				if (n == JOptionPane.YES_OPTION) {
 					String destfile="Reticle_"+newver+".jar";
 					sendmsg("Download started");
 					getfilefromurl(currentversionurl,destfile);
 					storage.alert("Update", "Update was saved as "+destfile);
-					sendmsg("Update was saved as "+destfile);
+					sendmsg("Updated version was saved as "+destfile);
 				}
 
 			} else if (res.startsWith("CV")) {

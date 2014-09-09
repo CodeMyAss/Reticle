@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.spigot.mcbot.events.JoinGameEvent;
-import org.spigot.mcbot.sockets.connector;
 
 public class JoinGamePacket extends packet {
 	private Socket sock;
