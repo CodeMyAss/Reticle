@@ -156,7 +156,6 @@ public class connector extends Thread {
 			sendmsg("§4Connection has been closed");
 		} catch (SerialException e) {
 			sendmsg("§4Connection has been lost.");
-			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
 			if (!storage.reportthis(e)) {
 				sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
@@ -238,10 +237,12 @@ public class connector extends Thread {
 			// And the magic of restart
 			if (this.sock != null) {
 				// If we have not been disturbed
+				bot.connector=null;
 				this.sock = null;
 				bot.connect(true);
 			}
 		} else {
+			bot.connector=null;
 			storage.changemenuitems();
 		}
 	}

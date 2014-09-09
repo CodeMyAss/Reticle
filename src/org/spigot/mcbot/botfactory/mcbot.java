@@ -235,7 +235,7 @@ public class mcbot {
 
 		
 	public void connect(boolean reconnect) {
-		if (this.rawbot.serverip != null) {
+		if (this.rawbot.serverip != null && this.connector==null) {
 			try {
 				if (!this.isConnected(reconnect)) {
 					this.serverip = this.rawbot.serverip;
