@@ -1,14 +1,21 @@
 package org.spigot.mcbot.botfactory;
 
 import java.awt.Color;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -22,6 +29,8 @@ import net.miginfocom.swing.MigLayout;
 import org.spigot.mcbot.storage;
 
 public class botfactory {
+
+	private static JTextPane txtpnText;
 
 	public static void makenewtab(mcbot bot) {
 		JPanel panel = new JPanel();
@@ -45,7 +54,7 @@ public class botfactory {
 		}
 		JScrollPane scrollPane = new JScrollPane();
 
-		JTextPane txtpnText = new JTextPane();
+		txtpnText = new JTextPane();
 		txtpnText.setText("");
 		if (bot.ismain) {
 			txtpnText.setBackground(Color.BLUE);
@@ -77,6 +86,8 @@ public class botfactory {
 			}
 		});
 
+		txtpnText.addMouseListener(new PopClickListener());
+
 		txtCommands.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -96,7 +107,7 @@ public class botfactory {
 		} else {
 
 			JTable table = new JTable();
-			table.setModel(new DefaultTableModel(new Object[0][0],new Object[0]));
+			table.setModel(new DefaultTableModel(new Object[0][0], new Object[0]));
 			table.setBackground(Color.BLACK);
 			table.setForeground(Color.WHITE);
 			table.setEnabled(false);
@@ -109,5 +120,58 @@ public class botfactory {
 		}
 
 	}
+}
 
+class contextmenu extends JPopupMenu {
+	private static final long serialVersionUID = 1L;
+	JMenuItem anItem;
+
+	public contextmenu(final JTextPane txt) {
+
+		ActionListener menuListener = new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				if(event.getActionCommand().equals("Select all")) {
+					txt.requestFocus();
+					txt.setSelectionStart(0);
+					txt.setSelectionEnd(txt.getText().length());
+				} else if (event.getActionCommand().equals("Copy")) {
+					String text=txt.getSelectedText();
+					StringSelection stringSelection = new StringSelection (text);
+					Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
+					clpbrd.setContents (stringSelection, null);
+				} else if (event.getActionCommand().equals("Clear")) {
+					txt.setText("");
+				}
+			}
+		};
+		JMenuItem item1 = new JMenuItem("Select all");
+		JMenuItem item2 = new JMenuItem("Copy");
+		JMenuItem item3 = new JMenuItem("Clear");
+		item1.addActionListener(menuListener);
+		item2.addActionListener(menuListener);
+		item3.addActionListener(menuListener);
+		add(item1);
+		add(item2);
+		add(item3);
+
+	}
+}
+
+class PopClickListener extends MouseAdapter {
+	public void mousePressed(MouseEvent e) {
+		if (e.isPopupTrigger()) {
+			doPop(e);
+		}
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		if (e.isPopupTrigger()) {
+			doPop(e);
+		}
+	}
+
+	private void doPop(MouseEvent e) {
+		contextmenu menu = new contextmenu((JTextPane) e.getComponent());
+		menu.show(e.getComponent(), e.getX(), e.getY());
+	}
 }

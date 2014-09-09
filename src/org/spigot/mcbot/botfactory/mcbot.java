@@ -45,6 +45,7 @@ public class mcbot {
 
 	public mcbot(botsettings bot, boolean ismain) {
 		this.ismain = ismain;
+		bot.isMain=ismain;
 		this.rawbot = bot;
 		this.tablistsize[0] = 1;
 		this.tablistsize[1] = 20;

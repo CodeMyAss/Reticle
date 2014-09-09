@@ -20,14 +20,19 @@ public class botsettings {
 	public String[] autologincmd = new String[0];
 	public String[] autologoutcmd = new String[0];
 	public String[] autoantiafkcmd = new String[0];
-	public String[] ignored=new String[0];
+	public String[] ignored = new String[0];
+	public boolean isMain = false;
 
 	public botsettings(String name) {
 		this.nick = name;
 	}
 
 	public String gettabname() {
-		return this.nick + "@" + this.servername;
+		if (isMain) {
+			return this.nick+"@"+"Reticle";
+		} else {
+			return this.nick + "@" + this.servername;
+		}
 	}
 
 	public boolean isExclusive() {
@@ -47,16 +52,14 @@ public class botsettings {
 		for (String bot : bots.keySet()) {
 			if (bot.toLowerCase().equals(bottabname.toLowerCase())) {
 				/*
-				if(!bots.get(bot).equals(this)) {
-					return false;
-				}
-				*/
+				 * if(!bots.get(bot).equals(this)) { return false; }
+				 */
 				if (hasthis) {
 					return false;
-				} else if(bots.get(bot).equals(this)) {
+				} else if (bots.get(bot).equals(this)) {
 					hasthis = true;
 				}
-				
+
 			}
 		}
 		return true;
