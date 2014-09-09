@@ -1,15 +1,15 @@
 package org.spigot.mcbot.packets;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 
 
 public class ConnectionResetPacket extends packet {
-	private InputStream input;
+	private ByteBuffer input;
 	public static final int ID=64;
 	
-	public ConnectionResetPacket(InputStream s) {
+	public ConnectionResetPacket(ByteBuffer s) {
 		this.input=s;
 	}
 	

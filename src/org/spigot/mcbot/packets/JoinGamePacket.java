@@ -1,20 +1,20 @@
 package org.spigot.mcbot.packets;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
 
 import org.spigot.mcbot.events.JoinGameEvent;
 
 public class JoinGamePacket extends packet {
-	private Socket sock;
+	private ByteBuffer sock;
 	public static final int ID=1;
 	
-	public JoinGamePacket(Socket sock) {
+	public JoinGamePacket(ByteBuffer sock) {
 		this.sock=sock;
 	}
 	
 	public JoinGameEvent Read() throws IOException {
-		super.input=sock.getInputStream();
+		super.input=sock;
 		//Our entity ID
 		int id=super.readInt();
 		//Our gamemode

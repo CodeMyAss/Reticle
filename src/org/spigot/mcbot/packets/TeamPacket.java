@@ -1,7 +1,7 @@
 package org.spigot.mcbot.packets;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,14 +9,14 @@ import org.spigot.mcbot.events.TeamEvent;
 
 public class TeamPacket extends packet {
 	public static final int ID=62;
-	private Socket sock;
+	private ByteBuffer buff;
 
-	public TeamPacket(Socket sock) {
-		this.sock = sock;
+	public TeamPacket(ByteBuffer buffer) {
+		this.buff = buffer;
 	}
 
 	public TeamEvent Read() throws IOException {
-		super.input = sock.getInputStream();
+		super.input = buff;
 		String teamdisplayname = null, prefix = null, suffix = null;
 		String nametag = null;
 		byte ffire = 0, color = 0;

@@ -1,22 +1,22 @@
 package org.spigot.mcbot.packets;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class PlayerListItemPacket extends packet {
 	public static final int ID=56;
-	private Socket sock;
+	private ByteBuffer sock;
 	private String name;
 	private boolean online;
 
-	public PlayerListItemPacket(Socket sock) {
+	public PlayerListItemPacket(ByteBuffer sock) {
 		this.sock = sock;
 		
 	}
 
 	public void Read() throws IOException {
-		super.input = sock.getInputStream();
+		super.input = sock;
 		name = super.readString();
 		online = super.readBoolean();
 		//Ping

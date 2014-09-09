@@ -2,21 +2,24 @@ package org.spigot.mcbot.packets;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 import org.spigot.mcbot.events.ChatEvent;
 
 public class ChatPacket extends packet {
 	private Socket sock;
+	private ByteBuffer buff;
 	
 	public static final int ID=2;
 	public static final int ID_out=1;
 
-	public ChatPacket(Socket sock) {
+	public ChatPacket(ByteBuffer buff,Socket sock) {
 		this.sock = sock;
+		this.buff=buff;
 	}
 	
 	public ChatEvent Read() throws IOException {
-		super.input=sock.getInputStream();
+		super.input=buff;
 		return new ChatEvent(super.readString());
 	}
 	

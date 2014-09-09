@@ -389,7 +389,11 @@ public class mcbot {
 					});
 				} else if (oldval != realname) {
 					// Value has changed
-					tabler.setValueAt(realname, locy, locx);
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							tabler.setValueAt(realname, locy, locx);
+						}
+					});
 				}
 			}
 		}

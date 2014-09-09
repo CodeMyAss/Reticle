@@ -12,8 +12,8 @@ public class Ignored_Packet extends packet {
 	}
 
 	public void Read() throws IOException {
-		super.input = input;
-			super.readAndIgnore(len);
+		super.sockinput=input;
+		super.readAndIgnore(len);
 
 	}
 }

@@ -1,6 +1,5 @@
 package org.spigot.mcbot.packets;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,11 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class packet {
-	protected InputStream input;
+	protected ByteBuffer input;
 	private ByteBuffer output;
 	protected int version = 4;
+	public InputStream sockinput;
 	public static int MAXPACKETID = 64;
-	public static List<Integer> ValidPackets = new ArrayList<Integer>();
+	public List<Integer> ValidPackets = new ArrayList<Integer>();
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
@@ -29,11 +29,11 @@ public class packet {
 
 	}
 
-	public packet(InputStream input) {
-		this.input = input;
+	public packet(InputStream inputStream) {
+		this.sockinput = inputStream;
 	}
 
-	public packet(int len, InputStream input) throws IOException {
+	public packet(int len, ByteBuffer input) throws IOException {
 		// sock = s;
 		this.input = input;
 		int vcount = getVarntCount(len);
@@ -51,9 +51,9 @@ public class packet {
 	public int[] readNext() throws IOException {
 		int[] res = new int[2];
 		// The length of the packet
-		res[0] = readVarInt();
+		res[0] = readInnerVarInt();
 		// Id of packet
-		res[1] = readVarInt();
+		res[1] = readInnerVarInt();
 		return res;
 	}
 
@@ -68,7 +68,7 @@ public class packet {
 
 	public byte[] readBytes(int len) throws IOException {
 		byte[] b = new byte[len];
-		this.input.read(b, 0, len);
+		this.input.get(b, 0, len);
 		return b;
 	}
 
@@ -92,7 +92,30 @@ public class packet {
 	}
 
 	protected void readAndIgnore(int length) throws IOException {
-		input.skip(length);
+		//input.position(input.position()+length);
+		sockinput.skip(length);
+	}
+	
+	protected int readInnerVarInt() throws IOException {
+		int out = 0;
+		int bytes = 0;
+		byte in;
+		while (true) {
+			int ir = this.sockinput.read();
+			if(ir==-1) {
+				throw new IOException();
+			} else {
+				in=(byte)ir;
+			}
+			out |= (in & 0x7F) << (bytes++ * 7);
+			if (bytes > 5) {
+				throw new RuntimeException("VarInt too big");
+			}
+			if ((in & 0x80) != 0x80) {
+				break;
+			}
+		}
+		return out;
 	}
 
 	protected int readVarInt() throws IOException {
@@ -129,9 +152,9 @@ public class packet {
 	}
 
 	protected byte readByte() throws IOException {
-		int byter = input.read();
+		int byter = input.get();
 		if (byter == -1) {
-			throw new IOException();
+			//throw new IOException();
 		}
 		return (byte) byter;
 	}
@@ -144,6 +167,18 @@ public class packet {
 		return (short) ((readByte() << 4) + readByte());
 	}
 
+	protected String readInnerString() throws IOException {
+		int len = readInnerVarInt();
+		if (len > 1024) {
+			System.err.println("Can't read " + len);
+			new IOException().printStackTrace();
+			throw new IOException();
+		}
+		byte[] b = new byte[len];
+		sockinput.read(b, 0, len);
+		return new String(b, "UTF-8");
+	}
+	
 	protected String readString() throws IOException {
 		int len = readVarInt();
 		if (len > 1024) {
@@ -152,7 +187,7 @@ public class packet {
 			throw new IOException();
 		}
 		byte[] b = new byte[len];
-		input.read(b, 0, len);
+		input.get(b, 0, len);
 		return new String(b, "UTF-8");
 	}
 
@@ -190,7 +225,7 @@ public class packet {
 	}
 
 	protected float readFloat() throws IOException {
-		return new DataInputStream(input).readFloat();
+		return input.getFloat();
 	}
 
 	protected void writeFloat(float f) throws IOException {
@@ -199,7 +234,7 @@ public class packet {
 	}
 
 	protected double readDouble() throws IOException {
-		return new DataInputStream(input).readDouble();
+		return input.getDouble();
 	}
 
 	protected void writeDouble(double d) throws IOException {
@@ -226,7 +261,7 @@ public class packet {
 		}
 	}
 
-	protected int getVarntCount(int value) throws IOException {
+	public int getVarntCount(int value) throws IOException {
 		int i = 0;
 		while (true) {
 			value >>>= 7;

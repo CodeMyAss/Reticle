@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +36,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 public class connector extends Thread {
 	private mcbot bot;
@@ -49,6 +51,10 @@ public class connector extends Thread {
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		sendmsg("§2Connecting");
+		
+	}
+
+	private void definepackets(packet packet) {
 		// Define served packets
 		packet.ValidPackets.add(ChatPacket.ID);
 		packet.ValidPackets.add(KeepAlivePacket.ID);
@@ -59,7 +65,7 @@ public class connector extends Thread {
 		packet.ValidPackets.add(SpawnPositionPacket.ID);
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
 	}
-
+	
 	public int getantiafkperiod() {
 		return this.bot.getantiafkperiod();
 	}
@@ -99,7 +105,8 @@ public class connector extends Thread {
 		try {
 			sock = new Socket(bot.serverip, bot.serverport);
 			InputStream input = sock.getInputStream();
-			packet reader = new packet(input);
+			packet reader = new packet(sock.getInputStream());
+			definepackets(reader);
 			bot.seticon(ICONSTATE.CONNECTING);
 			storage.changemenuitems();
 			// First, we must send HandShake and hope for good response
@@ -126,11 +133,15 @@ public class connector extends Thread {
 					sendmsg("§4Malformed communication");
 					break;
 				}
-				
-				if (packet.ValidPackets.contains(pid)) {
+
+				if (reader.ValidPackets.contains(pid)) {
 					if (len > 1) {
 						// We shall serve this one
-						processpacket(pid, len);
+						int len2 = len - reader.getVarntCount(pid);
+						byte[] b = new byte[len2];
+						sock.getInputStream().read(b, 0, len2);
+						ByteBuffer buf = ByteBuffer.wrap(b);
+						processpacket(pid, len2, buf);
 					}
 					// We have good one
 				} else {
@@ -158,7 +169,7 @@ public class connector extends Thread {
 	public synchronized boolean sendtoserver(String msg) {
 		if (msg.length() > 0) {
 			try {
-				new ChatPacket(this.sock).Write(msg);
+				new ChatPacket(null, this.sock).Write(msg);
 				return true;
 			} catch (IOException e) {
 				return false;
@@ -210,7 +221,7 @@ public class connector extends Thread {
 		}
 	}
 
-	private void processpacket(int pid, int len) throws Exception {
+	private void processpacket(int pid, int len, ByteBuffer buf) throws Exception {
 		packet pack = null;
 		switch (pid) {
 			default:
@@ -220,14 +231,14 @@ public class connector extends Thread {
 
 			case KeepAlivePacket.ID:
 				// Keep us alive
-				pack = new KeepAlivePacket(sock);
-				byte[] resp = ((KeepAlivePacket) pack).Read(len - 1);
-				((KeepAlivePacket) pack).Write(resp);
+				KeepAlivePacket keepalivepack = new KeepAlivePacket(sock, buf);
+				byte[] resp = keepalivepack.Read(len);
+				keepalivepack.Write(resp);
 			break;
 
 			case JoinGamePacket.ID:
 				// join game
-				JoinGameEvent joingameevent = new JoinGamePacket(sock).Read();
+				JoinGameEvent joingameevent = new JoinGamePacket(buf).Read();
 				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
 					// 2 Columns 20 rows
 					settablesize(2, 20);
@@ -242,7 +253,7 @@ public class connector extends Thread {
 
 			case ChatPacket.ID:
 				// Chat
-				pack = new ChatPacket(sock);
+				pack = new ChatPacket(buf, null);
 				ChatEvent event = ((ChatPacket) pack).Read();
 				String msg = parsechat(event.getMessage());
 				if (!isMessageIgnored(msg)) {
@@ -253,18 +264,18 @@ public class connector extends Thread {
 
 			case SpawnPositionPacket.ID:
 				// Spawn position
-				new SpawnPositionPacket(sock).Read();
+				new SpawnPositionPacket(buf).Read();
 			break;
 
 			case RespawnPacket.ID:
 				// Respawn
-				pack = new RespawnPacket(sock);
+				pack = new RespawnPacket(buf);
 				((RespawnPacket) pack).Read();
 			break;
 
 			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)
-				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(sock);
+				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf);
 				playerlistitem.Read();
 				if (playerlistitem.Serve(Tablist)) {
 					// Tablist needs to be refreshed
@@ -274,21 +285,22 @@ public class connector extends Thread {
 
 			case DisplayScoreBoardPacket.ID:
 				// Scoreboard display
-				new DisplayScoreBoardPacket(sock).Read();
+				new DisplayScoreBoardPacket(buf).Read();
 			break;
 
 			case TeamPacket.ID:
 				// Teams
-				this.handleteam(new TeamPacket(sock).Read());
+				this.handleteam(new TeamPacket(buf).Read());
 			break;
 
 			case PluginMessagePacket.ID:
 				// Plugin message
-				new PluginMessagePacket(sock).Read();
+				new PluginMessagePacket(buf).Read();
 			break;
+
 			case ConnectionResetPacket.ID:
 				// Server closed connection
-				String reason = parsechat(new ConnectionResetPacket(sock.getInputStream()).read());
+				String reason = parsechat(new ConnectionResetPacket(buf).read());
 				sendmsg("§4Server closed connection. (" + reason + ")");
 			break;
 		}
@@ -376,7 +388,6 @@ public class connector extends Thread {
 		}
 	}
 
-	@SuppressWarnings({})
 	public String parsechat(String str) {
 		JsonParser parser = new JsonParser();
 		try {
@@ -384,7 +395,9 @@ public class connector extends Thread {
 
 			return jsonreparse(obf);
 		} catch (IllegalStateException e) {
-			return null;
+			return str;
+		} catch (JsonSyntaxException e) {
+			return str;
 		}
 	}
 

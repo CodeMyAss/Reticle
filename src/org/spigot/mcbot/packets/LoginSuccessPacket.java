@@ -10,19 +10,19 @@ public class LoginSuccessPacket extends packet {
 	public static final int ID=2;
 	
 	public LoginSuccessPacket(Socket sock, connector connector) throws IOException {
-		super(sock.getInputStream());
+		super.sockinput=sock.getInputStream();
 		this.con=connector;
 	}
 
 	public void read() throws IOException {
 		//Length
-		super.readVarInt();
+		super.readInnerVarInt();
 		//Pid
-		super.readVarInt();
+		super.readInnerVarInt();
 		//UUID
-		String uuid = super.readString();
+		String uuid = super.readInnerString();
 		//Username		
-		super.readString();
+		super.readInnerString();
 		con.sendmessage("§bReceived UUID: §2§n"+uuid);
 	}
 }

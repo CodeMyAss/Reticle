@@ -2,18 +2,21 @@ package org.spigot.mcbot.packets;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 public class KeepAlivePacket extends packet {
 	public static final int ID=0;
 	
 	private Socket sock ;
+	private ByteBuffer buff;
 
-	public KeepAlivePacket(Socket sock) {
+	public KeepAlivePacket(Socket sock,ByteBuffer buff) {
 		this.sock =sock;
+		this.buff=buff;
 	}
 	
 	public byte[] Read(int len) throws IOException {
-		super.input=sock.getInputStream();
+		super.input=buff;
 		return super.readBytes(len);
 	}
 	
