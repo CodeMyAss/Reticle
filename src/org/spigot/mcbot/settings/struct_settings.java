@@ -41,6 +41,10 @@ public class struct_settings {
 			for (String com : set.autoantiafkcmd) {
 				sb.append("\t\t\t" + com + "\r\n");
 			}
+			sb.append("\t\tIgnored messages:\r\n");
+			for (String com : set.ignored) {
+				sb.append("\t\t\t" + com + "\r\n");
+			}
 		}
 		return sb.toString();
 	}
@@ -57,6 +61,7 @@ public class struct_settings {
 		StringBuilder sb1 = new StringBuilder();
 		StringBuilder sb2 = new StringBuilder();
 		StringBuilder sb3 = new StringBuilder();
+		StringBuilder sb4 = new StringBuilder();
 
 		for (String line : lines) {
 			if (line.equals("") || line.equals("\r\n") || line.startsWith("#") || line.equals("\n")) {
@@ -75,6 +80,9 @@ public class struct_settings {
 				} else if (pos == 3) {
 					// We are getting list of anti-afk commands
 					sb3.append("\r\n" + line.substring(3));
+				} else if (pos == 4) {
+					// We are getting list of messages to ignore
+					sb4.append("\r\n" + line.substring(3));
 				}	
 			} else if (line.startsWith("\t\t")) {
 				saved=false;
@@ -96,6 +104,9 @@ public class struct_settings {
 					break;
 					case "Autoantiafk commands":
 						pos = 3;
+					break;
+					case "Ignored messages":
+						pos = 4;
 					break;
 					case "Servername":
 						bot.servername = param;
@@ -149,17 +160,22 @@ public class struct_settings {
 					if (sb3.toString().length() > 2) {
 						bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
 					}
+					if (sb4.toString().length() > 2) {
+						bot.ignored = sb4.toString().substring(2).split("\r\n");
+					}
 					settings.put(bot.gettabname(), bot);
 					bot = new botsettings(null);
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
 					sb3 = new StringBuilder();
+					sb4 = new StringBuilder();
 				} else {
 					// We are first bot ever
 					bot = new botsettings(null);
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
 					sb3 = new StringBuilder();
+					sb4 = new StringBuilder();
 				}
 			} else {
 				//Global options
@@ -180,6 +196,9 @@ public class struct_settings {
 			}
 			if (sb3.toString().length() > 2) {
 				bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
+			}
+			if (sb4.toString().length() > 2) {
+				bot.autoantiafkcmd = sb4.toString().substring(2).split("\r\n");
 			}
 			settings.put(bot.gettabname(), bot);
 		}

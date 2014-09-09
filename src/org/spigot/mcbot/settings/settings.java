@@ -46,6 +46,7 @@ public class settings extends JFrame {
 	private JTextField textantiafkdelay;
 	private JTextField textreconnectdelay;
 	private JCheckBox checkautoreconnect;
+	private JTextArea textignore;
 
 	/**
 	 * Launch the application.
@@ -68,7 +69,7 @@ public class settings extends JFrame {
 		setType(Type.UTILITY);
 		setTitle("Settings");
 		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 529, 385);
+		setBounds(100, 100, 528, 452);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -178,7 +179,7 @@ public class settings extends JFrame {
 
 		panel_3 = new JPanel();
 		tabbedPane.addTab("Behavior", null, panel_3, null);
-		panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][]"));
+		panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][47.00]"));
 
 		JLabel lblActivateTabOn = new JLabel("Activate tab on new message:");
 		panel_3.add(lblActivateTabOn, "cell 1 0,alignx right");
@@ -225,32 +226,45 @@ public class settings extends JFrame {
 		textreconnectdelay.setColumns(10);
 
 		JLabel lblNewLabel_4 = new JLabel("Logout commands:");
-		panel_3.add(lblNewLabel_4, "cell 1 8,alignx right,aligny top");
+		panel_3.add(lblNewLabel_4, "cell 1 7,alignx right,aligny top");
 
 		textlogoutcom = new JTextArea();
 		JScrollPane scrollPane = new JScrollPane(textlogoutcom);
 		scrollPane.setMinimumSize(new Dimension(21, 50));
-		panel_3.add(scrollPane, "cell 2 8,grow");
+		panel_3.add(scrollPane, "cell 2 7,grow");
 
 		JLabel lblNewLabel_6 = new JLabel("Login commands:");
-		panel_3.add(lblNewLabel_6, "cell 1 9,alignx trailing,aligny top");
+		panel_3.add(lblNewLabel_6, "cell 1 8,alignx trailing,aligny top");
 
 		JScrollPane scrollPane_1 = new JScrollPane((Component) null);
 		scrollPane_1.setMinimumSize(new Dimension(21, 50));
-		panel_3.add(scrollPane_1, "cell 2 9,grow");
+		panel_3.add(scrollPane_1, "cell 2 8,grow");
 
 		textlogincom = new JTextArea();
 		scrollPane_1.setViewportView(textlogincom);
 
 		JLabel lblNewLabel_7 = new JLabel("Anti-afk commands:");
-		panel_3.add(lblNewLabel_7, "cell 1 10,alignx right,aligny top");
+		panel_3.add(lblNewLabel_7, "cell 1 9,alignx right,aligny top");
 
 		JScrollPane scrollPane_2 = new JScrollPane((Component) null);
 		scrollPane_2.setMinimumSize(new Dimension(21, 50));
-		panel_3.add(scrollPane_2, "cell 2 10,grow");
+		panel_3.add(scrollPane_2, "cell 2 9,grow");
 
 		textafkcom = new JTextArea();
 		scrollPane_2.setViewportView(textafkcom);
+		
+		JLabel lblIgnoredMessages = new JLabel("Ignored Messages");
+		panel_3.add(lblIgnoredMessages, "cell 1 10,alignx right,aligny top");
+
+		JScrollPane scrollPane_3 = new JScrollPane((Component) null);
+		scrollPane_2.setMinimumSize(new Dimension(21, 50));
+
+		textignore = new JTextArea();
+		scrollPane_3.setViewportView(textignore);
+		panel_3.add(scrollPane_3, "cell 2 10,grow");
+
+		
+		
 		storage.getInstance().winobj = getFrames()[0];
 		set_obj_struct sobj = storage.getsettingsobj();
 		sobj.txtservername = txtservername;
@@ -269,8 +283,10 @@ public class settings extends JFrame {
 		sobj.textantiafkdelay = textantiafkdelay;
 		sobj.checkautoreconnect = checkautoreconnect;
 		sobj.textreconnectdelay = textreconnectdelay;
+		sobj.textignore=textignore;
 		storage.getInstance().setobj.setsettings(set);
-		this.setVisible(true);
+		this.setVisible(true);	
+
 	}
 
 	public JTextField getTextantiafkdelay() {

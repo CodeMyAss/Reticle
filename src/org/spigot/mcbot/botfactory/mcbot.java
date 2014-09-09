@@ -160,6 +160,10 @@ public class mcbot {
 	public int getantiafkperiod() {
 		return this.rawbot.afkperiod;
 	}
+	
+	public String[] getignoredmessages() {
+		return this.rawbot.ignored;
+	}
 
 	public String[] getlogincommands() {
 		return this.rawbot.autologincmd;

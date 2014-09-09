@@ -24,11 +24,13 @@ public class set_obj_struct {
 	public JTextField textantiafkdelay;
 	public JCheckBox checkautoreconnect;
 	public JTextField textreconnectdelay;
+	public JTextArea textignore;
 	
 	//Global settings window
 	public JCheckBox autoupdate;
 	public JCheckBox autodebug;
 	public JCheckBox autoplugins;
+
 	
 	public void setglobals(JCheckBox b1,JCheckBox b2,JCheckBox b3) {
 		this.autoupdate=b1;
@@ -53,7 +55,7 @@ public class set_obj_struct {
 		this.textantiafkdelay.setText(set.afkperiod+"");
 		this.checkautoreconnect.setSelected(set.autoreconnect);
 		this.textreconnectdelay.setText(set.autoreconnectdelay+"");
-		
+		this.textignore.setText(implode("\n",set.ignored));
 	}
 
 	public botsettings getsettings() {
@@ -73,6 +75,7 @@ public class set_obj_struct {
 		struct.afkperiod=Integer.parseInt(this.textantiafkdelay.getText());
 		struct.autoreconnect=this.checkautoreconnect.isSelected();
 		struct.autoreconnectdelay=Integer.parseInt(this.textreconnectdelay.getText());
+		struct.ignored=this.textignore.getText().split("\n");
 		return struct;
 	}
 

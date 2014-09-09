@@ -13,7 +13,6 @@ import org.spigot.mcbot.botfactory.mcbot;
 import org.spigot.mcbot.botfactory.mcbot.ICONSTATE;
 import org.spigot.mcbot.events.ChatEvent;
 import org.spigot.mcbot.events.JoinGameEvent;
-import org.spigot.mcbot.events.PluginMessageEvent;
 import org.spigot.mcbot.events.TeamEvent;
 import org.spigot.mcbot.packets.ChatPacket;
 import org.spigot.mcbot.packets.ConnectionResetPacket;
@@ -63,6 +62,10 @@ public class connector extends Thread {
 
 	public int getantiafkperiod() {
 		return this.bot.getantiafkperiod();
+	}
+	
+	public String[] getignoredmessages() {
+		return this.bot.getignoredmessages();
 	}
 
 	public String[] getlogincommands() {
@@ -123,7 +126,6 @@ public class connector extends Thread {
 					sendmsg("§4Malformed communication");
 					break;
 				}
-
 				if (packet.ValidPackets.contains(pid)) {
 					if (len > 1) {
 						// We shall serve this one
@@ -139,6 +141,7 @@ public class connector extends Thread {
 			sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
 		} catch (NullPointerException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");
 			e.printStackTrace();
@@ -239,7 +242,9 @@ public class connector extends Thread {
 				pack = new ChatPacket(sock);
 				ChatEvent event = ((ChatPacket) pack).Read();
 				String msg = parsechat(event.getMessage());
-				sendchatmsg(msg);
+				if(!isMessageIgnored(msg)) {
+					sendchatmsg(msg);
+				}
 				tryandsendlogin();
 			break;
 
@@ -284,6 +289,20 @@ public class connector extends Thread {
 				sendmsg("§4Server closed connection. (" + reason + ")");
 			break;
 		}
+	}
+
+	private boolean isMessageIgnored(String msg) {
+		if(msg==null) {
+			return false;
+		}
+		String parsedmsg=storage.stripcolors(msg);
+		String[] ignored=getignoredmessages();
+		for(String str:ignored) {
+			if(parsedmsg.equals(str)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void settablesize(int x, int y) {

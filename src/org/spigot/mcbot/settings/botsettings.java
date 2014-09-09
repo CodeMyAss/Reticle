@@ -20,8 +20,7 @@ public class botsettings {
 	public String[] autologincmd = new String[0];
 	public String[] autologoutcmd = new String[0];
 	public String[] autoantiafkcmd = new String[0];
-	//@Deprecated
-	//public String bottabname = "???";
+	public String[] ignored=new String[0];
 
 	public botsettings(String name) {
 		this.nick = name;
