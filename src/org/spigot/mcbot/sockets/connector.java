@@ -141,10 +141,8 @@ public class connector extends Thread {
 			sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
 		} catch (NullPointerException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");
-			e.printStackTrace();
 		} catch (RuntimeException e) {
 			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
@@ -306,10 +304,11 @@ public class connector extends Thread {
 	}
 
 	public void settablesize(int x, int y) {
-		int[] dim = new int[2];
-		dim[0] = x;
-		dim[1] = y;
-		bot.tablistsize = dim;
+		//int[] dim = new int[2];
+		//dim[0] = x;
+		//dim[1] = y;
+		//bot.tablistsize = dim;
+		bot.setTabSize(y, x);
 	}
 
 	private void handleteam(TeamEvent teamevent) {

@@ -24,23 +24,6 @@ import org.spigot.mcbot.storage;
 public class botfactory {
 
 	public static void makenewtab(mcbot bot) {
-		/*
-		 * JPanel panel = new JPanel(); JTabbedPane tabbedPane =
-		 * storage.gettabbedpane();
-		 * 
-		 * 
-		 * table.setModel(new DefaultTableModel( new Object[][] { {null, null,
-		 * null}, {null, null, null}, {null, null, null}, {null, null, null},
-		 * {null, null, null}, {null, null, null}, {null, null, null}, {null,
-		 * null, null}, {null, null, null}, {null, null, null}, {null, null,
-		 * null}, {null, null, null}, {null, null, null}, {null, null, null},
-		 * {null, null, null}, {null, null, null}, {null, null, null}, {null,
-		 * null, null}, {null, null, null}, {null, null, null}, }, new String[]
-		 * { "New column", "New column", "New column" } ));
-		 * table.setBackground(Color.BLACK); table.setForeground(Color.WHITE);
-		 * panel.add(table, "cell 2 1 1 4,grow");
-		 */
-
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.BLACK);
 		panel.setForeground(Color.BLUE);
@@ -113,7 +96,7 @@ public class botfactory {
 		} else {
 
 			JTable table = new JTable();
-			table.setModel(new DefaultTableModel(new Object[][] { { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, { null, null, null }, }, new String[] { "New column", "New column", "New column" }));
+			table.setModel(new DefaultTableModel(new Object[0][0],new Object[0]));
 			table.setBackground(Color.BLACK);
 			table.setForeground(Color.WHITE);
 			table.setEnabled(false);

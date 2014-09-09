@@ -160,7 +160,7 @@ public class mcbot {
 	public int getantiafkperiod() {
 		return this.rawbot.afkperiod;
 	}
-	
+
 	public String[] getignoredmessages() {
 		return this.rawbot.ignored;
 	}
@@ -222,7 +222,6 @@ public class mcbot {
 			return false;
 		}
 	}
-	
 
 	public void connect(boolean reconnect) {
 		if (this.rawbot.serverip != null) {
@@ -231,7 +230,7 @@ public class mcbot {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
-					connector.reconnect=reconnect;
+					connector.reconnect = reconnect;
 					connector.start();
 				} else {
 					this.logmsg("§4§lAlready connected");
@@ -322,52 +321,79 @@ public class mcbot {
 		}
 	}
 
-	public void refreshtablist(List<String> tablist,HashMap<String,String> playerteams,HashMap<String,team_struct> teams) {
-		// First thing we need is new table model
-		int i = 0;
+	public void setTabSize(int cols, int rows) {
+		this.tablistsize[0] = rows; // y
+		this.tablistsize[1] = cols; // x
+		int max = rows * cols;
+		String[][] redim = new String[rows][cols];
+		for (int i = 0; i < max; i++) {
+			int locx = i % cols;
+			int locy = i / cols;
+			redim[locy][locx] = new String(" ");
+		}
+		final DefaultTableModel model = new DefaultTableModel(redim, cols);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				tabler.setModel(model);
+			}
+		});
+	}
+
+	public void refreshtablist(List<String> tablist, HashMap<String, String> playerteams, HashMap<String, team_struct> teams) {
+		// Just replace the text on slots
 		int x = this.tablistsize[0];
 		int y = this.tablistsize[1];
+
+		int realy = tabler.getRowCount();
+		int realx = tabler.getColumnCount();
+
+		if (x != realx || y != realy) {
+			setTabSize(y, x);
+		}
+
 		int max = x * y;
 		if (max != 0) {
-			String[][] redim = new String[y][x];
-			String[] cols = new String[x];
-			for (int o = 0; o < x; o++) {
-				cols[o] = new String("Column " + o);
-			}
-			for(String name:tablist) {
-				if (i == max) {
-					break;
+			int imax = tablist.size();
+			for (int i = 0; i < max; i++) {
+				String name;
+				if (i < imax) {
+					name = tablist.get(i);
+				} else {
+					name = "";
 				}
-				int locx = i % x;
-				int locy = i / x;
+				final int locx = i % x;
+				final int locy = i / x;
 				// Now we should parse player name by his team
-				String realname=name;
-				if(playerteams.containsKey(name)) {
-					//He is in a team
-					String teamname=playerteams.get(name);
-					if(teams.containsKey(teamname)) {
-						//His team exists
-						realname=teams.get(teamname).getFormatedPlayer(realname);
+				String realnamer = name;
+				if (playerteams.containsKey(name)) {
+					// He is in a team
+					String teamname = playerteams.get(name);
+					if (teams.containsKey(teamname)) {
+						// His team exists
+						realnamer = teams.get(teamname).getFormatedPlayer(realnamer);
 					}
 				}
-
-				redim[locy][locx] = storage.parsecolorashtml(realname);
-				i++;
-			}
-			for (; i < max; i++) {
-				int locx = i % x;
-				int locy = i / x;
-				redim[locy][locx] = new String(" ");
-			}
-			final DefaultTableModel model = new DefaultTableModel(redim, cols);
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					tabler.setModel(model);
+				final String realname = storage.parsecolorashtml(realnamer);
+				String oldval = null;
+				try {
+					oldval = (String) tabler.getValueAt(locy, locx);
+				} catch (ArrayIndexOutOfBoundsException e) {
 				}
-			});
+				if (oldval == null) {
+					// Initial set
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							tabler.setValueAt(realname, locy, locx);
+						}
+					});
+				} else if (oldval != realname) {
+					// Value has changed
+					tabler.setValueAt(realname, locy, locx);
+				}
+			}
 		}
 	}
-	
+
 	public void updaterawbot(botsettings bs) {
 		// To make it reconnect if this change is necessary
 		if (bs != null) {
@@ -379,8 +405,7 @@ public class mcbot {
 	}
 
 	public void resettablist() {
-		tablistsize[0] = 1;
-		tablistsize[1] = 20;
-		refreshtablist(new ArrayList<String>(),new HashMap<String,String>(),new HashMap<String,team_struct>());
+		this.setTabSize(0, 0);
+		refreshtablist(new ArrayList<String>(), new HashMap<String, String>(), new HashMap<String, team_struct>());
 	}
 }
