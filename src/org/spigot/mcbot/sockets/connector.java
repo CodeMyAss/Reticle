@@ -49,7 +49,7 @@ public class connector extends Thread {
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		sendmsg("§2Connecting");
-		//Define served packets
+		// Define served packets
 		packet.ValidPackets.add(ChatPacket.ID);
 		packet.ValidPackets.add(KeepAlivePacket.ID);
 		packet.ValidPackets.add(JoinGamePacket.ID);
@@ -63,7 +63,7 @@ public class connector extends Thread {
 	public int getantiafkperiod() {
 		return this.bot.getantiafkperiod();
 	}
-	
+
 	public String[] getignoredmessages() {
 		return this.bot.getignoredmessages();
 	}
@@ -154,12 +154,15 @@ public class connector extends Thread {
 	}
 
 	public synchronized boolean sendtoserver(String msg) {
-		try {
-			new ChatPacket(this.sock).Write(msg);
-			return true;
-		} catch (IOException e) {
-			return false;
+		if (msg.length() > 0) {
+			try {
+				new ChatPacket(this.sock).Write(msg);
+				return true;
+			} catch (IOException e) {
+				return false;
+			}
 		}
+		return false;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -222,15 +225,15 @@ public class connector extends Thread {
 
 			case JoinGamePacket.ID:
 				// join game
-				JoinGameEvent joingameevent=new JoinGamePacket(sock).Read();
-				if(joingameevent.getMaxPlayers()>30 && joingameevent.getMaxPlayers() <50) {
-					//2 Columns 20 rows
+				JoinGameEvent joingameevent = new JoinGamePacket(sock).Read();
+				if (joingameevent.getMaxPlayers() > 30 && joingameevent.getMaxPlayers() < 50) {
+					// 2 Columns 20 rows
 					settablesize(2, 20);
-				} else if(joingameevent.getMaxPlayers() >= 50) {
-					//3 Columns 20 rows
+				} else if (joingameevent.getMaxPlayers() >= 50) {
+					// 3 Columns 20 rows
 					settablesize(3, 20);
 				} else {
-					//1 Columns 20 rows
+					// 1 Columns 20 rows
 					settablesize(1, 20);
 				}
 			break;
@@ -240,7 +243,7 @@ public class connector extends Thread {
 				pack = new ChatPacket(sock);
 				ChatEvent event = ((ChatPacket) pack).Read();
 				String msg = parsechat(event.getMessage());
-				if(!isMessageIgnored(msg)) {
+				if (!isMessageIgnored(msg)) {
 					sendchatmsg(msg);
 				}
 				tryandsendlogin();
@@ -290,13 +293,13 @@ public class connector extends Thread {
 	}
 
 	private boolean isMessageIgnored(String msg) {
-		if(msg==null) {
+		if (msg == null) {
 			return false;
 		}
-		String parsedmsg=storage.stripcolors(msg);
-		String[] ignored=getignoredmessages();
-		for(String str:ignored) {
-			if(parsedmsg.equals(str)) {
+		String parsedmsg = storage.stripcolors(msg);
+		String[] ignored = getignoredmessages();
+		for (String str : ignored) {
+			if (parsedmsg.equals(str)) {
 				return true;
 			}
 		}
@@ -304,10 +307,10 @@ public class connector extends Thread {
 	}
 
 	public void settablesize(int x, int y) {
-		//int[] dim = new int[2];
-		//dim[0] = x;
-		//dim[1] = y;
-		//bot.tablistsize = dim;
+		// int[] dim = new int[2];
+		// dim[0] = x;
+		// dim[1] = y;
+		// bot.tablistsize = dim;
 		bot.setTabSize(y, x);
 	}
 
@@ -395,7 +398,7 @@ public class connector extends Thread {
 				// There is string only
 				sb.append(extr.getAsString());
 			} else {
-				//There is something out there
+				// There is something out there
 				text = "";
 				String bold = "";
 				String reset = "";
@@ -464,10 +467,10 @@ public class connector extends Thread {
 			return sock.isConnected();
 		}
 	}
-	
+
 	public void sendchatmsg(String message) {
 		if (message != null) {
-			sendrawmsg("[Server] "+message);
+			sendrawmsg("[Server] " + message);
 		}
 	}
 

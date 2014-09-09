@@ -485,8 +485,8 @@ public class storage {
 					bold = "<b>";
 					rebold = "</b>";
 				} else if (tmg.equals("m")) {
-					strike = "<m>";
-					restrike = "</m>";
+					strike = "<strike>";
+					restrike = "</strike>";
 				} else if (tmg.equals("n")) {
 					underline = "<n>";
 					reunderline = "</n>";
