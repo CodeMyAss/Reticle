@@ -3,6 +3,8 @@ package org.spigot.mcbot.packets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.sql.rowset.serial.SerialException;
+
 import org.spigot.mcbot.events.JoinGameEvent;
 
 public class JoinGamePacket extends packet {
@@ -13,7 +15,7 @@ public class JoinGamePacket extends packet {
 		this.sock=sock;
 	}
 	
-	public JoinGameEvent Read() throws IOException {
+	public JoinGameEvent Read() throws IOException, SerialException {
 		super.input=sock;
 		//Our entity ID
 		int id=super.readInt();

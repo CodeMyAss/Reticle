@@ -1,5 +1,7 @@
 package org.spigot.mcbot;
 
+import org.spigot.mcbot.sockets.Reporter;
+
 public class MAIN {
 	public static void main(String[] args) {
 		loader runner;
@@ -12,6 +14,9 @@ public class MAIN {
 			mainwindow.frmReticle.setVisible(true);
 			if(storage.getAutoupdate()) {
 				storage.checkforupdates();
+			}
+			if(storage.getAutodebug()) {
+				new Reporter(Reporter.ACTION.REPORTUSAGE).start();
 			}
 		} catch (NumberFormatException e) {
 			storage.alert("Configuration error", "Failed to load configuration\n\nReason: Numeric field contains illegal characters.\nPlease fix your config!");

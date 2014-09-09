@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import javax.sql.rowset.serial.SerialException;
+
 public class PlayerListItemPacket extends packet {
 	public static final int ID=56;
 	private ByteBuffer sock;
@@ -15,7 +17,7 @@ public class PlayerListItemPacket extends packet {
 		
 	}
 
-	public void Read() throws IOException {
+	public void Read() throws IOException, SerialException {
 		super.input = sock;
 		name = super.readString();
 		online = super.readBoolean();

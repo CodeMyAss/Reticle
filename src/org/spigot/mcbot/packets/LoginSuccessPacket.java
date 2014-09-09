@@ -1,28 +1,24 @@
 package org.spigot.mcbot.packets;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
 
-import org.spigot.mcbot.sockets.connector;
+import javax.sql.rowset.serial.SerialException;
 
 public class LoginSuccessPacket extends packet {
-	connector con;
-	public static final int ID=2;
-	
-	public LoginSuccessPacket(Socket sock, connector connector) throws IOException {
-		super.sockinput=sock.getInputStream();
-		this.con=connector;
+	private ByteBuffer sock;
+	public static final int ID = 2;
+
+	public LoginSuccessPacket(ByteBuffer sock) throws IOException {
+		this.sock = sock;
 	}
 
-	public void read() throws IOException {
-		//Length
-		super.readInnerVarInt();
-		//Pid
-		super.readInnerVarInt();
-		//UUID
-		String uuid = super.readInnerString();
-		//Username		
-		super.readInnerString();
-		con.sendmessage("§bReceived UUID: §2§n"+uuid);
+	public String Read() throws IOException, SerialException {
+		super.input = sock;
+		// UUID
+		String uuid = super.readString();
+		// Username
+		super.readString();
+		return uuid;
 	}
 }

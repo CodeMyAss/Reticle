@@ -6,6 +6,8 @@ import java.awt.Frame;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -31,9 +33,10 @@ import org.spigot.mcbot.settings.aboutwin;
 import org.spigot.mcbot.settings.set_obj_struct;
 import org.spigot.mcbot.settings.struct_settings;
 import org.spigot.mcbot.settings.settings;
+import org.spigot.mcbot.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.06";
+	public static String version = "1.07";
 
 	protected EventHandler handler = new EventHandler();
 
@@ -95,6 +98,23 @@ public class storage {
 			storage.getInstance().optwin.dispose();
 			storage.getInstance().optwin = null;
 		}
+	}
+
+	public static String getconsoletext() {
+		mcbot bot = storage.getInstance().mainer;
+		return bot.getmsg(5000);
+	}
+
+	public static void sendissue() {
+		Reporter rp = new Reporter(Reporter.ACTION.REPORTISSUE);
+		rp.issue = storage.getconsoletext();
+		rp.start();
+	}
+
+	public static void sendissue(String issue) {
+		Reporter rp = new Reporter(Reporter.ACTION.REPORTISSUE);
+		rp.issue = issue;
+		rp.start();
 	}
 
 	public synchronized static void checkforupdates() {
@@ -503,19 +523,32 @@ public class storage {
 					italic = "";
 					reitalic = "";
 					color = "";
-					recolor= "";
+					recolor = "";
 				} else {
 					color = "<font color=" + getcolorfromtypeashex(tmg) + ">";
 				}
 				String restmsg = msg.substring(1);
 				if (restmsg.length() > 0) {
-					restmsg=restmsg.replace("<","&lt;").replace(">","&gt;");
+					restmsg = restmsg.replace("<", "&lt;").replace(">", "&gt;");
 					sb.append(italic + underline + strike + bold + color + restmsg + recolor + rebold + restrike + reunderline + reitalic);
 				}
 			}
 			return "<html>" + sb.toString() + "</html>";
 		} else {
 			return "";
+		}
+	}
+
+	public static boolean reportthis(Exception e) {
+		if (storage.getAutodebug()) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			String error = sw.toString();
+			storage.sendissue(error);
+			return true;
+		} else {
+			return false;
 		}
 	}
 }

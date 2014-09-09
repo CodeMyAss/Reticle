@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.rowset.serial.SerialException;
+
 import org.spigot.mcbot.events.TeamEvent;
 
 public class TeamPacket extends packet {
@@ -15,7 +17,7 @@ public class TeamPacket extends packet {
 		this.buff = buffer;
 	}
 
-	public TeamEvent Read() throws IOException {
+	public TeamEvent Read() throws IOException, SerialException {
 		super.input = buff;
 		String teamdisplayname = null, prefix = null, suffix = null;
 		String nametag = null;

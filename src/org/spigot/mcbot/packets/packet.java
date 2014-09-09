@@ -8,6 +8,8 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.rowset.serial.SerialException;
+
 public class packet {
 	protected ByteBuffer input;
 	private ByteBuffer output;
@@ -48,7 +50,7 @@ public class packet {
 	 * input.read(b, 0, len); return b; }
 	 */
 
-	public int[] readNext() throws IOException {
+	public int[] readNext() throws IOException, SerialException {
 		int[] res = new int[2];
 		// The length of the packet
 		res[0] = readInnerVarInt();
@@ -96,14 +98,15 @@ public class packet {
 		sockinput.skip(length);
 	}
 	
-	protected int readInnerVarInt() throws IOException {
+	protected int readInnerVarInt() throws SerialException, IOException {
 		int out = 0;
 		int bytes = 0;
 		byte in;
 		while (true) {
+			
 			int ir = this.sockinput.read();
 			if(ir==-1) {
-				throw new IOException();
+				throw new SerialException();
 			} else {
 				in=(byte)ir;
 			}
@@ -118,7 +121,7 @@ public class packet {
 		return out;
 	}
 
-	protected int readVarInt() throws IOException {
+	protected int readVarInt() throws IOException, SerialException {
 		int out = 0;
 		int bytes = 0;
 		byte in;
@@ -142,7 +145,7 @@ public class packet {
 		 */
 	}
 
-	protected int readInt() throws IOException {
+	protected int readInt() throws IOException, SerialException {
 		return (readByte() << 24) + (readByte() << 16) + (readByte() << 8) + readByte();
 
 	}
@@ -151,11 +154,13 @@ public class packet {
 		output.putInt(i);
 	}
 
-	protected byte readByte() throws IOException {
+	protected byte readByte() throws IOException, SerialException {
 		int byter = input.get();
+		/*
 		if (byter == -1) {
-			//throw new IOException();
+			throw new SerialException();
 		}
+		*/
 		return (byte) byter;
 	}
 
@@ -163,11 +168,11 @@ public class packet {
 		output.put((byte) b);
 	}
 
-	protected short readShort() throws IOException {
+	protected short readShort() throws IOException, SerialException {
 		return (short) ((readByte() << 4) + readByte());
 	}
 
-	protected String readInnerString() throws IOException {
+	protected String readInnerString() throws IOException, SerialException {
 		int len = readInnerVarInt();
 		if (len > 1024) {
 			System.err.println("Can't read " + len);
@@ -179,7 +184,7 @@ public class packet {
 		return new String(b, "UTF-8");
 	}
 	
-	protected String readString() throws IOException {
+	protected String readString() throws IOException, SerialException {
 		int len = readVarInt();
 		if (len > 1024) {
 			System.err.println("Can't read " + len);
@@ -202,7 +207,7 @@ public class packet {
 		output.put((byte) (b & 0xff));
 	}
 
-	protected long readLong() throws IOException {
+	protected long readLong() throws IOException, SerialException {
 		return (((long) readInt()) << 16) + ((long) readInt());
 	}
 
@@ -211,7 +216,7 @@ public class packet {
 		writeInt((int) l & 0xFFFFFFFF);
 	}
 
-	protected boolean readBoolean() throws IOException {
+	protected boolean readBoolean() throws IOException, SerialException {
 		int i = readByte();
 		return (i != 0);
 	}

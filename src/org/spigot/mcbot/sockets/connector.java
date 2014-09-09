@@ -3,11 +3,14 @@ package org.spigot.mcbot.sockets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.mcbot.storage;
 import org.spigot.mcbot.botfactory.mcbot;
@@ -43,6 +46,8 @@ public class connector extends Thread {
 	private Socket sock;
 	private AntiAFK afkter;
 	private boolean haslogged = false;
+	private boolean hasloggedin = false;
+
 	public boolean reconnect = false;
 	private List<String> Tablist = new ArrayList<String>();
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
@@ -51,7 +56,7 @@ public class connector extends Thread {
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		sendmsg("§2Connecting");
-		
+
 	}
 
 	private void definepackets(packet packet) {
@@ -65,7 +70,7 @@ public class connector extends Thread {
 		packet.ValidPackets.add(SpawnPositionPacket.ID);
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
 	}
-	
+
 	public int getantiafkperiod() {
 		return this.bot.getantiafkperiod();
 	}
@@ -103,6 +108,7 @@ public class connector extends Thread {
 
 		// Main loop
 		try {
+			sock = null;
 			sock = new Socket(bot.serverip, bot.serverport);
 			InputStream input = sock.getInputStream();
 			packet reader = new packet(sock.getInputStream());
@@ -112,56 +118,72 @@ public class connector extends Thread {
 			// First, we must send HandShake and hope for good response
 			new HandShakePacket(sock).Write(bot.serverip, bot.serverport);
 			new LoginStartPacket(sock).Write(bot.username);
-			new LoginSuccessPacket(sock, this).read();
-			bot.seticon(ICONSTATE.CONNECTED);
-			// Init routine
 
-			this.reconnect = bot.getautoreconnect();
+			hasloggedin = false;
+			// Init routine
 			int pid;
 			int len;
 			int[] pack = new int[2];
 
+			// new LoginSuccessPacket(sock, this).read();
+			bot.seticon(ICONSTATE.CONNECTED);
+
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
-
+			// The loop
 			while (true) {
 				pack = reader.readNext();
 				len = pack[0];
 				pid = pack[1];
 				if (pid > packet.MAXPACKETID) {
+					sendmsg("Received packet id " + pid);
 					sendmsg("§4Malformed communication");
 					break;
 				}
-
 				if (reader.ValidPackets.contains(pid)) {
-					if (len > 1) {
-						// We shall serve this one
-						int len2 = len - reader.getVarntCount(pid);
-						byte[] b = new byte[len2];
-						sock.getInputStream().read(b, 0, len2);
-						ByteBuffer buf = ByteBuffer.wrap(b);
-						processpacket(pid, len2, buf);
-					}
-					// We have good one
+					// We shall serve this one
+					int len2 = len - reader.getVarntCount(pid);
+					byte[] b = new byte[len2];
+					sock.getInputStream().read(b, 0, len2);
+					ByteBuffer buf = ByteBuffer.wrap(b);
+					processpacket(pid, len2, buf);
 				} else {
 					// We decided to ignore this one
 					new Ignored_Packet(len, pid, input).Read();
 				}
 			}
+			sendmsg("§4Connection has been closed");
+		} catch (SerialException e) {
+			sendmsg("§4Connection has been lost.");
+			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
-			e.printStackTrace();
+			if (!storage.reportthis(e)) {
+				sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
+				e.printStackTrace();
+			}
 		} catch (NullPointerException e) {
+			if (!storage.reportthis(e)) {
+				sendmsg("§4Strange error happened. Please report this.");
+				e.printStackTrace();
+			}
+		} catch (SocketException e) {
+			sendmsg("§4Connection has been dropped.");
 		} catch (IOException e) {
-			sendmsg("§4Disconnected");
-			//e.printStackTrace();
+			if (!storage.reportthis(e)) {
+				sendmsg("§4Disconnected");
+				e.printStackTrace();
+			}
 		} catch (RuntimeException e) {
-			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
-			e.printStackTrace();
+			if (!storage.reportthis(e)) {
+				sendmsg("§4Error happened. Error log written into main tab. Please report this.");
+				e.printStackTrace();
+			}
 		} catch (Exception e) {
-			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
-			e.printStackTrace();
+			if (!storage.reportthis(e)) {
+				sendmsg("§4Error happened. Error log written into main tab. Please report this.");
+				e.printStackTrace();
+			}
 		}
 		stopMe();
 	}
@@ -214,8 +236,11 @@ public class connector extends Thread {
 				}
 			}
 			// And the magic of restart
-			this.sock = null;
-			bot.connect(this.reconnect);
+			if (this.sock != null) {
+				// If we have not been disturbed
+				this.sock = null;
+				bot.connect(true);
+			}
 		} else {
 			storage.changemenuitems();
 		}
@@ -230,10 +255,17 @@ public class connector extends Thread {
 			break;
 
 			case KeepAlivePacket.ID:
-				// Keep us alive
-				KeepAlivePacket keepalivepack = new KeepAlivePacket(sock, buf);
-				byte[] resp = keepalivepack.Read(len);
-				keepalivepack.Write(resp);
+				if (len > 4) {
+					// This is probably not keep alive
+					String reason = new ConnectionResetPacket(buf).read();
+					sendmsg("§4Server closed connection. Reason:\n" + reason + ")");
+					this.stopMe();
+				} else {
+					// Keep us alive
+					KeepAlivePacket keepalivepack = new KeepAlivePacket(sock, buf);
+					byte[] resp = keepalivepack.Read(len);
+					keepalivepack.Write(resp);
+				}
 			break;
 
 			case JoinGamePacket.ID:
@@ -249,17 +281,24 @@ public class connector extends Thread {
 					// 1 Columns 20 rows
 					settablesize(1, 20);
 				}
+				this.reconnect = bot.getautoreconnect();
 			break;
 
 			case ChatPacket.ID:
-				// Chat
-				pack = new ChatPacket(buf, null);
-				ChatEvent event = ((ChatPacket) pack).Read();
-				String msg = parsechat(event.getMessage());
-				if (!isMessageIgnored(msg)) {
-					sendchatmsg(msg);
+				if (hasloggedin) {
+					// Chat
+					pack = new ChatPacket(buf, null);
+					ChatEvent event = ((ChatPacket) pack).Read();
+					String msg = parsechat(event.getMessage());
+					if (!isMessageIgnored(msg)) {
+						sendchatmsg(msg);
+					}
+					tryandsendlogin();
+				} else {
+					String uuid = new LoginSuccessPacket(buf).Read();
+					hasloggedin = true;
+					sendmsg("§2Received UUID: §n" + uuid);
 				}
-				tryandsendlogin();
 			break;
 
 			case SpawnPositionPacket.ID:
@@ -395,9 +434,9 @@ public class connector extends Thread {
 
 			return jsonreparse(obf);
 		} catch (IllegalStateException e) {
-			return str;
+			return null;
 		} catch (JsonSyntaxException e) {
-			return str;
+			return null;
 		}
 	}
 
@@ -475,12 +514,12 @@ public class connector extends Thread {
 		}
 	}
 
+	public boolean isConnected(boolean forced) {
+		return (sock != null);
+	}
+
 	public boolean isConnected() {
-		if (sock == null) {
-			return false;
-		} else {
-			return sock.isConnected();
-		}
+		return (sock != null || this.reconnect);
 	}
 
 	public void sendchatmsg(String message) {

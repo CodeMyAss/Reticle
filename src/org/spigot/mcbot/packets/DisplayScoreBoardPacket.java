@@ -3,6 +3,8 @@ package org.spigot.mcbot.packets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.sql.rowset.serial.SerialException;
+
 public class DisplayScoreBoardPacket extends packet {
 	public static final int ID=61;
 	private ByteBuffer sock;
@@ -11,7 +13,7 @@ public class DisplayScoreBoardPacket extends packet {
 		this.sock=sock;
 	}
 	
-	public void Read() throws IOException {
+	public void Read() throws IOException, SerialException {
 		super.input=sock;
 		//Pos
 		super.readByte();

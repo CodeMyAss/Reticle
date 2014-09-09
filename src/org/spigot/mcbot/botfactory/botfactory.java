@@ -33,6 +33,7 @@ public class botfactory {
 	private static JTextPane txtpnText;
 
 	public static void makenewtab(mcbot bot) {
+	
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.BLACK);
 		panel.setForeground(Color.BLUE);
@@ -86,7 +87,9 @@ public class botfactory {
 			}
 		});
 
-		txtpnText.addMouseListener(new PopClickListener());
+		PopClickListener listener = new PopClickListener();
+		listener.main=bot.ismain;
+		txtpnText.addMouseListener(listener);
 
 		txtCommands.addKeyListener(new KeyAdapter() {
 			@Override
@@ -126,7 +129,7 @@ class contextmenu extends JPopupMenu {
 	private static final long serialVersionUID = 1L;
 	JMenuItem anItem;
 
-	public contextmenu(final JTextPane txt) {
+	public contextmenu(final JTextPane txt, boolean main) {
 
 		ActionListener menuListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
@@ -141,6 +144,9 @@ class contextmenu extends JPopupMenu {
 					clpbrd.setContents (stringSelection, null);
 				} else if (event.getActionCommand().equals("Clear")) {
 					txt.setText("");
+				} else if (event.getActionCommand().equals("Report")) {
+					storage.sendissue();
+					storage.conlog("Reporting");
 				}
 			}
 		};
@@ -153,11 +159,18 @@ class contextmenu extends JPopupMenu {
 		add(item1);
 		add(item2);
 		add(item3);
+		if(main) {
+			JMenuItem item4 = new JMenuItem("Report");
+			item4.addActionListener(menuListener);
+			add(item4);
+		}
 
 	}
 }
 
 class PopClickListener extends MouseAdapter {
+	protected boolean main;	
+	
 	public void mousePressed(MouseEvent e) {
 		if (e.isPopupTrigger()) {
 			doPop(e);
@@ -171,7 +184,7 @@ class PopClickListener extends MouseAdapter {
 	}
 
 	private void doPop(MouseEvent e) {
-		contextmenu menu = new contextmenu((JTextPane) e.getComponent());
+		contextmenu menu = new contextmenu((JTextPane) e.getComponent(),main);
 		menu.show(e.getComponent(), e.getX(), e.getY());
 	}
 }

@@ -3,6 +3,8 @@ package org.spigot.mcbot.packets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.sql.rowset.serial.SerialException;
+
 
 
 public class ConnectionResetPacket extends packet {
@@ -13,7 +15,7 @@ public class ConnectionResetPacket extends packet {
 		this.input=s;
 	}
 	
-	public String read() throws IOException {
+	public String read() throws IOException, SerialException {
 		super.input=input;
 		return super.readString();
 	}

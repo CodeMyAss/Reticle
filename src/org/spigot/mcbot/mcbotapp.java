@@ -176,6 +176,7 @@ public class mcbotapp {
 		storage.changemenuitems();
 		storage.savesettings();
 		storage.firsttabload();
+		
 	}
 
 	public void redirectSystemStreams() {

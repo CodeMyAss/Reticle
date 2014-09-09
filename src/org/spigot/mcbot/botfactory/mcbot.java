@@ -206,6 +206,15 @@ public class mcbot {
 		return this.autoscroll.isSelected();
 	}
 
+	public boolean isConnected(boolean reconnect) {
+		if (this.connector == null) {
+			// Initial state
+			return false;
+		} else {
+			return this.connector.isConnected(reconnect);
+		}
+	}
+	
 	public boolean isConnected() {
 		if (this.connector == null) {
 			// Initial state
@@ -224,14 +233,15 @@ public class mcbot {
 		}
 	}
 
+		
 	public void connect(boolean reconnect) {
 		if (this.rawbot.serverip != null) {
 			try {
-				if (!this.isConnected()) {
+				if (!this.isConnected(reconnect)) {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
-					connector.reconnect = reconnect;
+					//connector.reconnect = reconnect;
 					connector.start();
 				} else {
 					this.logmsg("§4§lAlready connected");
@@ -263,6 +273,18 @@ public class mcbot {
 		ICONSTATE(Icon ico) {
 			this.icon = ico;
 		}
+	}
+	
+	public String getmsg(int len) {
+		int lenn=chatlog.getText().length();
+		if(lenn<len) {
+			return chatlog.getText();
+		}
+		try {
+			return this.chatlog.getText(lenn-len, len);
+		} catch (BadLocationException e) {
+		}
+		return "";
 	}
 
 	public synchronized void logmsg(String message) {

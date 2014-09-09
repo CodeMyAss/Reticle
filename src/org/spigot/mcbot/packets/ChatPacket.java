@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
+import javax.sql.rowset.serial.SerialException;
+
 import org.spigot.mcbot.events.ChatEvent;
 
 public class ChatPacket extends packet {
@@ -18,7 +20,7 @@ public class ChatPacket extends packet {
 		this.buff=buff;
 	}
 	
-	public ChatEvent Read() throws IOException {
+	public ChatEvent Read() throws IOException, SerialException {
 		super.input=buff;
 		return new ChatEvent(super.readString());
 	}
