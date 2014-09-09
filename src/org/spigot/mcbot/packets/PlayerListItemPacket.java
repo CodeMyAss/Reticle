@@ -12,22 +12,15 @@ public class PlayerListItemPacket extends packet {
 
 	public PlayerListItemPacket(Socket sock) {
 		this.sock = sock;
+		
 	}
 
 	public void Read() throws IOException {
 		super.input = sock.getInputStream();
-		// Following stuff is for 1.8 (Will update when servers are out)
-		/*
-		 * int action=super.readVarInt(); int len=super.readVarInt(); //UUID
-		 * (Don't really care about the correct value if you read it this way
-		 * every time) String UUID=""+(super.readLong() << 64 &
-		 * super.readLong());
-		 */
 		name = super.readString();
 		online = super.readBoolean();
 		//Ping
 		super.readShort();
-
 	}
 	
 	// Meaning of true return value is to update tablist

@@ -126,6 +126,7 @@ public class connector extends Thread {
 					sendmsg("§4Malformed communication");
 					break;
 				}
+				
 				if (packet.ValidPackets.contains(pid)) {
 					if (len > 1) {
 						// We shall serve this one
@@ -143,6 +144,7 @@ public class connector extends Thread {
 		} catch (NullPointerException e) {
 		} catch (IOException e) {
 			sendmsg("§4Disconnected");
+			//e.printStackTrace();
 		} catch (RuntimeException e) {
 			sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 			e.printStackTrace();
@@ -226,7 +228,7 @@ public class connector extends Thread {
 			case JoinGamePacket.ID:
 				// join game
 				JoinGameEvent joingameevent = new JoinGamePacket(sock).Read();
-				if (joingameevent.getMaxPlayers() > 30 && joingameevent.getMaxPlayers() < 50) {
+				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
 					// 2 Columns 20 rows
 					settablesize(2, 20);
 				} else if (joingameevent.getMaxPlayers() >= 50) {
@@ -262,9 +264,9 @@ public class connector extends Thread {
 
 			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)
-				pack = new PlayerListItemPacket(sock);
-				((PlayerListItemPacket) pack).Read();
-				if (((PlayerListItemPacket) pack).Serve(Tablist)) {
+				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(sock);
+				playerlistitem.Read();
+				if (playerlistitem.Serve(Tablist)) {
 					// Tablist needs to be refreshed
 					this.refreshTablist();
 				}
