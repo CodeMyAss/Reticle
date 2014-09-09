@@ -198,7 +198,7 @@ public class struct_settings {
 				bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
 			}
 			if (sb4.toString().length() > 2) {
-				bot.autoantiafkcmd = sb4.toString().substring(2).split("\r\n");
+				bot.ignored = sb4.toString().substring(2).split("\r\n");
 			}
 			settings.put(bot.gettabname(), bot);
 		}
