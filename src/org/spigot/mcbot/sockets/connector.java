@@ -212,8 +212,6 @@ public class connector extends Thread {
 				bot.sendtoserver(cmd);
 			}
 		}
-		// Change icon
-		bot.seticon(ICONSTATE.DISCONNECTED);
 		// Stop afkter process
 		if (this.afkter != null) {
 			this.afkter.stop();
@@ -223,14 +221,16 @@ public class connector extends Thread {
 		// Deal with socket
 		try {
 			sock.close();
-			sock = null;
 		} catch (IOException e) {
 		} catch (NullPointerException e) {
 		}
+		sock = null;
 		// Modify menu items
 		storage.changemenuitems();
 		// If we are intended to restart, we wait and do so
 		if (this.reconnect) {
+			// Change icon
+			bot.seticon(ICONSTATE.CONNECTING);
 			Object sync = new Object();
 			synchronized (sync) {
 				try {
@@ -238,14 +238,15 @@ public class connector extends Thread {
 				} catch (InterruptedException e) {
 				}
 			}
-			// And the magic of restart
-			if (this.sock != null) {
-				// If we have not been disturbed
-				bot.connector = null;
-				this.sock = null;
-				bot.connect(true);
+			// If we have not been disturbed
+			bot.connector = null;
+			// If disconncect was invoked while waiting
+			if (this.reconnect) {
+				bot.reconnect();
 			}
 		} else {
+			// Change icon
+			bot.seticon(ICONSTATE.DISCONNECTED);
 			bot.connector = null;
 			storage.changemenuitems();
 		}
@@ -525,6 +526,10 @@ public class connector extends Thread {
 
 	public boolean isConnected() {
 		return (sock != null || this.reconnect);
+	}
+
+	public boolean isConnectedAllowReconnect() {
+		return (sock != null);
 	}
 
 	public void sendchatmsg(String message) {

@@ -45,13 +45,12 @@ public class mcbot {
 
 	public mcbot(botsettings bot, boolean ismain) {
 		this.ismain = ismain;
-		bot.isMain=ismain;
+		bot.isMain = ismain;
 		this.rawbot = bot;
 		this.tablistsize[0] = 1;
 		this.tablistsize[1] = 20;
 		initwin();
 	}
-
 
 	public mcbot(botsettings bot) {
 		this.rawbot = bot;
@@ -215,7 +214,7 @@ public class mcbot {
 			return this.connector.isConnected(reconnect);
 		}
 	}
-	
+
 	public boolean isConnected() {
 		if (this.connector == null) {
 			// Initial state
@@ -223,7 +222,15 @@ public class mcbot {
 		} else {
 			return this.connector.isConnected();
 		}
+	}
 
+	public boolean isConnectedAllowReconnect() {
+		if (this.connector == null) {
+			// Initial state
+			return false;
+		} else {
+			return this.connector.isConnectedAllowReconnect();
+		}
 	}
 
 	public boolean sendtoserver(String message) {
@@ -234,23 +241,42 @@ public class mcbot {
 		}
 	}
 
-		
-	public void connect(boolean reconnect) {
-		if (this.rawbot.serverip != null && this.connector==null) {
-			try {
-				if (!this.isConnected(reconnect)) {
+	public void reconnect() {
+		if (this.rawbot.serverip != null) {
+			if (!this.isConnectedAllowReconnect()) {
+				try {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
-					//connector.reconnect = reconnect;
+					connector.start();
+				} catch (UnknownHostException e) {
+					this.logmsg("§4 Invalid IP or hostname");
+				} catch (IOException e) {
+					if (!storage.reportthis(e)) {
+						e.printStackTrace();	
+					}
+				}
+			}
+		}
+	}
+
+	public void connect() {
+		if (this.rawbot.serverip != null && this.connector == null) {
+			try {
+				if (!this.isConnected()) {
+					this.serverip = this.rawbot.serverip;
+					this.serverport = this.rawbot.serverport;
+					this.connector = new connector(this);
 					connector.start();
 				} else {
 					this.logmsg("§4§lAlready connected");
 				}
 			} catch (UnknownHostException e) {
-				e.printStackTrace();
+				this.logmsg("§4 Invalid IP or hostname");
 			} catch (IOException e) {
-				e.printStackTrace();
+				if (!storage.reportthis(e)) {
+					e.printStackTrace();	
+				}
 			}
 		}
 	}
@@ -275,14 +301,14 @@ public class mcbot {
 			this.icon = ico;
 		}
 	}
-	
+
 	public String getmsg(int len) {
-		int lenn=chatlog.getText().length();
-		if(lenn<len) {
+		int lenn = chatlog.getText().length();
+		if (lenn < len) {
 			return chatlog.getText();
 		}
 		try {
-			return this.chatlog.getText(lenn-len, len);
+			return this.chatlog.getText(lenn - len, len);
 		} catch (BadLocationException e) {
 		}
 		return "";
@@ -342,6 +368,8 @@ public class mcbot {
 			this.connector.reconnect = false;
 			// Go for it
 			this.connector.stopMe();
+			seticon(ICONSTATE.DISCONNECTED);
+			storage.changemenuitems();
 		}
 	}
 

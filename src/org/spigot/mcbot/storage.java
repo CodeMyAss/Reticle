@@ -354,7 +354,7 @@ public class storage {
 				mcbot bot = new mcbot(set);
 				bot.ismain = false;
 				if (set.autoconnect) {
-					bot.connect(false);
+					bot.connect();
 				}
 				bots.put(key, bot);
 			}
