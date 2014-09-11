@@ -161,6 +161,8 @@ public class mcbotapp {
 			}
 		});
 		frmReticle.getContentPane().add(tabbedPane, BorderLayout.CENTER);
+		
+		frmReticle.setIconImage(storage.winicon.getImage());
 
 		redirectSystemStreams();
 		
@@ -176,6 +178,8 @@ public class mcbotapp {
 		storage.changemenuitems();
 		storage.savesettings();
 		storage.firsttabload();
+		
+		
 		
 	}
 

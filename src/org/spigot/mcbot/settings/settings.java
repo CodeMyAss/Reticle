@@ -2,6 +2,7 @@ package org.spigot.mcbot.settings;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Frame;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -253,10 +254,10 @@ public class settings extends JFrame {
 		textignore = new JTextArea();
 		scrollPane_3.setViewportView(textignore);
 		panel_3.add(scrollPane_3, "cell 2 10,grow");
-
-
-
-
+		for(Frame frame:getFrames()) {
+			frame.setIconImage(storage.winicon.getImage());
+		}
+		
 		storage.getInstance().winobj = getFrames()[0];
 		set_obj_struct sobj = storage.getsettingsobj();
 		sobj.txtservername = txtservername;

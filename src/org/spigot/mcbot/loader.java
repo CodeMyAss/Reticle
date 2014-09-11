@@ -34,6 +34,7 @@ public class loader extends JFrame implements Runnable {
 		frame.getContentPane().add(panel, BorderLayout.CENTER);
 		frame.setSize(storage.icon_loader.getIconWidth(), storage.icon_loader.getIconHeight());
 		centre(frame);
+		frame.setIconImage(storage.winicon.getImage());
 		frame.setVisible(true);
 	}
 }
