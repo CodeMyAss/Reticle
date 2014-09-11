@@ -2,6 +2,7 @@ package org.spigot.mcbot.settings;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -22,7 +23,8 @@ import org.spigot.mcbot.storage;
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.Window.Type;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class settings extends JFrame {
 
@@ -49,27 +51,16 @@ public class settings extends JFrame {
 	private JCheckBox checkautoreconnect;
 	private JTextArea textignore;
 
-	/**
-	 * Launch the application.
-	 */
-	/*
-	 * public static void main(String[] args) { EventQueue.invokeLater(new
-	 * Runnable() { public void run() { try { settings frame = new settings();
-	 * frame.setVisible(true); } catch (Exception e) { e.printStackTrace(); } }
-	 * }); }
-	 */
-	/*
-	 * public settings(botsettings set) { EventQueue.invokeLater(new Runnable()
-	 * { public void run() { try { settings frame = new settings(1);
-	 * frame.setVisible(false); frame.thisobj = frame; } catch (Exception e) {
-	 * e.printStackTrace(); } } }); }
-	 */
-
 	public settings(final botsettings set) {
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent arg0) {
+				storage.closesettingswindow();
+			}
+		});
 		setResizable(false);
 		setType(Type.POPUP);
 		setTitle("Settings");
-		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 528, 452);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -97,8 +88,7 @@ public class settings extends JFrame {
 				// New settings from user
 				botsettings bs = storage.getInstance().setobj.getsettings();
 				// Old bot name used to identification
-				//String acti = storage.getsettingsobj().textcurtabname.getText();
-				String acti=set.gettabname();
+				String acti = set.gettabname();
 				if (storage.verifysettings(acti, bs)) {
 					// Tab index
 					int anum = storage.getselectedtabindex();
@@ -253,7 +243,7 @@ public class settings extends JFrame {
 
 		textafkcom = new JTextArea();
 		scrollPane_2.setViewportView(textafkcom);
-		
+
 		JLabel lblIgnoredMessages = new JLabel("Ignored Messages");
 		panel_3.add(lblIgnoredMessages, "cell 1 10,alignx right,aligny top");
 
@@ -264,8 +254,9 @@ public class settings extends JFrame {
 		scrollPane_3.setViewportView(textignore);
 		panel_3.add(scrollPane_3, "cell 2 10,grow");
 
-		
-		
+
+
+
 		storage.getInstance().winobj = getFrames()[0];
 		set_obj_struct sobj = storage.getsettingsobj();
 		sobj.txtservername = txtservername;
@@ -284,9 +275,9 @@ public class settings extends JFrame {
 		sobj.textantiafkdelay = textantiafkdelay;
 		sobj.checkautoreconnect = checkautoreconnect;
 		sobj.textreconnectdelay = textreconnectdelay;
-		sobj.textignore=textignore;
+		sobj.textignore = textignore;
 		storage.getInstance().setobj.setsettings(set);
-		this.setVisible(true);	
+		this.setVisible(true);
 
 	}
 

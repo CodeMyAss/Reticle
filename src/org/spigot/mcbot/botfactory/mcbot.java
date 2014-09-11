@@ -52,6 +52,7 @@ public class mcbot {
 		initwin();
 	}
 
+
 	public mcbot(botsettings bot) {
 		this.rawbot = bot;
 		initwin();

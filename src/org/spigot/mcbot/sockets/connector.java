@@ -65,9 +65,9 @@ public class connector extends Thread {
 		packet.ValidPackets.add(KeepAlivePacket.ID);
 		packet.ValidPackets.add(JoinGamePacket.ID);
 		packet.ValidPackets.add(PlayerListItemPacket.ID);
-		packet.ValidPackets.add(RespawnPacket.ID);
+		// packet.ValidPackets.add(RespawnPacket.ID);
 		packet.ValidPackets.add(TeamPacket.ID);
-		packet.ValidPackets.add(SpawnPositionPacket.ID);
+		// packet.ValidPackets.add(SpawnPositionPacket.ID);
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
 	}
 
@@ -131,7 +131,6 @@ public class connector extends Thread {
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
-			boolean breaker=false;
 			// The loop
 			while (true) {
 				pack = reader.readNext();
@@ -140,9 +139,7 @@ public class connector extends Thread {
 				if (pid > packet.MAXPACKETID) {
 					sendmsg("Received packet id " + pid);
 					sendmsg("§4Malformed communication");
-					if(breaker) {
-						break;
-					}
+					break;
 				}
 				if (reader.ValidPackets.contains(pid)) {
 					// We shall serve this one
@@ -194,11 +191,13 @@ public class connector extends Thread {
 
 	public synchronized boolean sendtoserver(String msg) {
 		if (msg.length() > 0) {
-			try {
-				new ChatPacket(null, this.sock).Write(msg);
-				return true;
-			} catch (IOException e) {
-				return false;
+			if (this.sock != null) {
+				try {
+					new ChatPacket(null, this.sock).Write(msg);
+					return true;
+				} catch (IOException e) {
+					return false;
+				}
 			}
 		}
 		return false;

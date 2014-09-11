@@ -135,7 +135,7 @@ public class storage {
 			storage.getInstance().aboutwin.setVisible(true);
 		} else {
 			// Options dialog already exists
-			storage.getInstance().aboutwin.setVisible(true);
+			storage.getInstance().aboutwin.requestFocus();
 		}
 	}
 
@@ -195,7 +195,7 @@ public class storage {
 			storage.getInstance().optwin.setVisible(true);
 		} else {
 			// Options dialog already exists
-			storage.getInstance().optwin.setVisible(true);
+			storage.getInstance().optwin.requestFocus();
 		}
 	}
 
@@ -264,10 +264,6 @@ public class storage {
 		storage.getInstance().winobj = null;
 	}
 
-	public static void setsetvis(boolean vis) {
-		storage.getInstance().winobj.setVisible(vis);
-	}
-
 	public static void setconnected() {
 		storage.getInstance().menu_con.setEnabled(false);
 		storage.getInstance().menu_dis.setEnabled(true);
@@ -297,7 +293,7 @@ public class storage {
 
 	public synchronized static void opensettingswindow() {
 		if (settingwindowopened()) {
-			storage.setsetvis(true);
+			storage.getInstance().winobj.requestFocus();
 		} else {
 			botsettings set = getcurrenttabsettings();
 			if (set != null) {
@@ -548,4 +544,5 @@ public class storage {
 			return false;
 		}
 	}
+
 }

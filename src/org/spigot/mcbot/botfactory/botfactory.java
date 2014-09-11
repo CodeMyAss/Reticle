@@ -33,7 +33,7 @@ public class botfactory {
 	private static JTextPane txtpnText;
 
 	public static void makenewtab(mcbot bot) {
-	
+
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.BLACK);
 		panel.setForeground(Color.BLUE);
@@ -88,7 +88,7 @@ public class botfactory {
 		});
 
 		PopClickListener listener = new PopClickListener();
-		listener.main=bot.ismain;
+		listener.main = bot.ismain;
 		txtpnText.addMouseListener(listener);
 
 		txtCommands.addKeyListener(new KeyAdapter() {
@@ -116,12 +116,11 @@ public class botfactory {
 			table.setEnabled(false);
 			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel_1, table);
 			splitPane.setDividerSize(5);
-			splitPane.setResizeWeight(0.9);
-			splitPane.setDividerLocation(500);
 			panel.add(splitPane, "cell 0 0,grow");
 			bot.setconfig(txtpnText, table, panel_1, autostroll);
+			splitPane.setDividerLocation(0.9);
+			splitPane.setResizeWeight(0.7);
 		}
-
 	}
 }
 
@@ -133,15 +132,15 @@ class contextmenu extends JPopupMenu {
 
 		ActionListener menuListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				if(event.getActionCommand().equals("Select all")) {
+				if (event.getActionCommand().equals("Select all")) {
 					txt.requestFocus();
 					txt.setSelectionStart(0);
 					txt.setSelectionEnd(txt.getText().length());
 				} else if (event.getActionCommand().equals("Copy")) {
-					String text=txt.getSelectedText();
-					StringSelection stringSelection = new StringSelection (text);
-					Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
-					clpbrd.setContents (stringSelection, null);
+					String text = txt.getSelectedText();
+					StringSelection stringSelection = new StringSelection(text);
+					Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+					clpbrd.setContents(stringSelection, null);
 				} else if (event.getActionCommand().equals("Clear")) {
 					txt.setText("");
 				} else if (event.getActionCommand().equals("Report")) {
@@ -159,7 +158,7 @@ class contextmenu extends JPopupMenu {
 		add(item1);
 		add(item2);
 		add(item3);
-		if(main) {
+		if (main) {
 			JMenuItem item4 = new JMenuItem("Report");
 			item4.addActionListener(menuListener);
 			add(item4);
@@ -169,8 +168,8 @@ class contextmenu extends JPopupMenu {
 }
 
 class PopClickListener extends MouseAdapter {
-	protected boolean main;	
-	
+	protected boolean main;
+
 	public void mousePressed(MouseEvent e) {
 		if (e.isPopupTrigger()) {
 			doPop(e);
@@ -184,7 +183,7 @@ class PopClickListener extends MouseAdapter {
 	}
 
 	private void doPop(MouseEvent e) {
-		contextmenu menu = new contextmenu((JTextPane) e.getComponent(),main);
+		contextmenu menu = new contextmenu((JTextPane) e.getComponent(), main);
 		menu.show(e.getComponent(), e.getX(), e.getY());
 	}
 }

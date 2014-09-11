@@ -13,6 +13,8 @@ import org.spigot.mcbot.storage;
 
 import java.awt.Font;
 import java.awt.Color;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class aboutwin extends JDialog {
 
@@ -21,6 +23,12 @@ public class aboutwin extends JDialog {
 
 
 	public aboutwin() {
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				storage.closeaboutwin();
+			}
+		});
 		setResizable(false);
 		setTitle("About");
 		setBounds(100, 100, 268, 151);

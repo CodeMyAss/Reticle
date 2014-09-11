@@ -18,36 +18,24 @@ import org.spigot.mcbot.storage;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class optionswin extends JDialog {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	private JCheckBox chckbxNewCheckBox;
 	private JCheckBox checkBox_1;
 	private JCheckBox checkBox;
 
-	/**
-	 * Launch the application.
-	 */
-	/*
-	public static void main(String[] args) {
-		try {
-			optionswin dialog = new optionswin();
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-*/
-	/**
-	 * Create the dialog.
-	 */
 	public optionswin() {
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				storage.closeoptionswin();
+			}
+		});
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setTitle("Options");
 		setBounds(100, 100, 310, 168);
