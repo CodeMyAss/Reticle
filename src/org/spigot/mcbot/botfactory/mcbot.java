@@ -241,13 +241,14 @@ public class mcbot {
 		}
 	}
 
-	public void reconnect() {
+	public void reconnect(boolean reconnect) {
 		if (this.rawbot.serverip != null) {
 			if (!this.isConnectedAllowReconnect()) {
 				try {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
+					connector.reconnect=reconnect;
 					connector.start();
 				} catch (UnknownHostException e) {
 					this.logmsg("§4 Invalid IP or hostname");

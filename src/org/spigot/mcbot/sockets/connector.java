@@ -243,7 +243,7 @@ public class connector extends Thread {
 			bot.connector = null;
 			// If disconncect was invoked while waiting
 			if (this.reconnect) {
-				bot.reconnect();
+				bot.reconnect(this.reconnect);
 			}
 		} else {
 			// Change icon
