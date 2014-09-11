@@ -1,6 +1,7 @@
 package org.spigot.mcbot.botfactory;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -45,7 +46,7 @@ public class botfactory {
 
 		JPanel panel_1 = new JPanel();
 		panel.add(panel_1, "cell 0 0,grow");
-		panel_1.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+		panel_1.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
 
 		if (bot.ismain) {
 			panel_1.setBackground(Color.BLUE);
@@ -68,10 +69,30 @@ public class botfactory {
 		scrollPane.add(txtpnText);
 		scrollPane.setViewportView(txtpnText);
 
+		final JTextField txtPrefix = new JTextField();
+		txtPrefix.setText("");
+		Dimension pref = new Dimension();
+		pref.setSize(70, 20);
+		txtPrefix.setPreferredSize(pref);
+		txtPrefix.setBackground(Color.BLACK);
+		txtPrefix.setForeground(Color.WHITE);
+
+		panel_1.add(txtPrefix, "flowx,cell 0 1");
+
 		final JTextField txtCommands = new JTextField();
 		txtCommands.setText("");
 		panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 		txtCommands.setColumns(10);
+		txtCommands.setBackground(Color.BLACK);
+		txtCommands.setForeground(Color.WHITE);
+
+		final JTextField txtSuffix = new JTextField();
+		txtSuffix.setText("");
+		txtSuffix.setPreferredSize(pref);
+		txtSuffix.setBackground(Color.BLACK);
+		txtSuffix.setForeground(Color.WHITE);
+
+		panel_1.add(txtSuffix, "flowx,cell 0 1");
 
 		JCheckBox autostroll = new JCheckBox();
 		autostroll.setBackground(txtpnText.getBackground());
@@ -81,7 +102,7 @@ public class botfactory {
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (storage.sendmessagetoactivebot(txtCommands.getText())) {
+				if (storage.sendmessagetoactivebot(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
 					txtCommands.setText("");
 				}
 			}
@@ -95,7 +116,7 @@ public class botfactory {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == '\n') {
-					if (storage.sendmessagetoactivebot(txtCommands.getText())) {
+					if (storage.sendmessagetoactivebot(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
 						txtCommands.setText("");
 					}
 				}
