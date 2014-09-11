@@ -125,7 +125,7 @@ public class connector extends Thread {
 			int len;
 			int[] pack = new int[2];
 
-			boolean connectedicon=true;
+			boolean connectedicon = true;
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
@@ -139,7 +139,7 @@ public class connector extends Thread {
 					sendmsg("§4Malformed communication");
 					break;
 				}
-				if(connectedicon) {
+				if (connectedicon) {
 					bot.seticon(ICONSTATE.CONNECTED);
 				}
 				if (reader.ValidPackets.contains(pid)) {
@@ -449,59 +449,65 @@ public class connector extends Thread {
 
 	private String jsonreparse(JsonObject obj) {
 		StringBuilder sb = new StringBuilder();
+		String text = "";
+		// JsonArray extra;
 		// It will always contain text
-		String text = obj.getAsJsonPrimitive("text").getAsString();
-		sb.append(text);
+		if (obj.has("text")) {
+			text = obj.getAsJsonPrimitive("text").getAsString();
+			sb.append(text);
+		}
 		// And will also contain extras
-		JsonArray extra = obj.getAsJsonArray("extra");
-		for (JsonElement extr : extra) {
-			if (extr.isJsonPrimitive()) {
-				// There is string only
-				sb.append(extr.getAsString());
-			} else {
-				// There is something out there
-				text = "";
-				String bold = "";
-				String reset = "";
-				String underline = "";
-				String strike = "";
-				String color = "";
-				String italic = "";
-				// Not just string
-				JsonObject nobj = extr.getAsJsonObject();
-				if (nobj.has("bold")) {
-					if (nobj.get("bold").getAsBoolean()) {
-						bold = "§l";
+		if (obj.has("extra")) {
+			JsonArray extra = obj.getAsJsonArray("extra");
+			for (JsonElement extr : extra) {
+				if (extr.isJsonPrimitive()) {
+					// There is string only
+					sb.append(extr.getAsString());
+				} else {
+					// There is something out there
+					text = "";
+					String bold = "";
+					String reset = "";
+					String underline = "";
+					String strike = "";
+					String color = "";
+					String italic = "";
+					// Not just string
+					JsonObject nobj = extr.getAsJsonObject();
+					if (nobj.has("bold")) {
+						if (nobj.get("bold").getAsBoolean()) {
+							bold = "§l";
+						}
 					}
-				}
-				if (nobj.has("strikethrough")) {
-					if (nobj.get("strikethrough").getAsBoolean()) {
-						strike = "§m";
+					if (nobj.has("strikethrough")) {
+						if (nobj.get("strikethrough").getAsBoolean()) {
+							strike = "§m";
+						}
 					}
-				}
-				if (nobj.has("underlined")) {
-					if (nobj.get("underlined").getAsBoolean()) {
-						underline = "§n";
+					if (nobj.has("underlined")) {
+						if (nobj.get("underlined").getAsBoolean()) {
+							underline = "§n";
+						}
 					}
-				}
-				if (nobj.has("reset")) {
-					if (nobj.get("reset").getAsBoolean()) {
-						reset = "§r";
+					if (nobj.has("reset")) {
+						if (nobj.get("reset").getAsBoolean()) {
+							reset = "§r";
+						}
 					}
-				}
-				if (nobj.has("italic")) {
-					if (nobj.get("italic").getAsBoolean()) {
-						italic = "§o";
+					if (nobj.has("italic")) {
+						if (nobj.get("italic").getAsBoolean()) {
+							italic = "§o";
+						}
 					}
-				}
-				if (nobj.has("color")) {
-					color = MCCOLOR.valueOf(nobj.get("color").getAsString()).val;
-				}
-				if (nobj.has("text")) {
-					text = nobj.get("text").getAsString();
-				}
+					if (nobj.has("color")) {
+						color = MCCOLOR.valueOf(nobj.get("color").getAsString()).val;
+					}
+					if (nobj.has("text")) {
+						text = nobj.get("text").getAsString();
+					}
 
-				sb.append(bold + underline + strike + italic + color + reset + text);
+					sb.append(bold + underline + strike + italic + color + reset + text);
+				}
 			}
 		}
 
