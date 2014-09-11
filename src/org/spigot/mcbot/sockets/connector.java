@@ -109,11 +109,11 @@ public class connector extends Thread {
 		// Main loop
 		try {
 			sock = null;
+			bot.seticon(ICONSTATE.CONNECTING);
 			sock = new Socket(bot.serverip, bot.serverport);
 			InputStream input = sock.getInputStream();
 			packet reader = new packet(sock.getInputStream());
 			definepackets(reader);
-			bot.seticon(ICONSTATE.CONNECTING);
 			storage.changemenuitems();
 			// First, we must send HandShake and hope for good response
 			new HandShakePacket(sock).Write(bot.serverip, bot.serverport);
@@ -125,9 +125,7 @@ public class connector extends Thread {
 			int len;
 			int[] pack = new int[2];
 
-			// new LoginSuccessPacket(sock, this).read();
-			bot.seticon(ICONSTATE.CONNECTED);
-
+			boolean connectedicon=true;
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
@@ -140,6 +138,9 @@ public class connector extends Thread {
 					sendmsg("Received packet id " + pid);
 					sendmsg("§4Malformed communication");
 					break;
+				}
+				if(connectedicon) {
+					bot.seticon(ICONSTATE.CONNECTED);
 				}
 				if (reader.ValidPackets.contains(pid)) {
 					// We shall serve this one
