@@ -172,7 +172,7 @@ public class packet {
 
 	protected String readInnerString() throws IOException, SerialException {
 		int len = readInnerVarInt();
-		if (len > 1024) {
+		if (len > 10240) {
 			System.err.println("Can't read " + len);
 			new IOException().printStackTrace();
 			throw new IOException();
@@ -184,7 +184,7 @@ public class packet {
 
 	protected String readString() throws IOException, SerialException {
 		int len = readVarInt();
-		if (len > 4096) {
+		if (len > 10240) {
 			System.err.println("Can't read " + len);
 			new IOException().printStackTrace();
 			throw new IOException();

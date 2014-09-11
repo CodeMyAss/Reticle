@@ -164,7 +164,7 @@ public class storage {
 				return bool;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	public static boolean getAutodebug() {
@@ -175,7 +175,7 @@ public class storage {
 				return bool;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	public static boolean getAutoplugin() {

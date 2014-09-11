@@ -77,14 +77,12 @@ public class botfactory {
 		txtPrefix.setBackground(Color.BLACK);
 		txtPrefix.setForeground(Color.WHITE);
 
-		panel_1.add(txtPrefix, "flowx,cell 0 1");
+		
 
 		final JTextField txtCommands = new JTextField();
 		txtCommands.setText("");
-		panel_1.add(txtCommands, "flowx,cell 0 1,growx");
+		
 		txtCommands.setColumns(10);
-		txtCommands.setBackground(Color.BLACK);
-		txtCommands.setForeground(Color.WHITE);
 
 		final JTextField txtSuffix = new JTextField();
 		txtSuffix.setText("");
@@ -92,12 +90,13 @@ public class botfactory {
 		txtSuffix.setBackground(Color.BLACK);
 		txtSuffix.setForeground(Color.WHITE);
 
-		panel_1.add(txtSuffix, "flowx,cell 0 1");
+
 
 		JCheckBox autostroll = new JCheckBox();
 		autostroll.setBackground(txtpnText.getBackground());
 		autostroll.setSelected(true);
-		panel_1.add(autostroll, "cell 0 1");
+		
+
 
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
@@ -112,7 +111,7 @@ public class botfactory {
 		listener.main = bot.ismain;
 		txtpnText.addMouseListener(listener);
 
-		txtCommands.addKeyListener(new KeyAdapter() {
+		KeyAdapter scom=new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == '\n') {
@@ -121,15 +120,27 @@ public class botfactory {
 					}
 				}
 			}
-		});
+		};
+		
+		txtCommands.addKeyListener(scom);
+		txtPrefix.addKeyListener(scom);
+		txtSuffix.addKeyListener(scom);
+		
 
-		panel_1.add(btnNewButton, "cell 0 1");
 
 		if (bot.ismain) {
 			panel.add(panel_1, "cell 0 0,grow");
+			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
+			panel_1.add(btnNewButton, "cell 0 1");
 			bot.setconfig(txtpnText, null, panel_1, autostroll);
 		} else {
-
+			panel_1.add(txtPrefix, "flowx,cell 0 1");
+			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
+			panel_1.add(txtSuffix, "flowx,cell 0 1");
+			panel_1.add(autostroll, "cell 0 1");
+			panel_1.add(btnNewButton, "cell 0 1");
+			txtCommands.setBackground(Color.BLACK);
+			txtCommands.setForeground(Color.WHITE);
 			JTable table = new JTable();
 			table.setModel(new DefaultTableModel(new Object[0][0], new Object[0]));
 			table.setBackground(Color.BLACK);
