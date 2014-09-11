@@ -36,7 +36,7 @@ import org.spigot.mcbot.settings.settings;
 import org.spigot.mcbot.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.07";
+	public static String version = "1.08";
 
 	protected EventHandler handler = new EventHandler();
 
