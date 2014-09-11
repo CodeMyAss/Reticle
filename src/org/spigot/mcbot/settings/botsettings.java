@@ -36,6 +36,9 @@ public class botsettings {
 	}
 
 	public boolean isExclusive() {
+		if(this.servername.toLowerCase().equals("reticle") && !isMain) {
+			return false;
+		}
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
 		String bottabname = gettabname().toLowerCase();
 		for (String bot : bots.keySet()) {
@@ -47,6 +50,9 @@ public class botsettings {
 	}
 
 	public boolean isDoubleExclusive(boolean hasthis) {
+		if(this.servername.toLowerCase().equals("reticle") && !isMain) {
+			return false;
+		}
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
 		String bottabname = gettabname().toLowerCase();
 		for (String bot : bots.keySet()) {
