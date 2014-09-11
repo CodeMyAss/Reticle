@@ -364,6 +364,7 @@ public class mcbot {
 	}
 
 	public void disconnect() {
+		this.connector.endreconnectwaiting();
 		if (this.isConnected()) {
 			// To prevent automatic restart
 			this.connector.reconnect = false;

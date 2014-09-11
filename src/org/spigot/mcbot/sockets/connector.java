@@ -52,11 +52,18 @@ public class connector extends Thread {
 	private List<String> Tablist = new ArrayList<String>();
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
+	private Object recowaiter = new Object();
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		sendmsg("§2Connecting");
 
+	}
+
+	public void endreconnectwaiting() {
+		synchronized (this.recowaiter) {
+			this.recowaiter.notifyAll();
+		}
 	}
 
 	private void definepackets(packet packet) {
@@ -148,7 +155,7 @@ public class connector extends Thread {
 					if (len2 > 0) {
 						byte[] b = new byte[len2];
 						sock.getInputStream().read(b, 0, len2);
-						ByteBuffer buf = ByteBuffer.wrap(b);
+						ByteBuffer buf = ByteBuffer.wrap(b.clone());
 						processpacket(pid, len2, buf);
 					}
 				} else {
@@ -232,7 +239,7 @@ public class connector extends Thread {
 		if (this.reconnect) {
 			// Change icon
 			bot.seticon(ICONSTATE.CONNECTING);
-			Object sync = new Object();
+			Object sync = this.recowaiter;
 			synchronized (sync) {
 				try {
 					sync.wait(bot.getautoreconnectdelay() * 1000);
