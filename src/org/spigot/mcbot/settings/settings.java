@@ -22,6 +22,7 @@ import org.spigot.mcbot.storage;
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.Window.Type;
 
 public class settings extends JFrame {
 
@@ -66,7 +67,7 @@ public class settings extends JFrame {
 
 	public settings(final botsettings set) {
 		setResizable(false);
-		setType(Type.UTILITY);
+		setType(Type.POPUP);
 		setTitle("Settings");
 		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 528, 452);
@@ -122,7 +123,7 @@ public class settings extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				int n = JOptionPane.showConfirmDialog(contentPane, "Are you sure you want to do this?", "Warning", JOptionPane.YES_NO_OPTION);
 				if (n == JOptionPane.YES_OPTION) {
-					storage.getsettingwin().setVisible(false);
+					storage.closesettingswindow();
 					storage.removecurrentbot();
 				}
 			}

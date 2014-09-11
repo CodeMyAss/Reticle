@@ -211,10 +211,6 @@ public class storage {
 		return storage.getInstance().tabbedPane;
 	}
 
-	public static Frame getsettingwin() {
-		return storage.getInstance().winobj;
-	}
-
 	public static void killall() {
 		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
 		for (String name : bots.keySet()) {
@@ -541,6 +537,7 @@ public class storage {
 
 	public static boolean reportthis(Exception e) {
 		if (storage.getAutodebug()) {
+			storage.conlog("Reporting error...");
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			e.printStackTrace(pw);

@@ -94,21 +94,21 @@ public class packet {
 	}
 
 	protected void readAndIgnore(int length) throws IOException {
-		//input.position(input.position()+length);
+		// input.position(input.position()+length);
 		sockinput.skip(length);
 	}
-	
+
 	protected int readInnerVarInt() throws SerialException, IOException {
 		int out = 0;
 		int bytes = 0;
 		byte in;
 		while (true) {
-			
+
 			int ir = this.sockinput.read();
-			if(ir==-1) {
+			if (ir == -1) {
 				throw new SerialException();
 			} else {
-				in=(byte)ir;
+				in = (byte) ir;
 			}
 			out |= (in & 0x7F) << (bytes++ * 7);
 			if (bytes > 5) {
@@ -157,10 +157,8 @@ public class packet {
 	protected byte readByte() throws IOException, SerialException {
 		int byter = input.get();
 		/*
-		if (byter == -1) {
-			throw new SerialException();
-		}
-		*/
+		 * if (byter == -1) { throw new SerialException(); }
+		 */
 		return (byte) byter;
 	}
 
@@ -183,7 +181,7 @@ public class packet {
 		sockinput.read(b, 0, len);
 		return new String(b, "UTF-8");
 	}
-	
+
 	protected String readString() throws IOException, SerialException {
 		int len = readVarInt();
 		if (len > 1024) {
@@ -266,12 +264,10 @@ public class packet {
 		}
 	}
 
-	public int getVarntCount(int value) throws IOException {
+	public int getVarntCount(int value) {
 		int i = 0;
 		while (true) {
 			value >>>= 7;
-			if (value != 0) {
-			}
 			i++;
 			if (value == 0) {
 				break;

@@ -131,6 +131,7 @@ public class connector extends Thread {
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
+			boolean breaker=false;
 			// The loop
 			while (true) {
 				pack = reader.readNext();
@@ -139,15 +140,19 @@ public class connector extends Thread {
 				if (pid > packet.MAXPACKETID) {
 					sendmsg("Received packet id " + pid);
 					sendmsg("§4Malformed communication");
-					break;
+					if(breaker) {
+						break;
+					}
 				}
 				if (reader.ValidPackets.contains(pid)) {
 					// We shall serve this one
 					int len2 = len - reader.getVarntCount(pid);
-					byte[] b = new byte[len2];
-					sock.getInputStream().read(b, 0, len2);
-					ByteBuffer buf = ByteBuffer.wrap(b);
-					processpacket(pid, len2, buf);
+					if (len2 > 0) {
+						byte[] b = new byte[len2];
+						sock.getInputStream().read(b, 0, len2);
+						ByteBuffer buf = ByteBuffer.wrap(b);
+						processpacket(pid, len2, buf);
+					}
 				} else {
 					// We decided to ignore this one
 					new Ignored_Packet(len, pid, input).Read();
@@ -237,12 +242,12 @@ public class connector extends Thread {
 			// And the magic of restart
 			if (this.sock != null) {
 				// If we have not been disturbed
-				bot.connector=null;
+				bot.connector = null;
 				this.sock = null;
 				bot.connect(true);
 			}
 		} else {
-			bot.connector=null;
+			bot.connector = null;
 			storage.changemenuitems();
 		}
 	}

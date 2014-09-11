@@ -11,26 +11,26 @@ import org.spigot.mcbot.events.ChatEvent;
 public class ChatPacket extends packet {
 	private Socket sock;
 	private ByteBuffer buff;
-	
-	public static final int ID=2;
-	public static final int ID_out=1;
 
-	public ChatPacket(ByteBuffer buff,Socket sock) {
+	public static final int ID = 2;
+	public static final int ID_out = 1;
+
+	public ChatPacket(ByteBuffer buff, Socket sock) {
 		this.sock = sock;
-		this.buff=buff;
+		this.buff = buff;
 	}
-	
+
 	public ChatEvent Read() throws IOException, SerialException {
-		super.input=buff;
+		super.input = buff;
 		return new ChatEvent(super.readString());
 	}
-	
-	public void Write(String message)  throws IOException {
-		super.setOutputStream(super.getStringLength(message)+super.getVarntCount(ChatPacket.ID_out));
-		//Packet ID
+
+	public void Write(String message) throws IOException {
+		super.setOutputStream(super.getStringLength(message) + super.getVarntCount(ChatPacket.ID_out));
+		// Packet ID
 		super.writeVarInt(ChatPacket.ID_out);
 		super.writeString(message);
 		super.Send(sock.getOutputStream());
 	}
-	
+
 }
