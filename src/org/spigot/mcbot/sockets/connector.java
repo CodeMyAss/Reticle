@@ -264,7 +264,7 @@ public class connector extends Thread {
 			case KeepAlivePacket.ID:
 				if (len > 4) {
 					// This is probably not keep alive
-					String reason = new ConnectionResetPacket(buf).read();
+					String reason = new ConnectionResetPacket(buf).Read();
 					sendmsg("§4Server closed connection. Reason:\n" + reason + ")");
 					this.stopMe();
 				} else {
@@ -346,7 +346,7 @@ public class connector extends Thread {
 
 			case ConnectionResetPacket.ID:
 				// Server closed connection
-				String reason = parsechat(new ConnectionResetPacket(buf).read());
+				String reason = parsechat(new ConnectionResetPacket(buf).Read());
 				sendmsg("§4Server closed connection. (" + reason + ")");
 			break;
 		}

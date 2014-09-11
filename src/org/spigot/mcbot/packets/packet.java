@@ -156,9 +156,6 @@ public class packet {
 
 	protected byte readByte() throws IOException, SerialException {
 		int byter = input.get();
-		/*
-		 * if (byter == -1) { throw new SerialException(); }
-		 */
 		return (byte) byter;
 	}
 
@@ -166,8 +163,8 @@ public class packet {
 		output.put((byte) b);
 	}
 
-	protected short readShort() throws IOException, SerialException {
-		return (short) ((readByte() << 4) + readByte());
+	protected short readShort() throws IOException {
+		return input.getShort();
 	}
 
 	protected String readInnerString() throws IOException, SerialException {
@@ -201,8 +198,7 @@ public class packet {
 	}
 
 	protected void writeShort(short b) throws IOException {
-		output.put(((byte) (b >> 1 * 8)));
-		output.put((byte) (b & 0xff));
+		output.putShort(b);
 	}
 
 	protected long readLong() throws IOException, SerialException {

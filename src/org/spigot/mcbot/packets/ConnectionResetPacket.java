@@ -15,7 +15,7 @@ public class ConnectionResetPacket extends packet {
 		this.input=s;
 	}
 	
-	public String read() throws IOException, SerialException {
+	public String Read() throws IOException, SerialException {
 		super.input=input;
 		return super.readString();
 	}
