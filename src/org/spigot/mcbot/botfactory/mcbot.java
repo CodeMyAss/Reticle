@@ -57,7 +57,7 @@ public class mcbot {
 		initwin();
 	}
 
-	public void initwin() {
+	private void initwin() {
 		this.serverip = this.rawbot.serverip;
 		this.serverport = this.rawbot.serverport;
 		this.username = this.rawbot.nick;
@@ -100,7 +100,7 @@ public class mcbot {
 		return this.rawbot.gettabname();
 	}
 
-	public Style getstyle(String combo) {
+	private Style getstyle(String combo) {
 		combo = combo.toLowerCase();
 		if (styles.containsKey(combo)) {
 			return styles.get(combo);
@@ -206,15 +206,6 @@ public class mcbot {
 		return this.autoscroll.isSelected();
 	}
 
-	public boolean isConnected(boolean reconnect) {
-		if (this.connector == null) {
-			// Initial state
-			return false;
-		} else {
-			return this.connector.isConnected(reconnect);
-		}
-	}
-
 	public boolean isConnected() {
 		if (this.connector == null) {
 			// Initial state
@@ -241,10 +232,14 @@ public class mcbot {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void reconnect(boolean reconnect) {
 		if (this.rawbot.serverip != null) {
 			if (!this.isConnectedAllowReconnect()) {
 				try {
+					if(connector!=null) {
+						connector.stop();
+					}
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
@@ -317,7 +312,7 @@ public class mcbot {
 
 	public synchronized void logmsg(String message) {
 		if (message.length() > 0) {
-			// Extra space because the split method and following loop
+			// Extra space because of the split method and following loop
 			message = " [" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + message;
 			String bold = "";
 			String underline = "";

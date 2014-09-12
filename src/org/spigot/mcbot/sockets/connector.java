@@ -301,8 +301,7 @@ public class connector extends Thread {
 			case ChatPacket.ID:
 				if (hasloggedin) {
 					// Chat
-					pack = new ChatPacket(buf, null);
-					ChatEvent event = ((ChatPacket) pack).Read();
+					ChatEvent event = new ChatPacket(buf, null).Read();
 					String msg = parsechat(event.getMessage());
 					if (!isMessageIgnored(msg)) {
 						sendchatmsg(msg);
@@ -441,11 +440,10 @@ public class connector extends Thread {
 		}
 	}
 
-	public String parsechat(String str) {
+	private String parsechat(String str) {
 		JsonParser parser = new JsonParser();
 		try {
 			JsonObject obf = parser.parse(str).getAsJsonObject();
-
 			return jsonreparse(obf);
 		} catch (IllegalStateException e) {
 			return null;
@@ -458,7 +456,6 @@ public class connector extends Thread {
 		StringBuilder sb = new StringBuilder();
 		String text = "";
 		// JsonArray extra;
-		// It will always contain text
 		if (obj.has("text")) {
 			text = obj.getAsJsonPrimitive("text").getAsString();
 			sb.append(text);
