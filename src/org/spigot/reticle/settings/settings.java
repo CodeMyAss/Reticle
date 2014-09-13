@@ -274,8 +274,8 @@ public class settings extends JFrame {
 		panel_1.add(lblProtocolVersion, "cell 1 6,alignx trailing");
 
 		protocolversion = new JComboBox<String>();
-		protocolversion.setEnabled(false);
-		protocolversion.setModel(new DefaultComboBoxModel<String>(new String[] { "4 (1.7.1/2/3/4/5)", "5(1.7.6/7/8/9/10)" }));
+		//protocolversion.setEnabled(false);
+		protocolversion.setModel(new DefaultComboBoxModel<String>(new String[] { "4 (1.7.1/2/3/4/5)", "5(1.7.6/7/8/9/10)", "47(1.8)" }));
 		panel_1.add(protocolversion, "cell 2 6,growx");
 		sobj.checkactiv = checkactiv;
 		sobj.checkconcom = checkconcom;

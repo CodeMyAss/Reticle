@@ -9,10 +9,12 @@ import org.spigot.reticle.events.JoinGameEvent;
 
 public class JoinGamePacket extends packet {
 	private ByteBuffer sock;
-	public static final int ID=1;
+	public static final int ID=0x1;
+	private int protocolversion;
 	
-	public JoinGamePacket(ByteBuffer sock) {
+	public JoinGamePacket(ByteBuffer sock,int protocolversion) {
 		this.sock=sock;
+		this.protocolversion=protocolversion;
 	}
 	
 	public JoinGameEvent Read() throws IOException, SerialException {
@@ -29,6 +31,10 @@ public class JoinGamePacket extends packet {
 		Byte maxplayers=super.readByte();
 		//Level type
 		String leveltype=super.readString();
+		if(protocolversion>=47) {
+			boolean rdebug=super.readBoolean();
+			return new JoinGameEvent(id, gm, dim, diff, maxplayers, leveltype, rdebug);
+		}
 		return new JoinGameEvent(id, gm, dim, diff, maxplayers, leveltype);
 	}
 	

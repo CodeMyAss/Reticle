@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import javax.sql.rowset.serial.SerialException;
 
 public class DisplayScoreBoardPacket extends packet {
-	public static final int ID=61;
+	public static final int ID=0x3D;
 	private ByteBuffer sock;
 
 	public DisplayScoreBoardPacket(ByteBuffer sock) {

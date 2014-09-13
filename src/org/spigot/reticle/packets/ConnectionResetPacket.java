@@ -9,7 +9,7 @@ import javax.sql.rowset.serial.SerialException;
 
 public class ConnectionResetPacket extends packet {
 	private ByteBuffer input;
-	public static final int ID=64;
+	public static final int ID=0x40;
 	
 	public ConnectionResetPacket(ByteBuffer s) {
 		this.input=s;

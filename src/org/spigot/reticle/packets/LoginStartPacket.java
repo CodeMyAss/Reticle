@@ -7,7 +7,7 @@ public class LoginStartPacket extends packet {
 	public static final int ID=0;
 	private Socket sock;
 	
-	public LoginStartPacket(Socket sock) {
+	public LoginStartPacket(Socket sock, int protocolversion) {
 		this.sock=sock;
 	}
 	

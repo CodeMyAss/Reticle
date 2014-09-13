@@ -64,6 +64,8 @@ public class set_obj_struct {
 			return 0;
 		} else if (ver == 5) {
 			return 1;
+		} else if (ver == 47) {
+			return 2;
 		}
 		return 0;
 	}
@@ -73,6 +75,8 @@ public class set_obj_struct {
 			return 4;
 		} else if(index==1) {
 			return 5;
+		} else if(index==2) {
+			return 47;
 		}
 		return 4;
 	}

@@ -50,6 +50,10 @@ public class packet {
 	 * input.read(b, 0, len); return b; }
 	 */
 
+	public String readUUID() throws SerialException, IOException {
+		return this.readLong()+""+this.readLong();
+	}
+	
 	public int[] readNext() throws IOException, SerialException {
 		int[] res = new int[2];
 		// The length of the packet

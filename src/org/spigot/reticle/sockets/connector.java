@@ -55,6 +55,7 @@ public class connector extends Thread {
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 
+	private int maxpacketid=0x40;
 	private int protocolversion = 4;
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
@@ -123,6 +124,11 @@ public class connector extends Thread {
 
 		// Main loop
 		try {
+			if(protocolversion==4 || protocolversion==5) {
+				this.maxpacketid=0x40;
+			} else if(protocolversion==47) {
+				this.maxpacketid=0x49;
+			}
 			haslogged = false;
 			hasloggedin = false;
 			sock = null;
@@ -133,8 +139,8 @@ public class connector extends Thread {
 			definepackets(reader);
 			storage.changemenuitems();
 			// First, we must send HandShake and hope for good response
-			new HandShakePacket(sock).Write(bot.serverip, bot.serverport);
-			new LoginStartPacket(sock).Write(bot.username);
+			new HandShakePacket(sock,protocolversion).Write(bot.serverip, bot.serverport);
+			new LoginStartPacket(sock,protocolversion).Write(bot.username);
 
 			hasloggedin = false;
 			// Init routine
@@ -151,7 +157,7 @@ public class connector extends Thread {
 				pack = reader.readNext();
 				len = pack[0];
 				pid = pack[1];
-				if (pid > packet.MAXPACKETID) {
+				if (pid > maxpacketid) {
 					sendmsg("Received packet id " + pid);
 					sendmsg("§4Malformed communication");
 					break;
@@ -214,7 +220,7 @@ public class connector extends Thread {
 		if (msg.length() > 0) {
 			if (this.sock != null) {
 				try {
-					new ChatPacket(null, this.sock).Write(msg);
+					new ChatPacket(null, this.sock,protocolversion).Write(msg);
 					return true;
 				} catch (IOException e) {
 					return false;
@@ -293,7 +299,7 @@ public class connector extends Thread {
 
 			case JoinGamePacket.ID:
 				// join game
-				JoinGameEvent joingameevent = new JoinGamePacket(buf).Read();
+				JoinGameEvent joingameevent = new JoinGamePacket(buf,protocolversion).Read();
 				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
 					// 2 Columns 20 rows
 					settablesize(2, 20);
@@ -313,14 +319,14 @@ public class connector extends Thread {
 			case ChatPacket.ID:
 				if (hasloggedin) {
 					// Chat
-					ChatEvent event = new ChatPacket(buf, null).Read();
+					ChatEvent event = new ChatPacket(buf, null,protocolversion).Read();
 					String msg = parsechat(event.getMessage());
 					if (!isMessageIgnored(msg)) {
 						sendchatmsg(msg);
 					}
 					tryandsendlogin();
 				} else {
-					String uuid = new LoginSuccessPacket(buf).Read();
+					String uuid = new LoginSuccessPacket(buf,protocolversion).Read();
 					hasloggedin = true;
 					sendmsg("§2Received UUID: §n" + uuid);
 				}
@@ -339,7 +345,7 @@ public class connector extends Thread {
 
 			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)
-				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf);
+				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf,protocolversion);
 				playerlistitem.Read();
 				if (playerlistitem.Serve(Tablist)) {
 					// Tablist needs to be refreshed
