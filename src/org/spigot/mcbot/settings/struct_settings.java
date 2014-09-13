@@ -1,6 +1,9 @@
 package org.spigot.mcbot.settings;
 
 import java.util.HashMap;
+
+import javax.sql.rowset.serial.SerialException;
+
 import org.spigot.mcbot.botfactory.mcbot;
 
 public class struct_settings {
@@ -49,7 +52,7 @@ public class struct_settings {
 		return sb.toString();
 	}
 
-	public void loadFromString(String str) {
+	public void loadFromString(String str) throws SerialException {
 		String[] lines = str.split("\r\n");
 		if (settings == null) {
 			settings = new HashMap<String, botsettings>();
@@ -109,6 +112,9 @@ public class struct_settings {
 						pos = 4;
 					break;
 					case "Servername":
+						if(param.toLowerCase().equals("reticle")) {
+							throw new SerialException();
+						}
 						bot.servername = param;
 					break;
 					case "Server ip":

@@ -2,6 +2,7 @@ package org.spigot.mcbot;
 
 import java.awt.EventQueue;
 
+import javax.sql.rowset.serial.SerialException;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JTabbedPane;
@@ -46,15 +47,17 @@ public class mcbotapp {
 
 	/**
 	 * Create the application.
+	 * @throws SerialException 
 	 */
-	public mcbotapp() {
+	public mcbotapp() throws SerialException {
 		initialize(storage.version);
 	}
 
 	/**
 	 * Initialize the contents of the frame.
+	 * @throws SerialException 
 	 */
-	private void initialize(String version) {
+	private void initialize(String version) throws SerialException {
 		frmReticle = new JFrame();
 		frmReticle.setFont(new Font("Bodoni MT", Font.PLAIN, 12));
 		frmReticle.setForeground(Color.BLACK);

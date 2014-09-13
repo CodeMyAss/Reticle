@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
@@ -16,8 +17,8 @@ public class updater extends Thread {
 	@Override
 	public void run() {
 		try {
-			String updateurl = "http://reticle.mc-atlantida.eu/update.php?version=" + storage.version;
-			String changlogurl = "http://reticle.mc-atlantida.eu/changelog.php?ver="+storage.version;
+			String updateurl = "http://reticle.mc-atlantida.eu/update.php?version=" + URLEncoder.encode(storage.version,"UTF-8");
+			String changlogurl = "http://reticle.mc-atlantida.eu/changelog.php?ver="+URLEncoder.encode(storage.version,"UTF-8");
 			String currentversionurl="http://reticle.mc-atlantida.eu/Reticle.jar";
 			String res = readurl(updateurl);
 			if (res.startsWith("NV:")) {

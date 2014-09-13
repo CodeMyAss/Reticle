@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Set;
 
+import javax.sql.rowset.serial.SerialException;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
@@ -36,7 +37,7 @@ import org.spigot.mcbot.settings.settings;
 import org.spigot.mcbot.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.08";
+	public static String version = "1.01 beta";
 
 	protected EventHandler handler = new EventHandler();
 
@@ -379,7 +380,7 @@ public class storage {
 		}
 	}
 
-	public static void loadsettings() {
+	public static void loadsettings() throws SerialException {
 		try {
 			String setraw = new String(Files.readAllBytes(Paths.get(settingfile)));
 			// If this is initial settings load
