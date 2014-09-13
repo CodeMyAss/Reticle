@@ -26,6 +26,7 @@ import org.spigot.reticle.storage;
 import org.spigot.reticle.settings.botsettings;
 import org.spigot.reticle.settings.team_struct;
 import org.spigot.reticle.sockets.connector;
+import org.spigot.reticle.supporter.supportconnector;
 
 public class mcbot {
 	private JTextPane chatlog;
@@ -42,20 +43,32 @@ public class mcbot {
 	public int serverport;
 	public String username;
 	public int[] tablistsize = new int[2];
+	public boolean tablistdisplayed = true;
+	public Color backgroundcolor = Color.black;
+	public Color foregroundcolor = Color.white;
+	public boolean allowreport = false;
+	public boolean allowconnects = true;
+	private supportconnector supportconnector;
 
-	
+	public mcbot(botsettings bot) {
+		initbot(bot, false, true, false, true, Color.BLACK, Color.WHITE);
+	}
 
-	public mcbot(botsettings bot, boolean ismain) {
-		this.ismain = ismain;
-		bot.isMain = ismain;
+	public mcbot(botsettings bot, boolean main, boolean tablist, boolean allowreport, boolean allowconnects, Color backgroundcolor, Color foregroundcolor) {
+		initbot(bot, main, tablist, allowreport, allowconnects, backgroundcolor, foregroundcolor);
+	}
+
+	public void initbot(botsettings bot, boolean main, boolean tablist, boolean yallowreport, boolean yallowconnects, Color ybackgroundcolor, Color yforegroundcolor) {
+		this.backgroundcolor = ybackgroundcolor;
+		this.foregroundcolor = yforegroundcolor;
+		this.allowconnects = yallowconnects;
+		this.allowreport = yallowreport;
+		this.ismain = main;
+		this.tablistdisplayed = tablist;
+		bot.isMain = main;
 		this.rawbot = bot;
 		this.tablistsize[0] = 1;
 		this.tablistsize[1] = 20;
-		initwin();
-	}
-
-	public mcbot(botsettings bot) {
-		this.rawbot = bot;
 		initwin();
 	}
 
@@ -66,6 +79,7 @@ public class mcbot {
 		botfactory.makenewtab(this);
 		if (ismain) {
 			seticon(ICONSTATE.MAIN);
+			storage.addmainer();
 		} else {
 			seticon(ICONSTATE.DISCONNECTED);
 		}
@@ -74,7 +88,7 @@ public class mcbot {
 	public int getprotocolversion() {
 		return this.rawbot.protocolversion;
 	}
-	
+
 	private int gettabid() {
 		JTabbedPane cpanel = storage.gettabbedpane();
 		int len = cpanel.getComponentCount();
@@ -213,6 +227,13 @@ public class mcbot {
 	}
 
 	public boolean isConnected() {
+		if (this.gettabname().endsWith("@Reticle")) {
+			if (this.supportconnector != null) {
+				return this.supportconnector.isConnected();
+			} else {
+				return false;
+			}
+		}
 		if (this.connector == null) {
 			// Initial state
 			return false;
@@ -231,6 +252,18 @@ public class mcbot {
 	}
 
 	public boolean sendtoserver(String message) {
+		if (this.gettabname().endsWith(("@Reticle"))) {
+			if (supportconnector != null) {
+				if (supportconnector.isConnected()) {
+					supportconnector.SendMessage(message);
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
 		if (this.isConnected()) {
 			return this.connector.sendtoserver(message);
 		} else {
@@ -238,31 +271,33 @@ public class mcbot {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	public void reconnect(boolean reconnect) {
-		if (this.rawbot.serverip != null) {
-			if (!this.isConnectedAllowReconnect()) {
-				try {
-					if(connector!=null) {
-						connector.stop();
-					}
-					this.serverip = this.rawbot.serverip;
-					this.serverport = this.rawbot.serverport;
-					this.connector = new connector(this);
-					connector.reconnect=reconnect;
-					connector.start();
-				} catch (UnknownHostException e) {
-					this.logmsg("§4 Invalid IP or hostname");
-				} catch (IOException e) {
-					if (!storage.reportthis(e)) {
-						e.printStackTrace();	
-					}
-				}
-			}
+	// Heavy deprecation
+	/*
+	 * @SuppressWarnings("deprecation") public void reconnect(boolean reconnect)
+	 * { if (this.rawbot.serverip != null) { if
+	 * (!this.isConnectedAllowReconnect()) { try { if (connector != null) {
+	 * connector.stop(); } this.serverip = this.rawbot.serverip; this.serverport
+	 * = this.rawbot.serverport; this.connector = new connector(this);
+	 * connector.reconnect = reconnect; connector.start(); } catch
+	 * (UnknownHostException e) { this.logmsg("§4 Invalid IP or hostname"); }
+	 * catch (IOException e) { if (!storage.reportthis(e)) {
+	 * e.printStackTrace(); } } } } }
+	 */
+	public void specialconnect() {
+		if (this.supportconnector == null) {
+			this.supportconnector = new supportconnector(this);
+			storage.changemenuitems();
+		} else if (!this.supportconnector.isConnected()) {
+			this.supportconnector.Connect();
+			storage.changemenuitems();
 		}
 	}
 
 	public void connect() {
+		if (this.gettabname().endsWith(("@Reticle"))) {
+			specialconnect();
+			return;
+		}
 		if (this.rawbot.serverip != null && this.connector == null) {
 			try {
 				if (!this.isConnected()) {
@@ -277,7 +312,7 @@ public class mcbot {
 				this.logmsg("§4 Invalid IP or hostname");
 			} catch (IOException e) {
 				if (!storage.reportthis(e)) {
-					e.printStackTrace();	
+					e.printStackTrace();
 				}
 			}
 		}
@@ -364,13 +399,21 @@ public class mcbot {
 		}
 	}
 
+	public void specialdisconnect() {
+		this.supportconnector.Disconnect();
+		storage.changemenuitems();
+	}
+
 	public void disconnect() {
-		this.connector.endreconnectwaiting();
+		if (this.connector != null) {
+			this.connector.endreconnectwaiting();
+		}
 		if (this.isConnected()) {
 			// To prevent automatic restart
 			this.connector.reconnect = false;
 			// Go for it
 			this.connector.stopMe();
+			this.connector = null;
 			seticon(ICONSTATE.DISCONNECTED);
 			storage.changemenuitems();
 		}

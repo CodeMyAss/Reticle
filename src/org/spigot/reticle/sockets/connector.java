@@ -49,35 +49,32 @@ public class connector extends Thread {
 	private AntiAFK afkter;
 	private boolean haslogged = false;
 	private boolean hasloggedin = false;
-	
+
 	public boolean reconnect = false;
 	private List<String> Tablist = new ArrayList<String>();
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
-	private Object recowaiter = new Object();
 
-	private int protocolversion=4;
-	
+	private int protocolversion = 4;
+
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
-		this.protocolversion=bot.getprotocolversion();
+		this.protocolversion = bot.getprotocolversion();
 		sendmsg("§2Connecting");
 
 	}
-	
+
 	public int getprotocolversion() {
 		return this.protocolversion;
 	}
 
-	public void endreconnectwaiting() {
-		synchronized (this.recowaiter) {
-			this.recowaiter.notifyAll();
-		}
+	public synchronized void endreconnectwaiting() {
+		notify();
 	}
 
 	private void definepackets(packet packet) {
 		// Define served packets
-		//packet.ValidPackets.add(PluginMessagePacket.ID);
+		// packet.ValidPackets.add(PluginMessagePacket.ID);
 		packet.ValidPackets.add(ChatPacket.ID);
 		packet.ValidPackets.add(KeepAlivePacket.ID);
 		packet.ValidPackets.add(JoinGamePacket.ID);
@@ -86,7 +83,7 @@ public class connector extends Thread {
 		packet.ValidPackets.add(TeamPacket.ID);
 		// packet.ValidPackets.add(SpawnPositionPacket.ID);
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
-		//packet.ValidPackets.add(SetCompressionPacket.ID);
+		// packet.ValidPackets.add(SetCompressionPacket.ID);
 	}
 
 	public int getantiafkperiod() {
@@ -126,6 +123,8 @@ public class connector extends Thread {
 
 		// Main loop
 		try {
+			haslogged = false;
+			hasloggedin = false;
 			sock = null;
 			bot.seticon(ICONSTATE.CONNECTING);
 			sock = new Socket(bot.serverip, bot.serverport);
@@ -253,18 +252,14 @@ public class connector extends Thread {
 		if (this.reconnect) {
 			// Change icon
 			bot.seticon(ICONSTATE.CONNECTING);
-			Object sync = this.recowaiter;
-			synchronized (sync) {
-				try {
-					sync.wait(bot.getautoreconnectdelay() * 1000);
-				} catch (InterruptedException e) {
-				}
+			try {
+				wait(bot.getautoreconnectdelay() * 1000);
+			} catch (InterruptedException e) {
 			}
 			// If we have not been disturbed
-			bot.connector = null;
 			// If disconncect was invoked while waiting
 			if (this.reconnect) {
-				bot.reconnect(this.reconnect);
+				run();
 			}
 		} else {
 			// Change icon
@@ -305,9 +300,9 @@ public class connector extends Thread {
 				} else if (joingameevent.getMaxPlayers() >= 50 && joingameevent.getMaxPlayers() < 70) {
 					// 3 Columns 20 rows
 					settablesize(3, 20);
-				} else if(joingameevent.getMaxPlayers() >= 70) {
+				} else if (joingameevent.getMaxPlayers() >= 70) {
 					// 4 Columns 20 rows
-					settablesize(4,20);
+					settablesize(4, 20);
 				} else {
 					// 1 Columns 20 rows
 					settablesize(1, 20);
@@ -356,7 +351,7 @@ public class connector extends Thread {
 				// Scoreboard display
 				new DisplayScoreBoardPacket(buf).Read();
 			break;
-			
+
 			case SetCompressionPacket.ID:
 				SetCompressionPacket compack = new SetCompressionPacket(buf);
 				compack.Read();
@@ -369,8 +364,8 @@ public class connector extends Thread {
 
 			case PluginMessagePacket.ID:
 				// Plugin message
-				PluginMessageEvent plmsge=new PluginMessagePacket(buf).Read();
-				sendmsg("Channel: "+plmsge.getChannel()+" Message: "+plmsge.getMessageAsString());
+				PluginMessageEvent plmsge = new PluginMessagePacket(buf).Read();
+				sendmsg("Channel: " + plmsge.getChannel() + " Message: " + plmsge.getMessageAsString());
 			break;
 
 			case ConnectionResetPacket.ID:

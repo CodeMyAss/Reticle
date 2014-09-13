@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Set;
 
 import javax.sql.rowset.serial.SerialException;
@@ -37,7 +38,10 @@ import org.spigot.reticle.settings.struct_settings;
 import org.spigot.reticle.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.02 beta";
+	public static String version = "1.03 beta";
+
+	// Number of main tabs (For tab index calculations)
+	private int mainers = 0;
 
 	protected EventHandler handler = new EventHandler();
 
@@ -50,6 +54,9 @@ public class storage {
 	public struct_settings settin;
 
 	public settings settings;
+
+	// Support tab
+	public mcbot support;
 
 	// Main win
 	public mcbot mainer;
@@ -87,14 +94,25 @@ public class storage {
 	// mood
 
 	final static Class<?> thisClass = resources.class;
-	public static Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.png"));
-	public static Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.png"));
-	public static Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.png"));
-	public static Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.png"));
-	public static ImageIcon icon_loader = new ImageIcon(thisClass.getResource("logo.png"));
-	public static String icon_loader_path = thisClass.getResource("logo.png").getFile();
-	public static ImageIcon winicon = new ImageIcon(thisClass.getResource("mainicon.png"));
+	public static final Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.png"));
+	public static final Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.png"));
+	public static final Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.png"));
+	public static final Icon icon_con = new ImageIcon(thisClass.getResource("icon_con.png"));
+	public static final ImageIcon icon_loader = new ImageIcon(thisClass.getResource("logo.png"));
+	public static final String icon_loader_path = thisClass.getResource("logo.png").getFile();
+	public static final ImageIcon winicon = new ImageIcon(thisClass.getResource("mainicon.png"));
+
+	public static final String supportserver = "irc.freenode.net";
+	public static final String supportchannel = "#ReticleSupport";
 	
+	
+	public static void addmainer() {
+		storage.getInstance().mainers++;
+	}
+
+	public static int getMainTabs() {
+		return storage.getInstance().mainers;
+	}
 
 	public synchronized static void closeoptionswin() {
 		if (storage.getInstance().optwin != null) {
@@ -190,6 +208,37 @@ public class storage {
 		return false;
 	}
 
+	private static String randomString(int len) {
+		String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		Random rnd = new Random();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++)
+			sb.append(AB.charAt(rnd.nextInt(AB.length())));
+		return sb.toString();
+	}
+
+	public static String getSupportNick() {
+		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
+		if (setting.containsKey("supportnick")) {
+			String bool = setting.get("supportnick");
+			if (bool != null) {
+				return bool;
+			}
+		}
+		return "Unknown_" + storage.randomString(5);
+	}
+
+	public static boolean getSupportEnabled() {
+		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
+		if (setting.containsKey("support")) {
+			Boolean bool = Boolean.parseBoolean(setting.get("support"));
+			if (bool != null) {
+				return bool;
+			}
+		}
+		return true;
+	}
+
 	public synchronized static void displayoptionswin() {
 		if (storage.getInstance().optwin == null) {
 			// Options dialog does not exist (yet)
@@ -225,8 +274,21 @@ public class storage {
 	public static void changemenuitems() {
 		mcbot bot = storage.getcurrentselectedbot();
 		if (bot == null) {
-			storage.setdisabled();
-		} else if (bot.ismain) {
+			bot = storage.getspecialbot();
+			if (bot != null) {
+				if (bot.allowconnects) {
+					if (bot.isConnected()) {
+						storage.setconnected();
+					} else {
+						storage.setdisconnected();
+					}
+				} else {
+					storage.setdisabled();
+				}
+			} else {
+				storage.setdisabled();
+			}
+		} else if (!bot.allowconnects) {
 			storage.setdisabled();
 		} else if (bot.isConnected()) {
 			storage.setconnected();
@@ -236,8 +298,8 @@ public class storage {
 	}
 
 	public static void setselectedtable(int i) {
-		// +1 because main is not in settin
-		storage.getInstance().tabbedPane.setSelectedIndex(i + 1);
+		// + because main is not in settin
+		storage.getInstance().tabbedPane.setSelectedIndex(i + storage.getMainTabs());
 	}
 
 	public static void setselectedtable(String str) {
@@ -257,8 +319,15 @@ public class storage {
 		if (bot != null) {
 			return bot.sendtoserver(message);
 		} else {
-			// Main
-			return false;
+			bot = storage.getspecialbot();
+			if (bot != null) {
+				if (bot.isConnected()) {
+					return bot.sendtoserver(message);
+				}
+				return false;
+			} else {
+				return false;
+			}
 		}
 	}
 
@@ -434,7 +503,9 @@ public class storage {
 		int id = storage.getselectedtabindex();
 		String name = storage.getselectedtabtitle();
 		mcbot bot = storage.getcurrentselectedbot();
-		bot.disconnect();
+		if (bot != null) {
+			bot.disconnect();
+		}
 		storage.getInstance().settin.bots.remove(name);
 		storage.getInstance().settin.settings.remove(name);
 		storage.getInstance().tabbedPane.remove(id);
@@ -548,4 +619,14 @@ public class storage {
 		}
 	}
 
+	public static mcbot getspecialbot() {
+		mcbot bot = null;
+		String tab = storage.getselectedtabtitle();
+		if (tab.equals("Main@Reticle")) {
+			bot = storage.getInstance().mainer;
+		} else if (tab.equals("Support@Reticle")) {
+			bot = storage.getInstance().support;
+		}
+		return bot;
+	}
 }

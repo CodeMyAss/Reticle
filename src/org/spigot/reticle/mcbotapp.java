@@ -29,6 +29,7 @@ import javax.swing.event.ChangeEvent;
 public class mcbotapp {
 
 	protected JFrame frmReticle;
+
 	/**
 	 * Launch the application.
 	 */
@@ -47,7 +48,8 @@ public class mcbotapp {
 
 	/**
 	 * Create the application.
-	 * @throws SerialException 
+	 * 
+	 * @throws SerialException
 	 */
 	public mcbotapp() throws SerialException {
 		initialize(storage.version);
@@ -55,7 +57,8 @@ public class mcbotapp {
 
 	/**
 	 * Initialize the contents of the frame.
-	 * @throws SerialException 
+	 * 
+	 * @throws SerialException
 	 */
 	private void initialize(String version) throws SerialException {
 		frmReticle = new JFrame();
@@ -107,6 +110,12 @@ public class mcbotapp {
 		mntmNewMenuItem_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				mcbot bot = storage.getcurrentselectedbot();
+				if (bot == null) {
+					bot = storage.getspecialbot();
+					if (bot != null) {
+						bot.connect();
+					}
+				}
 				bot.connect();
 			}
 		});
@@ -117,7 +126,14 @@ public class mcbotapp {
 			public void actionPerformed(ActionEvent arg0) {
 				String botname = storage.getselectedtabtitle();
 				mcbot bot = storage.getInstance().settin.bots.get(botname);
-				bot.disconnect();
+				if (bot == null) {
+					bot=storage.getspecialbot();
+					if(bot!=null) {
+						bot.specialdisconnect();
+					}
+				} else {
+					bot.disconnect();
+				}
 			}
 		});
 		mnNewMenu_1.add(mntmNewMenuItem_3);
@@ -164,26 +180,29 @@ public class mcbotapp {
 			}
 		});
 		frmReticle.getContentPane().add(tabbedPane, BorderLayout.CENTER);
-		
+
 		frmReticle.setIconImage(storage.winicon.getImage());
 
 		redirectSystemStreams();
-		
+
 		storage.getInstance().tabbedPane = tabbedPane;
 		storage.getInstance().menu_con = mntmNewMenuItem_2;
 		storage.getInstance().menu_dis = mntmNewMenuItem_3;
 		storage.getInstance().menu_set = mntmNewMenuItem_4;
 
-
 		storage.loadsettings();
-		mcbot main = new mcbot(new botsettings("Main"), true);
+		mcbot main = new mcbot(new botsettings("Main"), true, false, true, false, Color.BLUE, Color.WHITE);
+
 		storage.getInstance().mainer = main;
+		if (storage.getSupportEnabled()) {
+			mcbot support = new mcbot(new botsettings("Support"), true, true, false, true, Color.getColor(null, 0x99ff99), Color.BLACK);
+			storage.getInstance().support = support;
+			support.connect();
+		}
 		storage.changemenuitems();
 		storage.savesettings();
 		storage.firsttabload();
-		
-		
-		
+
 	}
 
 	public void redirectSystemStreams() {
@@ -209,4 +228,3 @@ public class mcbotapp {
 	}
 
 }
-

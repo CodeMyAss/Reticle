@@ -1,6 +1,5 @@
 package org.spigot.reticle.botfactory;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -36,8 +35,8 @@ public class botfactory {
 	public static void makenewtab(mcbot bot) {
 
 		JPanel panel = new JPanel();
-		panel.setBackground(Color.BLACK);
-		panel.setForeground(Color.BLUE);
+		panel.setBackground(bot.backgroundcolor);
+		panel.setForeground(bot.foregroundcolor);
 		JTabbedPane tabbedPane = storage.getInstance().tabbedPane;
 
 		tabbedPane.addTab(bot.gettabname(), storage.icon_dis, panel, bot.gettabname());
@@ -48,23 +47,17 @@ public class botfactory {
 		panel.add(panel_1, "cell 0 0,grow");
 		panel_1.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
 
-		if (bot.ismain) {
-			panel_1.setBackground(Color.BLUE);
-		} else {
+		panel_1.setBackground(bot.backgroundcolor);
 
-			panel_1.setBackground(Color.BLACK);
-		}
 		JScrollPane scrollPane = new JScrollPane();
 
 		txtpnText = new JTextPane();
 		txtpnText.setText("");
-		if (bot.ismain) {
-			txtpnText.setBackground(Color.BLUE);
-			txtpnText.setForeground(Color.WHITE);
-		} else {
-			txtpnText.setBackground(Color.BLACK);
-			txtpnText.setForeground(Color.WHITE);
-		}
+		txtpnText.setEditable(false);
+
+		txtpnText.setBackground(bot.backgroundcolor);
+		txtpnText.setForeground(bot.foregroundcolor);
+
 		panel_1.add(scrollPane, "cell 0 0,grow");
 		scrollPane.add(txtpnText);
 		scrollPane.setViewportView(txtpnText);
@@ -74,29 +67,23 @@ public class botfactory {
 		Dimension pref = new Dimension();
 		pref.setSize(70, 20);
 		txtPrefix.setPreferredSize(pref);
-		txtPrefix.setBackground(Color.BLACK);
-		txtPrefix.setForeground(Color.WHITE);
-
-		
+		txtPrefix.setBackground(bot.backgroundcolor);
+		txtPrefix.setForeground(bot.foregroundcolor);
 
 		final JTextField txtCommands = new JTextField();
 		txtCommands.setText("");
-		
+
 		txtCommands.setColumns(10);
 
 		final JTextField txtSuffix = new JTextField();
 		txtSuffix.setText("");
 		txtSuffix.setPreferredSize(pref);
-		txtSuffix.setBackground(Color.BLACK);
-		txtSuffix.setForeground(Color.WHITE);
-
-
+		txtSuffix.setBackground(bot.backgroundcolor);
+		txtSuffix.setForeground(bot.foregroundcolor);
 
 		JCheckBox autostroll = new JCheckBox();
 		autostroll.setBackground(txtpnText.getBackground());
 		autostroll.setSelected(true);
-		
-
 
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
@@ -108,10 +95,10 @@ public class botfactory {
 		});
 
 		PopClickListener listener = new PopClickListener();
-		listener.main = bot.ismain;
+		listener.main = bot.allowreport;
 		txtpnText.addMouseListener(listener);
 
-		KeyAdapter scom=new KeyAdapter() {
+		KeyAdapter scom = new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == '\n') {
@@ -121,30 +108,23 @@ public class botfactory {
 				}
 			}
 		};
-		
+
 		txtCommands.addKeyListener(scom);
 		txtPrefix.addKeyListener(scom);
 		txtSuffix.addKeyListener(scom);
-		
 
-
-		if (bot.ismain) {
-			panel.add(panel_1, "cell 0 0,grow");
-			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
-			panel_1.add(btnNewButton, "cell 0 1");
-			bot.setconfig(txtpnText, null, panel_1, autostroll);
-		} else {
+		if (bot.tablistdisplayed) {
 			panel_1.add(txtPrefix, "flowx,cell 0 1");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(txtSuffix, "flowx,cell 0 1");
 			panel_1.add(autostroll, "cell 0 1");
 			panel_1.add(btnNewButton, "cell 0 1");
-			txtCommands.setBackground(Color.BLACK);
-			txtCommands.setForeground(Color.WHITE);
+			txtCommands.setBackground(bot.backgroundcolor);
+			txtCommands.setForeground(bot.foregroundcolor);
 			JTable table = new JTable();
 			table.setModel(new DefaultTableModel(new Object[0][0], new Object[0]));
-			table.setBackground(Color.BLACK);
-			table.setForeground(Color.WHITE);
+			table.setBackground(bot.backgroundcolor);
+			table.setForeground(bot.foregroundcolor);
 			table.setEnabled(false);
 			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel_1, table);
 			splitPane.setDividerSize(5);
@@ -152,6 +132,11 @@ public class botfactory {
 			bot.setconfig(txtpnText, table, panel_1, autostroll);
 			splitPane.setDividerLocation(0.9);
 			splitPane.setResizeWeight(0.7);
+		} else {
+			panel.add(panel_1, "cell 0 0,grow");
+			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
+			panel_1.add(btnNewButton, "cell 0 1");
+			bot.setconfig(txtpnText, null, panel_1, autostroll);
 		}
 	}
 }

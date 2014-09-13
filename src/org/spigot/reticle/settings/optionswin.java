@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import javax.swing.JTextField;
 
 public class optionswin extends JDialog {
 
@@ -28,6 +29,8 @@ public class optionswin extends JDialog {
 	private JCheckBox chckbxNewCheckBox;
 	private JCheckBox checkBox_1;
 	private JCheckBox checkBox;
+	private JCheckBox chckbxNewCheckBox_2;
+	private JTextField txtUnknown;
 
 	public optionswin() {
 		addWindowListener(new WindowAdapter() {
@@ -38,11 +41,11 @@ public class optionswin extends JDialog {
 		});
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setTitle("Options");
-		setBounds(100, 100, 310, 168);
+		setBounds(100, 100, 388, 242);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new MigLayout("", "[][]", "[][][]"));
+		contentPanel.setLayout(new MigLayout("", "[][]", "[][][][][]"));
 
 		JLabel lblNewLabel = new JLabel("Check for updates automatically after start:");
 		contentPanel.add(lblNewLabel, "cell 0 0,alignx right");
@@ -75,6 +78,8 @@ public class optionswin extends JDialog {
 				set.put("autoupdate", chckbxNewCheckBox.isSelected() + "");
 				set.put("autosenddebug", checkBox_1.isSelected() + "");
 				set.put("loadplugins", checkBox.isSelected() + "");
+				set.put("support",chckbxNewCheckBox_2.isSelected()+"");
+				set.put("supportnick", txtUnknown.getText());
 				storage.setglobalsettings(set);
 				storage.savesettings();
 				storage.closeoptionswin();
@@ -95,5 +100,21 @@ public class optionswin extends JDialog {
 		chckbxNewCheckBox.setSelected(storage.getAutodebug());
 		checkBox_1.setSelected(storage.getAutoupdate());
 		checkBox.setSelected(storage.getAutoplugin());
+		
+		JLabel lblNewLabel_3 = new JLabel("Allow support server:");
+		contentPanel.add(lblNewLabel_3, "cell 0 3,alignx right");
+		
+		chckbxNewCheckBox_2 = new JCheckBox("");
+		chckbxNewCheckBox_2.setSelected(true);
+		chckbxNewCheckBox_2.setSelected(storage.getSupportEnabled());
+		contentPanel.add(chckbxNewCheckBox_2, "cell 1 3");
+		
+		JLabel lblSupportServerName = new JLabel("Support server name:");
+		contentPanel.add(lblSupportServerName, "flowx,cell 0 4");
+		
+		txtUnknown = new JTextField();
+		txtUnknown.setText(storage.getSupportNick());
+		contentPanel.add(txtUnknown, "cell 0 4");
+		txtUnknown.setColumns(10);
 	}
 }
