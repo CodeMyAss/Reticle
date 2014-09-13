@@ -22,6 +22,7 @@ public class botsettings {
 	public String[] autoantiafkcmd = new String[0];
 	public String[] ignored = new String[0];
 	public boolean isMain = false;
+	public int protocolversion = 4;
 
 	public botsettings(String name) {
 		this.nick = name;
@@ -29,14 +30,14 @@ public class botsettings {
 
 	public String gettabname() {
 		if (isMain) {
-			return this.nick+"@"+"Reticle";
+			return this.nick + "@" + "Reticle";
 		} else {
 			return this.nick + "@" + this.servername;
 		}
 	}
 
 	public boolean isExclusive() {
-		if(this.servername.toLowerCase().equals("reticle") && !isMain) {
+		if (this.servername.toLowerCase().equals("reticle") && !isMain) {
 			return false;
 		}
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
@@ -50,7 +51,7 @@ public class botsettings {
 	}
 
 	public boolean isDoubleExclusive(boolean hasthis) {
-		if(this.servername.toLowerCase().equals("reticle") && !isMain) {
+		if (this.servername.toLowerCase().equals("reticle") && !isMain) {
 			return false;
 		}
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;

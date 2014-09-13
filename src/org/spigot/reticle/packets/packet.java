@@ -15,7 +15,7 @@ public class packet {
 	private ByteBuffer output;
 	protected int version = 4;
 	public InputStream sockinput;
-	public static int MAXPACKETID = 64;
+	public static int MAXPACKETID = 0x40;
 	public List<Integer> ValidPackets = new ArrayList<Integer>();
 
 	public enum SIZER {

@@ -37,7 +37,7 @@ import org.spigot.reticle.settings.struct_settings;
 import org.spigot.reticle.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.01 beta";
+	public static String version = "1.02 beta";
 
 	protected EventHandler handler = new EventHandler();
 

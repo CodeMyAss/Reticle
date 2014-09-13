@@ -43,6 +43,8 @@ public class mcbot {
 	public String username;
 	public int[] tablistsize = new int[2];
 
+	
+
 	public mcbot(botsettings bot, boolean ismain) {
 		this.ismain = ismain;
 		bot.isMain = ismain;
@@ -69,6 +71,10 @@ public class mcbot {
 		}
 	}
 
+	public int getprotocolversion() {
+		return this.rawbot.protocolversion;
+	}
+	
 	private int gettabid() {
 		JTabbedPane cpanel = storage.gettabbedpane();
 		int len = cpanel.getComponentCount();

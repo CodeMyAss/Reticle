@@ -27,6 +27,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
+
 public class settings extends JFrame {
 
 	private static final long serialVersionUID = 1L;
@@ -51,6 +54,7 @@ public class settings extends JFrame {
 	private JTextField textreconnectdelay;
 	private JCheckBox checkautoreconnect;
 	private JTextArea textignore;
+	private JComboBox<String> protocolversion;
 
 	public settings(final botsettings set) {
 		addWindowListener(new WindowAdapter() {
@@ -123,7 +127,7 @@ public class settings extends JFrame {
 
 		JPanel panel_1 = new JPanel();
 		tabbedPane.addTab("Server", null, panel_1, null);
-		panel_1.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][]"));
+		panel_1.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][]"));
 
 		JLabel lblNewLabel_5 = new JLabel("Server name:");
 		panel_1.add(lblNewLabel_5, "cell 1 0,alignx trailing");
@@ -254,10 +258,10 @@ public class settings extends JFrame {
 		textignore = new JTextArea();
 		scrollPane_3.setViewportView(textignore);
 		panel_3.add(scrollPane_3, "cell 2 10,grow");
-		for(Frame frame:getFrames()) {
+		for (Frame frame : getFrames()) {
 			frame.setIconImage(storage.winicon.getImage());
 		}
-		
+
 		storage.getInstance().winobj = getFrames()[0];
 		set_obj_struct sobj = storage.getsettingsobj();
 		sobj.txtservername = txtservername;
@@ -265,6 +269,14 @@ public class settings extends JFrame {
 		sobj.textserverport = textserverport;
 		sobj.checkBox = checkBox;
 		sobj.txtNick = txtNick;
+
+		JLabel lblProtocolVersion = new JLabel("Protocol version:");
+		panel_1.add(lblProtocolVersion, "cell 1 6,alignx trailing");
+
+		protocolversion = new JComboBox<String>();
+		protocolversion.setEnabled(false);
+		protocolversion.setModel(new DefaultComboBoxModel<String>(new String[] { "4 (1.7.1/2/3/4/5)", "5(1.7.6/7/8/9/10)" }));
+		panel_1.add(protocolversion, "cell 2 6,growx");
 		sobj.checkactiv = checkactiv;
 		sobj.checkconcom = checkconcom;
 		sobj.checkdisccom = checkdisccom;
@@ -277,6 +289,11 @@ public class settings extends JFrame {
 		sobj.checkautoreconnect = checkautoreconnect;
 		sobj.textreconnectdelay = textreconnectdelay;
 		sobj.textignore = textignore;
+		sobj.protocolversion = protocolversion;
+		
+		JLabel lblThisFeatureIs = new JLabel("This feature is not yet available");
+		lblThisFeatureIs.setEnabled(false);
+		panel_1.add(lblThisFeatureIs, "cell 2 7");
 		storage.getInstance().setobj.setsettings(set);
 		this.setVisible(true);
 

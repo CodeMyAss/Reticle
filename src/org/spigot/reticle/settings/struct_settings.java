@@ -13,9 +13,9 @@ public class struct_settings {
 
 	public String saveToString() {
 		StringBuilder sb = new StringBuilder();
-		for(String key:globalsettings.keySet()) {
-			String val=globalsettings.get(key);
-			sb.append(key+": "+val+"\r\n");
+		for (String key : globalsettings.keySet()) {
+			String val = globalsettings.get(key);
+			sb.append(key + ": " + val + "\r\n");
 		}
 		for (String key : settings.keySet()) {
 			sb.append("\t" + key + "\r\n");
@@ -25,6 +25,7 @@ public class struct_settings {
 			sb.append("\t\tServer port: " + set.serverport + "\r\n");
 			sb.append("\t\tAutoconnect: " + set.autoconnect + "\r\n");
 			sb.append("\t\tNick: " + set.nick + "\r\n");
+			sb.append("\t\tProtocol version: " + set.protocolversion + "\r\n");
 			sb.append("\t\tAutologin: " + set.autologin + "\r\n");
 			sb.append("\t\tAutologout: " + set.autologout + "\r\n");
 			sb.append("\t\tAutoreconnect: " + set.autoreconnect + "\r\n");
@@ -70,10 +71,10 @@ public class struct_settings {
 			if (line.equals("") || line.equals("\r\n") || line.startsWith("#") || line.equals("\n")) {
 				continue;
 			}
-			
-			if(line.startsWith("\t\t\t")) {
-				saved=false;
-				//Login/Logout/Antiafk commands
+
+			if (line.startsWith("\t\t\t")) {
+				saved = false;
+				// Login/Logout/Antiafk commands
 				if (pos == 1) {
 					// We are getting list of login commands
 					sb1.append("\r\n" + line.substring(3));
@@ -86,10 +87,10 @@ public class struct_settings {
 				} else if (pos == 4) {
 					// We are getting list of messages to ignore
 					sb4.append("\r\n" + line.substring(3));
-				}	
+				}
 			} else if (line.startsWith("\t\t")) {
-				saved=false;
-				//Regular local bot settings
+				saved = false;
+				// Regular local bot settings
 				// What exactly is the settings
 				String op = line.substring(2).split(":")[0];
 				// What is the parameter (+2 because 1 for \t and 1 for
@@ -112,7 +113,7 @@ public class struct_settings {
 						pos = 4;
 					break;
 					case "Servername":
-						if(param.toLowerCase().equals("reticle")) {
+						if (param.toLowerCase().equals("reticle")) {
 							throw new SerialException();
 						}
 						bot.servername = param;
@@ -128,6 +129,9 @@ public class struct_settings {
 					break;
 					case "Nick":
 						bot.nick = param;
+					break;
+					case "Protocol version":
+						bot.protocolversion=Integer.parseInt(param);
 					break;
 					case "Autologin":
 						bot.autologin = Boolean.parseBoolean(param);
@@ -151,8 +155,8 @@ public class struct_settings {
 						bot.activenotify = Boolean.parseBoolean(param);
 					break;
 				}
-				
-			} else if(line.startsWith("\t")) {
+
+			} else if (line.startsWith("\t")) {
 				saved = true;
 				// Bot name here
 				if (bot != null) {
@@ -184,7 +188,7 @@ public class struct_settings {
 					sb4 = new StringBuilder();
 				}
 			} else {
-				//Global options
+				// Global options
 				String op = line.split(":")[0];
 				// What is the parameter (+2 because 1 for \t and 1 for
 				// spawn between delimiter and value)

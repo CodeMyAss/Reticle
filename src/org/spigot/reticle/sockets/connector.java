@@ -17,6 +17,7 @@ import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.JoinGameEvent;
+import org.spigot.reticle.events.PluginMessageEvent;
 import org.spigot.reticle.events.TeamEvent;
 import org.spigot.reticle.packets.ChatPacket;
 import org.spigot.reticle.packets.ConnectionResetPacket;
@@ -30,6 +31,7 @@ import org.spigot.reticle.packets.LoginSuccessPacket;
 import org.spigot.reticle.packets.PlayerListItemPacket;
 import org.spigot.reticle.packets.PluginMessagePacket;
 import org.spigot.reticle.packets.RespawnPacket;
+import org.spigot.reticle.packets.SetCompressionPacket;
 import org.spigot.reticle.packets.SpawnPositionPacket;
 import org.spigot.reticle.packets.TeamPacket;
 import org.spigot.reticle.packets.packet;
@@ -47,17 +49,24 @@ public class connector extends Thread {
 	private AntiAFK afkter;
 	private boolean haslogged = false;
 	private boolean hasloggedin = false;
-
+	
 	public boolean reconnect = false;
 	private List<String> Tablist = new ArrayList<String>();
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 	private Object recowaiter = new Object();
 
+	private int protocolversion=4;
+	
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
+		this.protocolversion=bot.getprotocolversion();
 		sendmsg("§2Connecting");
 
+	}
+	
+	public int getprotocolversion() {
+		return this.protocolversion;
 	}
 
 	public void endreconnectwaiting() {
@@ -68,6 +77,7 @@ public class connector extends Thread {
 
 	private void definepackets(packet packet) {
 		// Define served packets
+		//packet.ValidPackets.add(PluginMessagePacket.ID);
 		packet.ValidPackets.add(ChatPacket.ID);
 		packet.ValidPackets.add(KeepAlivePacket.ID);
 		packet.ValidPackets.add(JoinGamePacket.ID);
@@ -76,6 +86,7 @@ public class connector extends Thread {
 		packet.ValidPackets.add(TeamPacket.ID);
 		// packet.ValidPackets.add(SpawnPositionPacket.ID);
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
+		//packet.ValidPackets.add(SetCompressionPacket.ID);
 	}
 
 	public int getantiafkperiod() {
@@ -164,6 +175,9 @@ public class connector extends Thread {
 				}
 			}
 			sendmsg("§4Connection has been closed");
+
+		} catch (UnknownHostException e) {
+			sendmsg("§4No such host is known.");
 		} catch (SerialException e) {
 			sendmsg("§4Connection has been lost.");
 		} catch (IllegalArgumentException e) {
@@ -288,9 +302,12 @@ public class connector extends Thread {
 				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
 					// 2 Columns 20 rows
 					settablesize(2, 20);
-				} else if (joingameevent.getMaxPlayers() >= 50) {
+				} else if (joingameevent.getMaxPlayers() >= 50 && joingameevent.getMaxPlayers() < 70) {
 					// 3 Columns 20 rows
 					settablesize(3, 20);
+				} else if(joingameevent.getMaxPlayers() >= 70) {
+					// 4 Columns 20 rows
+					settablesize(4,20);
 				} else {
 					// 1 Columns 20 rows
 					settablesize(1, 20);
@@ -339,6 +356,11 @@ public class connector extends Thread {
 				// Scoreboard display
 				new DisplayScoreBoardPacket(buf).Read();
 			break;
+			
+			case SetCompressionPacket.ID:
+				SetCompressionPacket compack = new SetCompressionPacket(buf);
+				compack.Read();
+			break;
 
 			case TeamPacket.ID:
 				// Teams
@@ -347,7 +369,8 @@ public class connector extends Thread {
 
 			case PluginMessagePacket.ID:
 				// Plugin message
-				new PluginMessagePacket(buf).Read();
+				PluginMessageEvent plmsge=new PluginMessagePacket(buf).Read();
+				sendmsg("Channel: "+plmsge.getChannel()+" Message: "+plmsge.getMessageAsString());
 			break;
 
 			case ConnectionResetPacket.ID:
@@ -446,7 +469,7 @@ public class connector extends Thread {
 			JsonObject obf = parser.parse(str).getAsJsonObject();
 			return jsonreparse(obf);
 		} catch (IllegalStateException e) {
-			return null;
+			return parser.parse(str).getAsString();
 		} catch (JsonSyntaxException e) {
 			return null;
 		}

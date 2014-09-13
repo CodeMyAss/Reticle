@@ -1,13 +1,13 @@
 package org.spigot.reticle.settings;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class set_obj_struct {
 
-	
-	//Settings window
+	// Settings window
 	public JTextField txtservername;
 	public JTextField textserverip;
 	public JTextField textserverport;
@@ -25,17 +25,17 @@ public class set_obj_struct {
 	public JCheckBox checkautoreconnect;
 	public JTextField textreconnectdelay;
 	public JTextArea textignore;
-	
-	//Global settings window
+	public JComboBox<String> protocolversion;
+
+	// Global settings window
 	public JCheckBox autoupdate;
 	public JCheckBox autodebug;
 	public JCheckBox autoplugins;
 
-	
-	public void setglobals(JCheckBox b1,JCheckBox b2,JCheckBox b3) {
-		this.autoupdate=b1;
-		this.autodebug=b2;
-		this.autoplugins=b3;
+	public void setglobals(JCheckBox b1, JCheckBox b2, JCheckBox b3) {
+		this.autoupdate = b1;
+		this.autodebug = b2;
+		this.autoplugins = b3;
 	}
 
 	public void setsettings(botsettings set) {
@@ -52,10 +52,29 @@ public class set_obj_struct {
 		this.textlogoutcom.setText(implode("\n", set.autologoutcmd));
 		this.textafkcom.setText(implode("\n", set.autoantiafkcmd));
 		this.textcurtabname.setText(set.gettabname());
-		this.textantiafkdelay.setText(set.afkperiod+"");
+		this.textantiafkdelay.setText(set.afkperiod + "");
 		this.checkautoreconnect.setSelected(set.autoreconnect);
-		this.textreconnectdelay.setText(set.autoreconnectdelay+"");
-		this.textignore.setText(implode("\n",set.ignored));
+		this.textreconnectdelay.setText(set.autoreconnectdelay + "");
+		this.textignore.setText(implode("\n", set.ignored));
+		this.protocolversion.setSelectedIndex(protocolversiontoindex(set.protocolversion));
+	}
+
+	private int protocolversiontoindex(int ver) {
+		if (ver == 4) {
+			return 0;
+		} else if (ver == 5) {
+			return 1;
+		}
+		return 0;
+	}
+	
+	private int indextoprococolversion(int index) {
+		if(index==0) {
+			return 4;
+		} else if(index==1) {
+			return 5;
+		}
+		return 4;
 	}
 
 	public botsettings getsettings() {
@@ -72,10 +91,11 @@ public class set_obj_struct {
 		struct.autoantiafkcmd = this.textafkcom.getText().split("\n");
 		struct.autologincmd = this.textlogincom.getText().split("\n");
 		struct.autologoutcmd = this.textlogoutcom.getText().split("\n");
-		struct.afkperiod=Integer.parseInt(this.textantiafkdelay.getText());
-		struct.autoreconnect=this.checkautoreconnect.isSelected();
-		struct.autoreconnectdelay=Integer.parseInt(this.textreconnectdelay.getText());
-		struct.ignored=this.textignore.getText().split("\n");
+		struct.afkperiod = Integer.parseInt(this.textantiafkdelay.getText());
+		struct.autoreconnect = this.checkautoreconnect.isSelected();
+		struct.autoreconnectdelay = Integer.parseInt(this.textreconnectdelay.getText());
+		struct.ignored = this.textignore.getText().split("\n");
+		struct.protocolversion=this.indextoprococolversion(this.protocolversion.getSelectedIndex());
 		return struct;
 	}
 
