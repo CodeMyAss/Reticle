@@ -6,22 +6,22 @@ import java.nio.ByteBuffer;
 import javax.sql.rowset.serial.SerialException;
 
 public class RespawnPacket extends packet {
-	public static final int ID=7;
-	private ByteBuffer sock;
+	public static final int ID=0x7;
+	private packet reader;
 
-	public RespawnPacket(ByteBuffer sock) {
-		this.sock = sock;
+	public RespawnPacket(ByteBuffer sock, packet reader) {
+		this.reader=reader;
+		this.reader.input=sock;
 	}
 
 	public void Read() throws IOException, SerialException {
-		super.input = sock;
 		//Dimension
-		super.readInt();
+		reader.readInt();
 		//Difficulty
-		super.readByte();
+		reader.readByte();
 		//Gamemode
-		super.readByte();
+		reader.readByte();
 		//Level name
-		super.readString();
+		reader.readString();
 	}
 }

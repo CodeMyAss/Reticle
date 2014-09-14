@@ -6,21 +6,26 @@ import java.nio.ByteBuffer;
 import javax.sql.rowset.serial.SerialException;
 
 public class SpawnPositionPacket extends packet {
-	public static final int ID = 5;
-	private ByteBuffer sock;
+	public static final int ID = 0x5;
+	private int protocolversion;
+	private packet reader;
 
-	public SpawnPositionPacket(ByteBuffer sock) {
-		this.sock = sock;
+	public SpawnPositionPacket(ByteBuffer sock,packet reader, int protocolversion) {
+		this.reader=reader;
+		this.reader.input = sock;
+		this.protocolversion = protocolversion;
 	}
 
 	public void Read() throws IOException, SerialException {
-		super.input = sock;
-		// Old packet
-		// X
-		super.readInt();
-		// Y
-		super.readInt();
-		// Z
-		super.readInt();
+		if (protocolversion >= 47) {
+			reader.readLong();
+		} else {
+			// X
+			reader.readInt();
+			// Y
+			reader.readInt();
+			// Z
+			reader.readInt();
+		}
 	}
 }

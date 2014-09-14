@@ -183,7 +183,7 @@ public class mcbotapp {
 
 		frmReticle.setIconImage(storage.winicon.getImage());
 
-		redirectSystemStreams();
+		//redirectSystemStreams();
 
 		storage.getInstance().tabbedPane = tabbedPane;
 		storage.getInstance().menu_con = mntmNewMenuItem_2;

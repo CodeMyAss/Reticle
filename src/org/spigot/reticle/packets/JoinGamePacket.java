@@ -8,31 +8,31 @@ import javax.sql.rowset.serial.SerialException;
 import org.spigot.reticle.events.JoinGameEvent;
 
 public class JoinGamePacket extends packet {
-	private ByteBuffer sock;
 	public static final int ID=0x1;
 	private int protocolversion;
+	private packet reader;
 	
-	public JoinGamePacket(ByteBuffer sock,int protocolversion) {
-		this.sock=sock;
+	public JoinGamePacket(ByteBuffer sock,packet reader,int protocolversion) {
+		reader.input=sock;
 		this.protocolversion=protocolversion;
+		this.reader=reader;
 	}
 	
 	public JoinGameEvent Read() throws IOException, SerialException {
-		super.input=sock;
 		//Our entity ID
-		int id=super.readInt();
+		int id=reader.readInt();
 		//Our gamemode
-		byte gm=super.readByte();
+		byte gm=reader.readByte();
 		//Our dimension (world)
-		byte dim=super.readByte();
+		byte dim=reader.readByte();
 		//Difficulty
-		byte diff=super.readByte();
+		byte diff=reader.readByte();
 		//Max players
-		Byte maxplayers=super.readByte();
+		Byte maxplayers=reader.readByte();
 		//Level type
-		String leveltype=super.readString();
+		String leveltype=reader.readString();
 		if(protocolversion>=47) {
-			boolean rdebug=super.readBoolean();
+			boolean rdebug=reader.readBoolean();
 			return new JoinGameEvent(id, gm, dim, diff, maxplayers, leveltype, rdebug);
 		}
 		return new JoinGameEvent(id, gm, dim, diff, maxplayers, leveltype);

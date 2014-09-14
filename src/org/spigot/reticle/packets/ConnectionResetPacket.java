@@ -8,15 +8,15 @@ import javax.sql.rowset.serial.SerialException;
 
 
 public class ConnectionResetPacket extends packet {
-	private ByteBuffer input;
+	private packet reader;
 	public static final int ID=0x40;
 	
-	public ConnectionResetPacket(ByteBuffer s) {
-		this.input=s;
+	public ConnectionResetPacket(ByteBuffer s,packet reader) {
+		reader.input=s;
+		this.reader=reader;
 	}
 	
 	public String Read() throws IOException, SerialException {
-		super.input=input;
-		return super.readString();
+		return reader.readString();
 	}
 }

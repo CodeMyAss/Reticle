@@ -3,11 +3,16 @@ package org.spigot.reticle.packets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 import javax.sql.rowset.serial.SerialException;
 
 public class packet {
@@ -17,6 +22,10 @@ public class packet {
 	public InputStream sockinput;
 	public static int MAXPACKETID = 0x40;
 	public List<Integer> ValidPackets = new ArrayList<Integer>();
+	private OutputStream sockoutput;
+	private boolean encrypted = false;
+	private CipherInputStream cis;
+	private CipherOutputStream cos;
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
@@ -27,8 +36,22 @@ public class packet {
 		}
 	}
 
+	public void setEncryptedStreams(CipherInputStream cis, CipherOutputStream cos) {
+		this.cis = cis;
+		this.cos = cos;
+	}
+
+	public void setEncrypted() {
+		this.encrypted = true;
+	}
+
 	public packet() {
 
+	}
+
+	public packet(InputStream inputStream, OutputStream outputs) {
+		this.sockinput = inputStream;
+		this.sockoutput = outputs;
 	}
 
 	public packet(InputStream inputStream) {
@@ -42,18 +65,12 @@ public class packet {
 		this.output = ByteBuffer.allocate(len + vcount);
 		this.output.order(ByteOrder.BIG_ENDIAN);
 		writeVarInt(len);
-		// this.output=s.getOutputStream();
 	}
-
-	/*
-	 * public byte[] read() throws IOException { byte[] b = new byte[len];
-	 * input.read(b, 0, len); return b; }
-	 */
 
 	public String readUUID() throws SerialException, IOException {
-		return this.readLong()+""+this.readLong();
+		return this.readLong() + "" + this.readLong();
 	}
-	
+
 	public int[] readNext() throws IOException, SerialException {
 		int[] res = new int[2];
 		// The length of the packet
@@ -61,6 +78,45 @@ public class packet {
 		// Id of packet
 		res[1] = readInnerVarInt();
 		return res;
+	}
+
+	private byte[] readInnerBytes(int len) throws IOException {
+		byte[] b = new byte[len];
+		if (this.encrypted) {
+			this.cis.read(b, 0, len);
+		} else {
+			this.sockinput.read(b, 0, len);
+		}
+		return b;
+	}
+
+	public int getCompressedLen(byte[] packer) {
+		return packer.length;
+	}
+
+	public int getCompressedID(byte[] packer) throws SerialException, IOException {
+		return packet.readCompressedVarInt(packer);
+	}
+
+	public byte[] readNextCompressed() throws SerialException, IOException, DataFormatException {
+		int plen = readInnerVarInt();
+		int len = readInnerVarInt();
+		int reslen = plen - getVarntCount(len);
+		byte[] out = this.readInnerBytes(reslen);
+		System.out.println("Len: " + len);
+		if (len == 0) {
+			return out;
+		}
+		Inflater decompresser = new Inflater();
+		decompresser.setInput(out, 0, reslen);
+		byte[] result = new byte[len];
+		try {
+			decompresser.inflate(result);
+		} catch (DataFormatException e) {
+			return new byte[] { 0x3, 0x0b, 0x00, 0x00 };
+		}
+		decompresser.end();
+		return result;
 	}
 
 	public byte[] readArray() throws Exception {
@@ -86,9 +142,14 @@ public class packet {
 		return s.getBytes("UTF-8").length + (getVarntCount(s.getBytes("UTF-8").length));
 	}
 
-	public void Send(OutputStream sockoutput) throws IOException {
+	public void Send() throws IOException {
 		output.position(0);
-		sockoutput.write(output.array());
+		if (encrypted) {
+			cos.write(output.array());
+		} else {
+			sockoutput.write(output.array());
+		}
+
 	}
 
 	protected void setOutputStream(int len) throws IOException {
@@ -99,7 +160,11 @@ public class packet {
 
 	protected void readAndIgnore(int length) throws IOException {
 		// input.position(input.position()+length);
-		sockinput.skip(length);
+		if (encrypted) {
+			cis.skip(length);
+		} else {
+			sockinput.skip(length);
+		}
 	}
 
 	protected int readInnerVarInt() throws SerialException, IOException {
@@ -107,8 +172,12 @@ public class packet {
 		int bytes = 0;
 		byte in;
 		while (true) {
-
-			int ir = this.sockinput.read();
+			int ir;
+			if (encrypted) {
+				ir = this.cis.read();
+			} else {
+				ir = this.sockinput.read();
+			}
 			if (ir == -1) {
 				throw new SerialException();
 			} else {
@@ -121,6 +190,25 @@ public class packet {
 			if ((in & 0x80) != 0x80) {
 				break;
 			}
+		}
+		return out;
+	}
+
+	protected static int readCompressedVarInt(byte[] byter) throws IOException, SerialException {
+		int out = 0;
+		int bytes = 0;
+		byte in;
+		int i = 0;
+		while (true) {
+			in = byter[i];
+			out |= (in & 0x7F) << (bytes++ * 7);
+			if (bytes > 5) {
+				throw new RuntimeException("VarInt too big");
+			}
+			if ((in & 0x80) != 0x80) {
+				break;
+			}
+			i++;
 		}
 		return out;
 	}
@@ -179,7 +267,11 @@ public class packet {
 			throw new IOException();
 		}
 		byte[] b = new byte[len];
-		sockinput.read(b, 0, len);
+		if (encrypted) {
+			cis.read(b, 0, len);
+		} else {
+			sockinput.read(b, 0, len);
+		}
 		return new String(b, "UTF-8");
 	}
 
@@ -191,7 +283,10 @@ public class packet {
 			throw new IOException();
 		}
 		byte[] b = new byte[len];
-		input.get(b, 0, len);
+		try {
+			input.get(b, 0, len);
+		} catch (BufferUnderflowException e) {
+		}
 		return new String(b, "UTF-8");
 	}
 
@@ -275,4 +370,5 @@ public class packet {
 		}
 		return i;
 	}
+
 }

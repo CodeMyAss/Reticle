@@ -436,6 +436,68 @@ public class mcbot {
 			}
 		});
 	}
+	
+	public void refreshtablist(List<String> tablist, HashMap<String, String> tablistnick ,HashMap<String, String> playerteams, HashMap<String, team_struct> teams) {
+		// Just replace the text on slots
+		int x = this.tablistsize[0];
+		int y = this.tablistsize[1];
+
+		int realy = tabler.getRowCount();
+		int realx = tabler.getColumnCount();
+
+		if (x != realx || y != realy) {
+			setTabSize(y, x);
+		}
+
+		int max = x * y;
+		if (max != 0) {
+			int imax = tablist.size();
+			for (int i = 0; i < max; i++) {
+				String name;
+				if (i < imax) {
+					name = tablist.get(i);
+				} else {
+					name = "";
+				}
+				final int locx = i % x;
+				final int locy = i / x;
+				// Now we should parse player name by his team
+				if(tablistnick.containsKey(name)) {
+					name=tablistnick.get(name);
+				}
+				String realnamer = name;
+				if (playerteams.containsKey(name)) {
+					// He is in a team
+					String teamname = playerteams.get(name);
+					if (teams.containsKey(teamname)) {
+						// His team exists
+						realnamer = teams.get(teamname).getFormatedPlayer(realnamer);
+					}
+				}
+				final String realname = storage.parsecolorashtml(realnamer);
+				String oldval = null;
+				try {
+					oldval = (String) tabler.getValueAt(locy, locx);
+				} catch (ArrayIndexOutOfBoundsException e) {
+				}
+				if (oldval == null) {
+					// Initial set
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							tabler.setValueAt(realname, locy, locx);
+						}
+					});
+				} else if (oldval != realname) {
+					// Value has changed
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							tabler.setValueAt(realname, locy, locx);
+						}
+					});
+				}
+			}
+		}
+	}
 
 	public void refreshtablist(List<String> tablist, HashMap<String, String> playerteams, HashMap<String, team_struct> teams) {
 		// Just replace the text on slots

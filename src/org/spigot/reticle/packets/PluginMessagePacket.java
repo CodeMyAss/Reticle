@@ -5,18 +5,17 @@ import java.nio.ByteBuffer;
 import org.spigot.reticle.events.PluginMessageEvent;
 
 public class PluginMessagePacket extends packet {
-	private ByteBuffer sock;
-	public static final int ID=63;
+	private packet reader;
+	public static final int ID=0x3F;
 	
-	public PluginMessagePacket(ByteBuffer sock) {
-		this.sock=sock;
+	public PluginMessagePacket(ByteBuffer sock, packet reader) {
+		this.reader=reader;
+		this.reader.input=sock;
 	}
 	
 	public PluginMessageEvent Read() throws Exception {
-		super.input=sock;
-		String channel=super.readString();
-		byte[] data=super.readArray();
+		String channel=reader.readString();
+		byte[] data=reader.readArray();
 		return new PluginMessageEvent(channel,data);
 	}
-	
 }

@@ -1,24 +1,23 @@
 package org.spigot.reticle.packets;
 
 import java.io.IOException;
-import java.net.Socket;
 
 public class LoginStartPacket extends packet {
 	public static final int ID=0;
-	private Socket sock;
+	private packet reader;
 	
-	public LoginStartPacket(Socket sock, int protocolversion) {
-		this.sock=sock;
+	public LoginStartPacket(packet reader, int protocolversion) {
+		this.reader=reader;
 	}
 	
 	
 	public void Write(String username) throws IOException {
-		super.setOutputStream(super.getStringLength(username)+super.getVarntCount(LoginStartPacket.ID));
+		reader.setOutputStream(reader.getStringLength(username)+reader.getVarntCount(LoginStartPacket.ID));
 		//Packet id
-		super.writeVarInt(LoginStartPacket.ID);
+		reader.writeVarInt(LoginStartPacket.ID);
 		//Username
-		super.writeString(username);
-		super.Send(sock.getOutputStream());
+		reader.writeString(username);
+		reader.Send();
 	}
 	
 }
