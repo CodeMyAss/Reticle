@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -77,20 +78,15 @@ public class connector extends Thread {
 	private CipherInputStream cis;
 	private CipherOutputStream cos;
 	private boolean encryption = false;
+	private boolean communicationavailable = true;
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		this.protocolversion = bot.getprotocolversion();
-		sendmsg("§2Connecting");
-
 	}
 
 	public int getprotocolversion() {
 		return this.protocolversion;
-	}
-
-	public synchronized void endreconnectwaiting() {
-		notifyAll();
 	}
 
 	private void definepackets(packet packet) {
@@ -155,10 +151,29 @@ public class connector extends Thread {
 	}
 
 	@Override
-	public void run() {
+	public synchronized void run() {
+		storage.changemenuitems();
+		do {
+			bot.seticon(ICONSTATE.CONNECTING);
+			mainloop();
+			if (reconnect) {
+				bot.seticon(ICONSTATE.CONNECTING);
+				try {
+					wait(bot.getautoreconnectdelay() * 1000);
+				} catch (InterruptedException e) {
+				}
+			}
+		} while (reconnect);
+		bot.seticon(ICONSTATE.DISCONNECTED);
+		storage.changemenuitems();
+		bot.connector = null;
+	}
 
+	private void mainloop() {
 		// Main loop
 		try {
+			communicationavailable = true;
+			sendmsg("§2Connecting");
 			if (protocolversion == 4 || protocolversion == 5) {
 				this.maxpacketid = 0x40;
 			} else if (protocolversion == 47) {
@@ -188,7 +203,7 @@ public class connector extends Thread {
 			this.afkter.start();
 			byte[] bytes = null;
 			// The loop
-			while (true) {
+			while (communicationavailable) {
 				if (reader.compression) {
 					bytes = reader.readNextCompressed();
 					pid = reader.getCompressedID(bytes);
@@ -199,7 +214,6 @@ public class connector extends Thread {
 					len = pack[0];
 					pid = pack[1];
 				}
-				//System.out.println("Packet ID: " + Integer.toHexString(pid));
 				if (pid > maxpacketid) {
 					sendmsg("Received packet id " + pid + " (Length: " + len + ",Compression: " + reader.compression + ", Encryption: " + encryption + ")");
 					sendmsg("§4Malformed communication");
@@ -224,6 +238,9 @@ public class connector extends Thread {
 							processpacket(pid, len2, buf);
 						}
 					}
+					if (!encryptiondecided) {
+						encryptiondecided = true;
+					}
 				} else {
 					if (reader.compression) {
 					} else {
@@ -231,16 +248,10 @@ public class connector extends Thread {
 						new Ignored_Packet(len, pid, input).Read();
 					}
 				}
-				if (!encryptiondecided) {
-					encryptiondecided = true;
-				}
 			}
-			sendmsg("§4Connection has been closed");
-
 		} catch (UnknownHostException e) {
 			sendmsg("§4No such host is known.");
 		} catch (SerialException e) {
-			sendmsg("§4Connection has been lost.");
 		} catch (IllegalArgumentException e) {
 			if (!storage.reportthis(e)) {
 				sendmsg("§4Data stream error happened. Error log written into main tab. Please report this.");
@@ -252,10 +263,8 @@ public class connector extends Thread {
 				e.printStackTrace();
 			}
 		} catch (SocketException e) {
-			sendmsg("§4Connection has been dropped.");
 		} catch (IOException e) {
 			if (!storage.reportthis(e)) {
-				sendmsg("§4Disconnected");
 				e.printStackTrace();
 			}
 		} catch (RuntimeException e) {
@@ -268,8 +277,41 @@ public class connector extends Thread {
 				sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 				e.printStackTrace();
 			}
+		} finally {
+			sendmsg("§4Connection has been closed");
+
 		}
-		stopMe();
+		try {
+			stopMe();
+		} catch (BufferUnderflowException e) {
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	public void stopMe() {
+		communicationavailable = false;
+		// Send logout commands
+		if (bot.sendlogoutcommands()) {
+			String[] cmds = bot.getlogoutcommands();
+			for (String cmd : cmds) {
+				bot.sendtoserver(cmd);
+			}
+		}
+		// Stop afkter process
+		if (this.afkter != null) {
+			this.afkter.stop();
+			this.afkter = null;
+		}
+		// Reset tablist
+		bot.resettablist();
+		// Deal with socket
+		if (sock != null) {
+			try {
+				sock.close();
+			} catch (IOException e) {
+			}
+			sock = null;
+		}
 	}
 
 	public boolean sendtoserver(String msg) {
@@ -286,52 +328,6 @@ public class connector extends Thread {
 		return false;
 	}
 
-	@SuppressWarnings("deprecation")
-	public synchronized void stopMe() {
-		// Send logout commands
-		if (bot.sendlogoutcommands()) {
-			String[] cmds = bot.getlogoutcommands();
-			for (String cmd : cmds) {
-				bot.sendtoserver(cmd);
-			}
-		}
-		// Stop afkter process
-		if (this.afkter != null) {
-			this.afkter.stop();
-		}
-		// Reset tablist
-		bot.resettablist();
-		// Deal with socket
-		try {
-			sock.close();
-		} catch (IOException e) {
-		} catch (NullPointerException e) {
-		}
-		sock = null;
-		// Modify menu items
-		storage.changemenuitems();
-		// If we are intended to restart, we wait and do so
-		if (this.reconnect) {
-			// Change icon
-			bot.seticon(ICONSTATE.CONNECTING);
-			try {
-				wait(bot.getautoreconnectdelay() * 1000);
-			} catch (InterruptedException e) {
-			} catch (IllegalStateException e) {
-			}
-			// If we have not been disturbed
-			// If disconncect was invoked while waiting
-			if (this.reconnect) {
-				run();
-			}
-		} else {
-			// Change icon
-			bot.seticon(ICONSTATE.DISCONNECTED);
-			bot.connector = null;
-			storage.changemenuitems();
-		}
-	}
-
 	private void processpacket(int pid, int len, ByteBuffer buf) throws Exception {
 		packet pack = null;
 		switch (pid) {
@@ -344,7 +340,7 @@ public class connector extends Thread {
 				if (len > 20) {
 					// This is probably not keep alive
 					String reason = new ConnectionResetPacket(buf, reader).Read();
-					sendmsg("§4Server closed connection. Reason:\n" + reason + ")");
+					sendmsg("§4Server closed connection. Reason:\n" + reason);
 					this.stopMe();
 				} else {
 					// Keep us alive
@@ -372,6 +368,8 @@ public class connector extends Thread {
 						settablesize(1, 20);
 					}
 					this.reconnect = bot.getautoreconnect();
+					encryptiondecided = true;
+
 				} else {
 					// Maybe the server wants some encryption
 					EncryptionRequestPacket encr = new EncryptionRequestPacket(buf, reader);
@@ -395,7 +393,6 @@ public class connector extends Thread {
 							stopMe();
 							return;
 						} else {
-							System.out.println("Received UUID: " + data[0] + " Username: " + data[1]);
 							encryptiondecided = true;
 						}
 					} else {
@@ -409,7 +406,6 @@ public class connector extends Thread {
 				if (hasloggedin) {
 					// Chat
 					ChatEvent event = new ChatPacket(buf, reader, protocolversion).Read();
-					System.out.println("MSG: " + event.getMessage());
 					String msg = parsechat(event.getMessage());
 					if (!isMessageIgnored(msg)) {
 						sendchatmsg(msg);
@@ -455,7 +451,7 @@ public class connector extends Thread {
 					SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
 					compack.Read();
 					sendmsg("Compression activated");
-					//compack.Write();
+					// compack.Write();
 					compressiondecided = true;
 				}
 			break;

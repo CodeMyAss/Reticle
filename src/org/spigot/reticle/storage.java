@@ -38,7 +38,7 @@ import org.spigot.reticle.settings.struct_settings;
 import org.spigot.reticle.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.03 beta";
+	public static String version = "1.03.2 beta";
 
 	// Number of main tabs (For tab index calculations)
 	private int mainers = 0;
@@ -239,7 +239,7 @@ public class storage {
 		return true;
 	}
 
-	public synchronized static void displayoptionswin() {
+	public static void displayoptionswin() {
 		if (storage.getInstance().optwin == null) {
 			// Options dialog does not exist (yet)
 			storage.getInstance().optwin = new optionswin();

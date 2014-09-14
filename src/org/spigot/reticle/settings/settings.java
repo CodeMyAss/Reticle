@@ -291,9 +291,6 @@ public class settings extends JFrame {
 		sobj.textignore = textignore;
 		sobj.protocolversion = protocolversion;
 		
-		JLabel lblThisFeatureIs = new JLabel("This feature is not yet available");
-		lblThisFeatureIs.setEnabled(false);
-		panel_1.add(lblThisFeatureIs, "cell 2 7");
 		storage.getInstance().setobj.setsettings(set);
 		this.setVisible(true);
 

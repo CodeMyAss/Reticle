@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import javax.xml.bind.DatatypeConverter;
 
 import org.spigot.reticle.storage;
@@ -23,7 +24,7 @@ import jerklib.events.NickListEvent;
 import jerklib.events.QuitEvent;
 import jerklib.listeners.IRCEventListener;
 
-public class supportconnector implements IRCEventListener {
+public class supportconnector extends Thread implements IRCEventListener {
 	private boolean connected = false;
 	public String username;
 	private ConnectionManager manager;
@@ -39,6 +40,7 @@ public class supportconnector implements IRCEventListener {
 		Connect();
 	}
 
+	@SuppressWarnings("deprecation")
 	public void Disconnect() {
 		if (session != null) {
 			session.close("");
@@ -46,10 +48,20 @@ public class supportconnector implements IRCEventListener {
 		bot.resettablist();
 		sendmsg("Disconnected");
 		this.connected = false;
+		storage.getInstance().support.killsupportconnector();
+		this.stop();
 	}
 
 	public boolean isConnected() {
 		return connected;
+	}
+
+	@Override
+	public void run() {
+		sendmsg("Connecting to support server...");
+		manager = new ConnectionManager(new Profile(obfuscatemessage(username)));
+		session = manager.requestConnection(storage.supportserver);
+		session.addIRCEventListener(this);
 	}
 
 	public void Connect() {
@@ -57,10 +69,7 @@ public class supportconnector implements IRCEventListener {
 		Tablist = new ArrayList<String>();
 		this.username = storage.getSupportNick();
 		this.connected = true;
-		sendmsg("Connecting to support server...");
-		manager = new ConnectionManager(new Profile(obfuscatemessage(username)));
-		session = manager.requestConnection(storage.supportserver);
-		session.addIRCEventListener(this);
+		this.start();
 	}
 
 	@Override
@@ -73,7 +82,7 @@ public class supportconnector implements IRCEventListener {
 			sendmsg("§4§l§nThis server has no authentication so please do not post personal data here!");
 			chan = ((JoinCompleteEvent) event).getChannel();
 			bot.setTabSize(15, 2);
-		} else if (type == Type.CHANNEL_MESSAGE || type==Type.PRIVATE_MESSAGE) {
+		} else if (type == Type.CHANNEL_MESSAGE || type == Type.PRIVATE_MESSAGE) {
 			MessageEvent chatevent = (MessageEvent) event;
 			String msgr = deobfuscatemessage(chatevent.getMessage());
 			if (msgr.length() > 0) {
@@ -88,11 +97,11 @@ public class supportconnector implements IRCEventListener {
 		} else if (type == Type.JOIN) {
 			JoinEvent joinevent = (JoinEvent) event;
 			addToTablist(joinevent.getNick(), true);
-			sendmsg("§0User §n"+getNick(joinevent.getNick())+"§r§0 has joined support server");
+			sendmsg("§0User §n" + getNick(joinevent.getNick()) + "§r§0 has joined support server");
 		} else if (type == Type.QUIT || type == Type.KICK_EVENT) {
 			QuitEvent quitevent = (QuitEvent) event;
 			removeFromTablist(quitevent.getNick(), true);
-			sendmsg("§0User §n"+getNick(quitevent.getNick())+"§r§0 has left support server");
+			sendmsg("§0User §n" + getNick(quitevent.getNick()) + "§r§0 has left support server");
 		} else if (type == Type.CONNECTION_LOST) {
 			event.getSession().close("");
 			Disconnect();

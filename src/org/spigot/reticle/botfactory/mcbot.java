@@ -57,6 +57,10 @@ public class mcbot {
 	public mcbot(botsettings bot, boolean main, boolean tablist, boolean allowreport, boolean allowconnects, Color backgroundcolor, Color foregroundcolor) {
 		initbot(bot, main, tablist, allowreport, allowconnects, backgroundcolor, foregroundcolor);
 	}
+	
+	public void killsupportconnector() {
+		supportconnector=null;
+	}
 
 	public void initbot(botsettings bot, boolean main, boolean tablist, boolean yallowreport, boolean yallowconnects, Color ybackgroundcolor, Color yforegroundcolor) {
 		this.backgroundcolor = ybackgroundcolor;
@@ -406,7 +410,8 @@ public class mcbot {
 
 	public void disconnect() {
 		if (this.connector != null) {
-			this.connector.endreconnectwaiting();
+			this.connector.reconnect=false;
+			this.connector.interrupt();
 		}
 		if (this.isConnected()) {
 			// To prevent automatic restart

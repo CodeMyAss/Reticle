@@ -8,6 +8,8 @@ import java.util.List;
 
 import javax.sql.rowset.serial.SerialException;
 
+import org.spigot.reticle.sockets.connector;
+
 public class PlayerListItemPacket extends packet {
 	public static final int ID = 0x38;
 	private String name;
@@ -111,7 +113,7 @@ public class PlayerListItemPacket extends packet {
 					// Already in tablist
 					if (xchanged) {
 						// Display name changed
-						tablistnick.put(xUUID, xname);
+						tablistnick.put(xUUID, connector.parsechat(xname));
 						ret = true;
 					} else if (!xonline) {
 						// Remove us
@@ -125,7 +127,7 @@ public class PlayerListItemPacket extends packet {
 					// We are not in tablist yet
 					if (xchanged) {
 						tablist.add(xUUID);
-						tablistnick.put(xUUID, xname);
+						tablistnick.put(xUUID,connector.parsechat(xname));
 						ret = true;
 					}
 				}

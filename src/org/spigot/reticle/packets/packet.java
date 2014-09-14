@@ -300,8 +300,12 @@ public class packet {
 	}
 
 	protected byte readByte() throws IOException, SerialException {
-		int byter = input.get();
-		return (byte) byter;
+		try {
+			int byter = input.get();
+			return (byte) byter;
+		} catch (BufferUnderflowException e) {
+		}
+		return 0;
 	}
 
 	protected void writeByte(byte b) throws IOException {

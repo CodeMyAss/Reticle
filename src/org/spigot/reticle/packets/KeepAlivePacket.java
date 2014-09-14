@@ -23,7 +23,7 @@ public class KeepAlivePacket extends packet {
 		if (protocolversion >= 47) {
 			code=reader.readVarInt();
 		} else {
-			code=reader.readShort();
+			code=reader.readInt();
 		}
 	}
 
@@ -35,9 +35,9 @@ public class KeepAlivePacket extends packet {
 			reader.writeVarInt(ID);
 			reader.writeVarInt(code);
 		} else {
-			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + 2);
+			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + 4);
 			reader.writeVarInt(ID);
-			reader.writeShort((short) code);
+			reader.writeInt(code);
 		}
 		reader.Send();
 	}

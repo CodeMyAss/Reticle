@@ -202,7 +202,8 @@ public class mcbotapp {
 		storage.changemenuitems();
 		storage.savesettings();
 		storage.firsttabload();
-
+		storage.conlog("§6Current version is still very bugy so §l§nplease§r§6 check for updates frequently.");
+		storage.conlog("§fRunning §2§nReticle§r §fversion §4§n"+storage.version);
 	}
 
 	public void redirectSystemStreams() {
