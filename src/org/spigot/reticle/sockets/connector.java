@@ -10,6 +10,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -60,6 +61,7 @@ public class connector extends Thread {
 	private boolean haslogged = false;
 	private boolean hasloggedin = false;
 	private boolean encryptiondecided = false;
+	private boolean compressiondecided = false;
 
 	public boolean reconnect = false;
 	private List<String> Tablist = new ArrayList<String>();
@@ -70,10 +72,11 @@ public class connector extends Thread {
 
 	private int maxpacketid = 0x40;
 	private int protocolversion = 4;
-	private boolean compression = false;
+	// private boolean compression = false;
 	private packet reader;
 	private CipherInputStream cis;
 	private CipherOutputStream cos;
+	private boolean encryption = false;
 
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
@@ -102,6 +105,8 @@ public class connector extends Thread {
 		// packet.ValidPackets.add(SpawnPositionPacket.ID);
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
 		packet.ValidPackets.add(SetCompressionPacket.ID);
+		packet.ValidPackets.add(SetCompressionPacket.ID2);
+
 	}
 
 	public int getantiafkperiod() {
@@ -145,6 +150,7 @@ public class connector extends Thread {
 		cos = new CipherOutputStream(sock.getOutputStream(), cipher);
 		reader.setEncryptedStreams(cis, cos);
 		reader.setEncrypted();
+		this.encryption = true;
 		sendmsg("Encryption activated");
 	}
 
@@ -160,6 +166,7 @@ public class connector extends Thread {
 			}
 			haslogged = false;
 			hasloggedin = false;
+			encryptiondecided = false;
 			sock = null;
 			bot.seticon(ICONSTATE.CONNECTING);
 			sock = new Socket(bot.serverip, bot.serverport);
@@ -182,18 +189,19 @@ public class connector extends Thread {
 			byte[] bytes = null;
 			// The loop
 			while (true) {
-				if (compression) {
+				if (reader.compression) {
 					bytes = reader.readNextCompressed();
 					pid = reader.getCompressedID(bytes);
-					len = reader.getCompressedLen(bytes) + reader.getVarntCount(pid);
+					len = reader.getCompressedLen(bytes);
+					bytes = Arrays.copyOfRange(bytes, reader.getVarntCount(pid), bytes.length);
 				} else {
 					pack = reader.readNext();
 					len = pack[0];
 					pid = pack[1];
 				}
-				System.out.println("Packet ID: " + Integer.toHexString(pid));
+				//System.out.println("Packet ID: " + Integer.toHexString(pid));
 				if (pid > maxpacketid) {
-					sendmsg("Received packet id " + pid);
+					sendmsg("Received packet id " + pid + " (Length: " + len + ",Compression: " + reader.compression + ", Encryption: " + encryption + ")");
 					sendmsg("§4Malformed communication");
 					break;
 				}
@@ -201,10 +209,12 @@ public class connector extends Thread {
 					bot.seticon(ICONSTATE.CONNECTED);
 				}
 				if (reader.ValidPackets.contains(pid)) {
+
 					// We shall serve this one
-					if (compression) {
+					if (reader.compression) {
+						int len2 = len - reader.getVarntCount(pid);
 						ByteBuffer buf = ByteBuffer.wrap(bytes);
-						processpacket(pid, len, buf);
+						processpacket(pid, len2, buf);
 					} else {
 						int len2 = len - reader.getVarntCount(pid);
 						if (len2 > 0) {
@@ -212,17 +222,17 @@ public class connector extends Thread {
 							sock.getInputStream().read(b, 0, len2);
 							ByteBuffer buf = ByteBuffer.wrap(b);
 							processpacket(pid, len2, buf);
-							if (!encryptiondecided) {
-								encryptiondecided = true;
-							}
 						}
 					}
 				} else {
-					if (compression) {
+					if (reader.compression) {
 					} else {
 						// We decided to ignore this one
 						new Ignored_Packet(len, pid, input).Read();
 					}
+				}
+				if (!encryptiondecided) {
+					encryptiondecided = true;
 				}
 			}
 			sendmsg("§4Connection has been closed");
@@ -262,7 +272,7 @@ public class connector extends Thread {
 		stopMe();
 	}
 
-	public synchronized boolean sendtoserver(String msg) {
+	public boolean sendtoserver(String msg) {
 		if (msg.length() > 0) {
 			if (this.sock != null) {
 				try {
@@ -331,7 +341,7 @@ public class connector extends Thread {
 			break;
 
 			case KeepAlivePacket.ID:
-				if (len > 10000) {
+				if (len > 20) {
 					// This is probably not keep alive
 					String reason = new ConnectionResetPacket(buf, reader).Read();
 					sendmsg("§4Server closed connection. Reason:\n" + reason + ")");
@@ -339,8 +349,8 @@ public class connector extends Thread {
 				} else {
 					// Keep us alive
 					KeepAlivePacket keepalivepack = new KeepAlivePacket(reader, protocolversion, buf);
-					int resp = keepalivepack.Read(len);
-					keepalivepack.Write(resp);
+					keepalivepack.Read();
+					keepalivepack.Write();
 				}
 			break;
 
@@ -399,6 +409,7 @@ public class connector extends Thread {
 				if (hasloggedin) {
 					// Chat
 					ChatEvent event = new ChatPacket(buf, reader, protocolversion).Read();
+					System.out.println("MSG: " + event.getMessage());
 					String msg = parsechat(event.getMessage());
 					if (!isMessageIgnored(msg)) {
 						sendchatmsg(msg);
@@ -438,11 +449,15 @@ public class connector extends Thread {
 			break;
 
 			case SetCompressionPacket.ID:
-				SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
-				compression = true;
-				compack.Read();
-				//compack.Write();
-				//compression = false;
+			case SetCompressionPacket.ID2:
+
+				if (!compressiondecided) {
+					SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
+					compack.Read();
+					sendmsg("Compression activated");
+					//compack.Write();
+					compressiondecided = true;
+				}
 			break;
 
 			case TeamPacket.ID:
@@ -546,7 +561,7 @@ public class connector extends Thread {
 		}
 	}
 
-	private String parsechat(String str) {
+	public static String parsechat(String str) {
 		JsonParser parser = new JsonParser();
 		try {
 			JsonObject obf = parser.parse(str).getAsJsonObject();
@@ -558,7 +573,7 @@ public class connector extends Thread {
 		}
 	}
 
-	private String jsonreparse(JsonObject obj) {
+	private static String jsonreparse(JsonObject obj) {
 		StringBuilder sb = new StringBuilder();
 		String text = "";
 		// JsonArray extra;

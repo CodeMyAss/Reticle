@@ -9,6 +9,7 @@ public class KeepAlivePacket extends packet {
 	public static final int ID = 0;
 
 	private packet reader;
+	private int code;
 
 	private int protocolversion;
 
@@ -18,24 +19,25 @@ public class KeepAlivePacket extends packet {
 		this.protocolversion = protocolversion;
 	}
 
-	public int Read(int len) throws IOException, SerialException {
+	public void Read() throws IOException, SerialException {
 		if (protocolversion >= 47) {
-			return reader.readVarInt();
+			code=reader.readVarInt();
 		} else {
-			return reader.readShort();
+			code=reader.readShort();
 		}
-		// return reader.readBytes(len);
 	}
 
-	public void Write(int i) throws IOException {
+	public void Write() throws IOException {
 		// Packet id
 		reader.writeVarInt(KeepAlivePacket.ID);
 		if (protocolversion >= 47) {
-			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + (reader.getVarntCount(i)));
-			reader.writeVarInt(i);
+			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + (reader.getVarntCount(code)));
+			reader.writeVarInt(ID);
+			reader.writeVarInt(code);
 		} else {
 			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + 2);
-			reader.writeShort((short) i);
+			reader.writeVarInt(ID);
+			reader.writeShort((short) code);
 		}
 		reader.Send();
 	}

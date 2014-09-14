@@ -13,9 +13,9 @@ public class JoinGamePacket extends packet {
 	private packet reader;
 	
 	public JoinGamePacket(ByteBuffer sock,packet reader,int protocolversion) {
-		reader.input=sock;
 		this.protocolversion=protocolversion;
 		this.reader=reader;
+		this.reader.input=sock;
 	}
 	
 	public JoinGameEvent Read() throws IOException, SerialException {

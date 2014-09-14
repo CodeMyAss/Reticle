@@ -19,8 +19,8 @@ public class PlayerListItemPacket extends packet {
 	private List<Boolean> Changed;
 	private packet reader;
 
-	public PlayerListItemPacket(ByteBuffer sock,packet reader, int protocolversion) {
-		this.reader=reader;
+	public PlayerListItemPacket(ByteBuffer sock, packet reader, int protocolversion) {
+		this.reader = reader;
 		this.reader.input = sock;
 		this.protocolversion = protocolversion;
 
@@ -35,10 +35,11 @@ public class PlayerListItemPacket extends packet {
 			int action = reader.readVarInt();
 			// Length
 			int len = reader.readVarInt();
+			String uuid = reader.readUUID();
 			for (int o = 0; o < len; o++) {
 				Changed.add(o, false);
 				Onlines.add(o, true);
-				UUIDS.add(o, reader.readUUID());
+				UUIDS.add(o, uuid);
 				if (action == 0) {
 					Nicks.add(o, reader.readString());
 					int props = reader.readVarInt();
@@ -67,10 +68,13 @@ public class PlayerListItemPacket extends packet {
 				} else if (action == 1) {
 					// update gamemode
 					reader.readVarInt();
+					Nicks.add(o,null);
 				} else if (action == 2) {
 					// ping update
 					reader.readVarInt();
+					Nicks.add(o,null);
 				} else if (action == 3) {
+					Nicks.add(o,null);
 					// display name update
 					boolean hasdname = reader.readBoolean();
 					if (hasdname) {
@@ -79,8 +83,11 @@ public class PlayerListItemPacket extends packet {
 						Nicks.add(o, reader.readString());
 					}
 				} else if (action == 4) {
+					Nicks.add(o,null);
 					// remove player
 					Onlines.add(o, true);
+				} else {
+					Nicks.add(o,null);
 				}
 			}
 		} else {
