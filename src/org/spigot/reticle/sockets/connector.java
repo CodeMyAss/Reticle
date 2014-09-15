@@ -31,6 +31,8 @@ import org.spigot.reticle.events.JoinGameEvent;
 import org.spigot.reticle.events.PluginMessageEvent;
 import org.spigot.reticle.events.TeamEvent;
 import org.spigot.reticle.packets.ChatPacket;
+import org.spigot.reticle.packets.ClientStatusPacket;
+import org.spigot.reticle.packets.ClientStatusPacket.CLIENT_STATUS;
 import org.spigot.reticle.packets.ConnectionResetPacket;
 import org.spigot.reticle.packets.DisplayScoreBoardPacket;
 import org.spigot.reticle.packets.EncryptionRequestPacket;
@@ -179,6 +181,12 @@ public class connector extends Thread {
 			} else if (protocolversion == 47) {
 				this.maxpacketid = 0x49;
 			}
+
+			Tablist = new ArrayList<String>();
+			Tablist_nicks = new HashMap<String, String>();
+			playerTeams = new HashMap<String, String>();
+			TeamsByNames = new HashMap<String, team_struct>();
+
 			haslogged = false;
 			hasloggedin = false;
 			encryptiondecided = false;
@@ -316,12 +324,23 @@ public class connector extends Thread {
 
 	public boolean sendtoserver(String msg) {
 		if (msg.length() > 0) {
-			if (this.sock != null) {
+			if (msg.toLowerCase().equals("/revive")) {
 				try {
-					new ChatPacket(null, reader, protocolversion).Write(msg);
+					new ClientStatusPacket(reader).Write(CLIENT_STATUS.PERFORM_RESPAWN);
+					sendmsg("§2Respawn requested");
 					return true;
 				} catch (IOException e) {
 					return false;
+				}
+				
+			} else {
+				if (this.sock != null) {
+					try {
+						new ChatPacket(null, reader, protocolversion).Write(msg);
+						return true;
+					} catch (IOException e) {
+						return false;
+					}
 				}
 			}
 		}

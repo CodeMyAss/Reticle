@@ -57,9 +57,9 @@ public class mcbot {
 	public mcbot(botsettings bot, boolean main, boolean tablist, boolean allowreport, boolean allowconnects, Color backgroundcolor, Color foregroundcolor) {
 		initbot(bot, main, tablist, allowreport, allowconnects, backgroundcolor, foregroundcolor);
 	}
-	
+
 	public void killsupportconnector() {
-		supportconnector=null;
+		supportconnector = null;
 	}
 
 	public void initbot(botsettings bot, boolean main, boolean tablist, boolean yallowreport, boolean yallowconnects, Color ybackgroundcolor, Color yforegroundcolor) {
@@ -410,7 +410,7 @@ public class mcbot {
 
 	public void disconnect() {
 		if (this.connector != null) {
-			this.connector.reconnect=false;
+			this.connector.reconnect = false;
 			this.connector.interrupt();
 		}
 		if (this.isConnected()) {
@@ -441,8 +441,8 @@ public class mcbot {
 			}
 		});
 	}
-	
-	public void refreshtablist(List<String> tablist, HashMap<String, String> tablistnick ,HashMap<String, String> playerteams, HashMap<String, team_struct> teams) {
+
+	public void refreshtablist(List<String> tablist, HashMap<String, String> tablistnick, HashMap<String, String> playerteams, HashMap<String, team_struct> teams) {
 		// Just replace the text on slots
 		int x = this.tablistsize[0];
 		int y = this.tablistsize[1];
@@ -467,8 +467,8 @@ public class mcbot {
 				final int locx = i % x;
 				final int locy = i / x;
 				// Now we should parse player name by his team
-				if(tablistnick.containsKey(name)) {
-					name=tablistnick.get(name);
+				if (tablistnick.containsKey(name)) {
+					name = tablistnick.get(name);
 				}
 				String realnamer = name;
 				if (playerteams.containsKey(name)) {
