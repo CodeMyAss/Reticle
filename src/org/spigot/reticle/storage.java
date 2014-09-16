@@ -38,7 +38,7 @@ import org.spigot.reticle.settings.struct_settings;
 import org.spigot.reticle.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.03.2 beta";
+	public static String version = "1.03.3 beta";
 
 	// Number of main tabs (For tab index calculations)
 	private int mainers = 0;
@@ -329,11 +329,6 @@ public class storage {
 				return false;
 			}
 		}
-	}
-
-	public static void closesettingswindow() {
-		storage.getInstance().winobj.dispose();
-		storage.getInstance().winobj = null;
 	}
 
 	public static void setconnected() {

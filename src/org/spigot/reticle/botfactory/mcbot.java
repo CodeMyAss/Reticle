@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -32,6 +33,7 @@ public class mcbot {
 	private JTextPane chatlog;
 	private JTable tabler;
 	private JCheckBox autoscroll;
+	private JLabel messagecount;
 	private botsettings rawbot;
 	public boolean isconnected = false;
 	public boolean autoconnect = false;
@@ -49,6 +51,14 @@ public class mcbot {
 	public boolean allowreport = false;
 	public boolean allowconnects = true;
 	private supportconnector supportconnector;
+
+	public void setMessageCount(int c, boolean valid) {
+		if (valid) {
+			this.messagecount.setText(storage.parsecolorashtml("§2"+c));
+		} else {
+			this.messagecount.setText(storage.parsecolorashtml("§4"+c));
+		}
+	}
 
 	public mcbot(botsettings bot) {
 		initbot(bot, false, true, false, true, Color.BLACK, Color.WHITE);
@@ -113,10 +123,11 @@ public class mcbot {
 		});
 	}
 
-	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll) {
+	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll, JLabel messagecount) {
 		this.chatlog = chatlog;
 		this.tabler = tablist;
 		this.autoscroll = autoscroll;
+		this.messagecount = messagecount;
 		this.exists = true;
 	}
 
@@ -275,18 +286,6 @@ public class mcbot {
 		}
 	}
 
-	// Heavy deprecation
-	/*
-	 * @SuppressWarnings("deprecation") public void reconnect(boolean reconnect)
-	 * { if (this.rawbot.serverip != null) { if
-	 * (!this.isConnectedAllowReconnect()) { try { if (connector != null) {
-	 * connector.stop(); } this.serverip = this.rawbot.serverip; this.serverport
-	 * = this.rawbot.serverport; this.connector = new connector(this);
-	 * connector.reconnect = reconnect; connector.start(); } catch
-	 * (UnknownHostException e) { this.logmsg("§4 Invalid IP or hostname"); }
-	 * catch (IOException e) { if (!storage.reportthis(e)) {
-	 * e.printStackTrace(); } } } } }
-	 */
 	public void specialconnect() {
 		if (this.supportconnector == null) {
 			this.supportconnector = new supportconnector(this);

@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -32,7 +33,7 @@ public class botfactory {
 
 	private static JTextPane txtpnText;
 
-	public static void makenewtab(mcbot bot) {
+	public static void makenewtab(final mcbot bot) {
 
 		JPanel panel = new JPanel();
 		panel.setBackground(bot.backgroundcolor);
@@ -85,6 +86,9 @@ public class botfactory {
 		autostroll.setBackground(txtpnText.getBackground());
 		autostroll.setSelected(true);
 
+		JLabel messagecount = new JLabel();
+		messagecount.setText("0");
+
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -102,8 +106,17 @@ public class botfactory {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == '\n') {
-					if (storage.sendmessagetoactivebot(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
+					if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
 						txtCommands.setText("");
+						bot.setMessageCount(0,true);
+					}
+				} else {
+					String total = txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText();
+					int len=total.length()/100+1;
+					if (total.startsWith("/") && len>1) {
+						bot.setMessageCount(len,false);
+					} else {
+						bot.setMessageCount(len,true);
 					}
 				}
 			}
@@ -118,6 +131,7 @@ public class botfactory {
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(txtSuffix, "flowx,cell 0 1");
 			panel_1.add(autostroll, "cell 0 1");
+			panel_1.add(messagecount, "cell 0 1");
 			panel_1.add(btnNewButton, "cell 0 1");
 			txtCommands.setBackground(bot.backgroundcolor);
 			txtCommands.setForeground(bot.foregroundcolor);
@@ -129,14 +143,14 @@ public class botfactory {
 			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel_1, table);
 			splitPane.setDividerSize(5);
 			panel.add(splitPane, "cell 0 0,grow");
-			bot.setconfig(txtpnText, table, panel_1, autostroll);
+			bot.setconfig(txtpnText, table, panel_1, autostroll, messagecount);
 			splitPane.setDividerLocation(0.9);
 			splitPane.setResizeWeight(0.7);
 		} else {
 			panel.add(panel_1, "cell 0 0,grow");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(btnNewButton, "cell 0 1");
-			bot.setconfig(txtpnText, null, panel_1, autostroll);
+			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount);
 		}
 	}
 }

@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -164,6 +163,7 @@ public class connector extends Thread {
 					wait(bot.getautoreconnectdelay() * 1000);
 				} catch (InterruptedException e) {
 				}
+
 			}
 		} while (reconnect);
 		bot.seticon(ICONSTATE.DISCONNECTED);
@@ -289,10 +289,6 @@ public class connector extends Thread {
 			sendmsg("§4Connection has been closed");
 
 		}
-		try {
-			stopMe();
-		} catch (BufferUnderflowException e) {
-		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -332,11 +328,19 @@ public class connector extends Thread {
 				} catch (IOException e) {
 					return false;
 				}
-				
+
 			} else {
 				if (this.sock != null) {
 					try {
-						new ChatPacket(null, reader, protocolversion).Write(msg);
+						if (msg.length() >= 100) {
+							String[] msgs=msg.split("(?<=\\G.{100})");
+							ChatPacket pack=new ChatPacket(null,reader,protocolversion);
+							for(String m:msgs) {
+								pack.Write(m);
+							}
+						} else {
+							new ChatPacket(null, reader, protocolversion).Write(msg);
+						}
 						return true;
 					} catch (IOException e) {
 						return false;
