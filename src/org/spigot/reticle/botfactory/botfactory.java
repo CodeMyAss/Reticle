@@ -1,5 +1,6 @@
 package org.spigot.reticle.botfactory;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -23,6 +24,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.MatteBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import net.miginfocom.swing.MigLayout;
@@ -45,11 +50,18 @@ public class botfactory {
 		panel.setLayout(new MigLayout("", "[615px,grow]", "[340px,grow]"));
 
 		JPanel panel_1 = new JPanel();
-		panel.add(panel_1, "cell 0 0,grow");
+		//panel.add(panel_1, "cell 0 0,grow");
 		panel_1.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
 
+		JPanel panel_2 = new JPanel();
+		//panel.add(panel_1, "cell 0 0,grow");
+		panel_2.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
+		
 		panel_1.setBackground(bot.backgroundcolor);
 
+		panel_2.setBackground(bot.backgroundcolor);
+
+		
 		JScrollPane scrollPane = new JScrollPane();
 
 		txtpnText = new JTextPane();
@@ -126,7 +138,13 @@ public class botfactory {
 		txtPrefix.addKeyListener(scom);
 		txtSuffix.addKeyListener(scom);
 
+		
+		
 		if (bot.tablistdisplayed) {
+			Color color = UIManager.getColor("Table.gridColor");
+			MatteBorder border = new MatteBorder(1, 1, 1, 1, color);
+			DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+			rightRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
 			panel_1.add(txtPrefix, "flowx,cell 0 1");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(txtSuffix, "flowx,cell 0 1");
@@ -135,22 +153,34 @@ public class botfactory {
 			panel_1.add(btnNewButton, "cell 0 1");
 			txtCommands.setBackground(bot.backgroundcolor);
 			txtCommands.setForeground(bot.foregroundcolor);
+			JTable tableinfo = new JTable();
+			tableinfo.setModel(new DefaultTableModel(new Object[][]{{"Healh:","","X:"},{"Food:","","Y:"},{"Saturation:","","Z:"}}, new Object[4]));
+			tableinfo.getColumnModel().getColumn(0).setCellRenderer(rightRenderer);
+			tableinfo.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
+			tableinfo.setBackground(bot.backgroundcolor);
+			tableinfo.setForeground(bot.foregroundcolor);
+			tableinfo.setVisible(false);
 			JTable table = new JTable();
 			table.setModel(new DefaultTableModel(new Object[0][0], new Object[0]));
 			table.setBackground(bot.backgroundcolor);
 			table.setForeground(bot.foregroundcolor);
 			table.setEnabled(false);
-			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel_1, table);
+			tableinfo.setEnabled(false);
+			tableinfo.setBorder(border);
+			table.setBorder(border);
+			panel_2.add(table, "cell 0 0, grow");
+			panel_2.add(tableinfo, "cell 0 1, growx");
+			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel_1, panel_2);
 			splitPane.setDividerSize(5);
 			panel.add(splitPane, "cell 0 0,grow");
-			bot.setconfig(txtpnText, table, panel_1, autostroll, messagecount);
+			bot.setconfig(txtpnText, table, panel_1, autostroll, messagecount, tableinfo);
 			splitPane.setDividerLocation(0.9);
 			splitPane.setResizeWeight(0.7);
 		} else {
 			panel.add(panel_1, "cell 0 0,grow");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(btnNewButton, "cell 0 1");
-			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount);
+			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount,null);
 		}
 	}
 }

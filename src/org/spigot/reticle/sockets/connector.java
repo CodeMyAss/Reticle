@@ -27,27 +27,12 @@ import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.JoinGameEvent;
+import org.spigot.reticle.events.PlayerPositionAndLookEvent;
 import org.spigot.reticle.events.PluginMessageEvent;
 import org.spigot.reticle.events.TeamEvent;
-import org.spigot.reticle.packets.ChatPacket;
-import org.spigot.reticle.packets.ClientStatusPacket;
+import org.spigot.reticle.events.UpdateHealthEvent;
+import org.spigot.reticle.packets.*;
 import org.spigot.reticle.packets.ClientStatusPacket.CLIENT_STATUS;
-import org.spigot.reticle.packets.ConnectionResetPacket;
-import org.spigot.reticle.packets.DisplayScoreBoardPacket;
-import org.spigot.reticle.packets.EncryptionRequestPacket;
-import org.spigot.reticle.packets.HandShakePacket;
-import org.spigot.reticle.packets.Ignored_Packet;
-import org.spigot.reticle.packets.JoinGamePacket;
-import org.spigot.reticle.packets.KeepAlivePacket;
-import org.spigot.reticle.packets.LoginStartPacket;
-import org.spigot.reticle.packets.LoginSuccessPacket;
-import org.spigot.reticle.packets.PlayerListItemPacket;
-import org.spigot.reticle.packets.PluginMessagePacket;
-import org.spigot.reticle.packets.RespawnPacket;
-import org.spigot.reticle.packets.SetCompressionPacket;
-import org.spigot.reticle.packets.SpawnPositionPacket;
-import org.spigot.reticle.packets.TeamPacket;
-import org.spigot.reticle.packets.packet;
 import org.spigot.reticle.settings.team_struct;
 
 import com.google.gson.JsonArray;
@@ -81,6 +66,13 @@ public class connector extends Thread {
 	private boolean encryption = false;
 	private boolean communicationavailable = true;
 
+	private float Health;
+	private int pos_x;
+	private int pos_y;
+	private int pos_z;
+	private int Food;
+	private float Satur;
+
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		this.protocolversion = bot.getprotocolversion();
@@ -103,6 +95,9 @@ public class connector extends Thread {
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
 		packet.ValidPackets.add(SetCompressionPacket.ID);
 		packet.ValidPackets.add(SetCompressionPacket.ID2);
+		packet.ValidPackets.add(UpdateHealthPacket.ID);
+		packet.ValidPackets.add(PlayerPositionAndLookPacket.ID);
+		packet.ValidPackets.add(EntityStatusPacket.ID);
 
 	}
 
@@ -157,6 +152,7 @@ public class connector extends Thread {
 		do {
 			bot.seticon(ICONSTATE.CONNECTING);
 			mainloop();
+			stopMe();
 			if (reconnect) {
 				bot.seticon(ICONSTATE.CONNECTING);
 				try {
@@ -209,6 +205,7 @@ public class connector extends Thread {
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
+			bot.showinfotable();
 			byte[] bytes = null;
 			// The loop
 			while (communicationavailable) {
@@ -308,6 +305,9 @@ public class connector extends Thread {
 		}
 		// Reset tablist
 		bot.resettablist();
+		// Reset info table
+		bot.resetinfotable();
+		bot.hideinfotable();
 		// Deal with socket
 		if (sock != null) {
 			try {
@@ -333,9 +333,9 @@ public class connector extends Thread {
 				if (this.sock != null) {
 					try {
 						if (msg.length() >= 100) {
-							String[] msgs=msg.split("(?<=\\G.{100})");
-							ChatPacket pack=new ChatPacket(null,reader,protocolversion);
-							for(String m:msgs) {
+							String[] msgs = msg.split("(?<=\\G.{100})");
+							ChatPacket pack = new ChatPacket(null, reader, protocolversion);
+							for (String m : msgs) {
 								pack.Write(m);
 							}
 						} else {
@@ -358,13 +358,35 @@ public class connector extends Thread {
 				sendmsg("§4§l§nUnhandled packet " + pid);
 				new Ignored_Packet(len, pid, sock.getInputStream()).Read();
 			break;
+			
+			case EntityStatusPacket.ID:
+				new EntityStatusPacket(reader,buf).Read();
+			break;
+
+			case UpdateHealthPacket.ID:
+				// Recieved update healht
+				UpdateHealthEvent upheal = new UpdateHealthPacket(reader, buf).Read();
+				this.Health = upheal.getHealth();
+				this.Food = upheal.getFood();
+				this.Satur = upheal.getSaturation();
+				bot.updatehealth(this.Health, this.Food, this.Satur);
+			break;
+			
+			case PlayerPositionAndLookPacket.ID:
+				PlayerPositionAndLookEvent ppal=new PlayerPositionAndLookPacket(reader,buf,protocolversion).Read();
+				this.pos_x=(int)ppal.getX();
+				this.pos_y=(int)ppal.getY();
+				this.pos_z=(int)ppal.getZ();
+				bot.updateposition(this.pos_x,this.pos_y,this.pos_z);
+				break;
 
 			case KeepAlivePacket.ID:
 				if (len > 20) {
 					// This is probably not keep alive
 					String reason = new ConnectionResetPacket(buf, reader).Read();
 					sendmsg("§4Server closed connection. Reason:\n" + reason);
-					this.stopMe();
+					communicationavailable=false;
+					break;
 				} else {
 					// Keep us alive
 					KeepAlivePacket keepalivepack = new KeepAlivePacket(reader, protocolversion, buf);
@@ -413,14 +435,14 @@ public class connector extends Thread {
 						String[] data = lsp.Read();
 						if (data[1] == null) {
 							sendmsg("§4Receive abnormal message: " + data[0]);
-							stopMe();
+							communicationavailable=false;
 							return;
 						} else {
 							encryptiondecided = true;
 						}
 					} else {
 						sendmsg("§4 Server did not confirm encryption :(");
-						stopMe();
+						communicationavailable=false;
 					}
 				}
 			break;
@@ -451,6 +473,7 @@ public class connector extends Thread {
 				pack = new RespawnPacket(buf, reader);
 				((RespawnPacket) pack).Read();
 			break;
+
 
 			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)

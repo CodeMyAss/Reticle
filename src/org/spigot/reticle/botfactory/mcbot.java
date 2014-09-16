@@ -34,6 +34,7 @@ public class mcbot {
 	private JTable tabler;
 	private JCheckBox autoscroll;
 	private JLabel messagecount;
+	private JTable tableinfo;
 	private botsettings rawbot;
 	public boolean isconnected = false;
 	public boolean autoconnect = false;
@@ -51,6 +52,7 @@ public class mcbot {
 	public boolean allowreport = false;
 	public boolean allowconnects = true;
 	private supportconnector supportconnector;
+
 
 	public void setMessageCount(int c, boolean valid) {
 		if (valid) {
@@ -72,6 +74,11 @@ public class mcbot {
 		supportconnector = null;
 	}
 
+	public void setHealth(float health) {
+		this.tableinfo.setValueAt(health+"", 0, 1);
+	}
+	
+	
 	public void initbot(botsettings bot, boolean main, boolean tablist, boolean yallowreport, boolean yallowconnects, Color ybackgroundcolor, Color yforegroundcolor) {
 		this.backgroundcolor = ybackgroundcolor;
 		this.foregroundcolor = yforegroundcolor;
@@ -123,11 +130,12 @@ public class mcbot {
 		});
 	}
 
-	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll, JLabel messagecount) {
+	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll, JLabel messagecount, JTable tableinfo) {
 		this.chatlog = chatlog;
 		this.tabler = tablist;
 		this.autoscroll = autoscroll;
 		this.messagecount = messagecount;
+		this.tableinfo=tableinfo;
 		this.exists = true;
 	}
 
@@ -575,5 +583,37 @@ public class mcbot {
 	public void resettablist() {
 		this.setTabSize(0, 0);
 		refreshtablist(new ArrayList<String>(), new HashMap<String, String>(), new HashMap<String, team_struct>());
+	}
+
+	public void updatehealth(float health, int food, float satur) {
+		String healt = String.format("%.2f", health);
+		String sat = String.format("%.2f", satur);
+		this.tableinfo.setValueAt(healt, 0, 1);
+		this.tableinfo.setValueAt(""+food, 1, 1);
+		this.tableinfo.setValueAt(sat, 2, 1);
+	}
+
+	public void updateposition(int pos_x, int pos_y, int pos_z) {
+		this.tableinfo.setValueAt(pos_x+"", 0, 3);
+		this.tableinfo.setValueAt(pos_y+"", 1, 3);
+		this.tableinfo.setValueAt(pos_z+"", 2, 3);
+		
+	}
+
+	public void showinfotable() {
+		this.tableinfo.setVisible(true);
+	}
+	
+	public void hideinfotable() {
+		this.tableinfo.setVisible(false);
+	}
+	
+	public void resetinfotable() {
+		this.tableinfo.setValueAt("",0,1);
+		this.tableinfo.setValueAt("",1,1);
+		this.tableinfo.setValueAt("",2,1);
+		this.tableinfo.setValueAt("",0,3);
+		this.tableinfo.setValueAt("",1,3);
+		this.tableinfo.setValueAt("",2,3);
 	}
 }
