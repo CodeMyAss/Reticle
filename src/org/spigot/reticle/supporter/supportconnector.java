@@ -18,7 +18,6 @@ import jerklib.Session;
 import jerklib.events.IRCEvent;
 import jerklib.events.IRCEvent.Type;
 import jerklib.events.JoinCompleteEvent;
-import jerklib.events.JoinEvent;
 import jerklib.events.MessageEvent;
 import jerklib.events.NickListEvent;
 import jerklib.events.QuitEvent;
@@ -34,6 +33,8 @@ public class supportconnector extends Thread implements IRCEventListener {
 	private List<String> Tablist = new ArrayList<String>();
 	private HashMap<String, String> emptymap1 = new HashMap<String, String>();
 	private HashMap<String, team_struct> emptymap2 = new HashMap<String, team_struct>();
+	private HashMap<String, String> Tablist_names = new HashMap<String, String>();
+	private String connectnick;
 
 	public supportconnector(mcbot bot) {
 		this.bot = bot;
@@ -48,6 +49,7 @@ public class supportconnector extends Thread implements IRCEventListener {
 		bot.resettablist();
 		sendmsg("Disconnected");
 		this.connected = false;
+		storage.changemenuitems();
 		storage.getInstance().support.killsupportconnector();
 		this.stop();
 	}
@@ -59,7 +61,7 @@ public class supportconnector extends Thread implements IRCEventListener {
 	@Override
 	public void run() {
 		sendmsg("Connecting to support server...");
-		manager = new ConnectionManager(new Profile(obfuscatemessage(username)));
+		manager = new ConnectionManager(new Profile(connectnick));
 		session = manager.requestConnection(storage.supportserver);
 		session.addIRCEventListener(this);
 	}
@@ -68,7 +70,10 @@ public class supportconnector extends Thread implements IRCEventListener {
 		bot.resettablist();
 		Tablist = new ArrayList<String>();
 		this.username = storage.getSupportNick();
+		this.connectnick = storage.randomString(15);
 		this.connected = true;
+		Tablist = new ArrayList<String>();
+		Tablist_names = new HashMap<String, String>();
 		this.start();
 	}
 
@@ -81,12 +86,17 @@ public class supportconnector extends Thread implements IRCEventListener {
 			sendmsg("Welcome to §1§nReticle support");
 			sendmsg("§4§l§nThis server has no authentication so please do not post personal data here!");
 			chan = ((JoinCompleteEvent) event).getChannel();
+			sendnickrequests();
+			sendmynick();
 			bot.setTabSize(15, 2);
 		} else if (type == Type.CHANNEL_MESSAGE || type == Type.PRIVATE_MESSAGE) {
 			MessageEvent chatevent = (MessageEvent) event;
-			String msgr = deobfuscatemessage(chatevent.getMessage());
-			if (msgr.length() > 0) {
-				sendchatmsg(getNick(chatevent.getNick()) + ": " + msgr);
+			try {
+				String msgr = deobfuscatemessage(chatevent.getMessage());
+				if (msgr.length() > 0) {
+					processchat(chatevent.getUserName(), msgr);
+				}
+			} catch (ArrayIndexOutOfBoundsException e) {
 			}
 		} else if (type == Type.NICK_LIST_EVENT) {
 			NickListEvent nlevent = (NickListEvent) event;
@@ -94,24 +104,89 @@ public class supportconnector extends Thread implements IRCEventListener {
 				addToTablist(nick, false);
 			}
 			refreshtablist();
-		} else if (type == Type.JOIN) {
-			JoinEvent joinevent = (JoinEvent) event;
-			addToTablist(joinevent.getNick(), true);
-			sendmsg("§0User §n" + getNick(joinevent.getNick()) + "§r§0 has joined support server");
 		} else if (type == Type.QUIT || type == Type.KICK_EVENT) {
 			QuitEvent quitevent = (QuitEvent) event;
-			removeFromTablist(quitevent.getNick(), true);
-			sendmsg("§0User §n" + getNick(quitevent.getNick()) + "§r§0 has left support server");
+			if (isResolved(quitevent.getUserName())) {
+				sendmsg("§0User §n" + trytranslation(quitevent.getUserName()) + "§r§0 has left support server");
+			}
+			removeFromTablist(quitevent.getUserName(), true);
 		} else if (type == Type.CONNECTION_LOST) {
 			event.getSession().close("");
 			Disconnect();
 		}
 	}
 
+	private String trytranslation(String nick) {
+		if (this.Tablist_names.containsKey(nick)) {
+			return this.Tablist_names.get(nick);
+		} else {
+			return "§0§mUnresolved";
+		}
+	}
+
+	private boolean isResolved(String nick) {
+		return this.Tablist_names.containsKey(nick);
+	}
+
+	private boolean isMe(String nick) {
+		return nick.equals(connectnick);
+
+	}
+
 	private void removeFromTablist(String nick, boolean update) {
-		nick = getNick(nick);
 		if (Tablist.contains(nick)) {
 			Tablist.remove(nick);
+			Tablist_names.remove(nick);
+			if (update) {
+				refreshtablist();
+			}
+		}
+	}
+
+	private void processchat(String nick, String chat) {
+		String op = chat.substring(0, 1);
+		if (op.equals(CHATOP.CHAT.id)) {
+			String msg = chat.substring(1);
+			sendchatmsg(trytranslation(nick) + ": " + msg);
+		} else if (op.equals(CHATOP.GET_NICK.id)) {
+			sendmynick();
+		} else if (op.equals(CHATOP.NICK_RESPONSE.id)) {
+			String msg = chat.substring(1);
+			resolvenickresponse(nick, msg);
+		} else {
+			sendmsg(trytranslation(nick) + ": " + chat);
+		}
+
+	}
+
+	private void sendnickrequests() {
+		sendtoserverraw(this.obfuscatemessage(CHATOP.GET_NICK.id + ""));
+	}
+
+	private void sendmynick() {
+		sendtoserverraw(this.obfuscatemessage(CHATOP.NICK_RESPONSE.id + username));
+	}
+
+	private void resolvenickresponse(String user, String nick) {
+		this.addToTablist(user, nick, true);
+	}
+
+	private void addToTablist(String nick, String user, boolean update) {
+		addToTablist(nick, user, update, false);
+	}
+
+	private void addToTablist(String nick, String user, boolean update, boolean silent) {
+		if (nick.equals(connectnick)) {
+			user = username;
+		}
+		if (nick.length() > 0) {
+			if (!Tablist.contains(nick)) {
+				if (!silent) {
+					sendmsg("§0User §n" + user + "§r§0 has joined support server");
+				}
+				Tablist.add(nick);
+			}
+			Tablist_names.put(nick, user);
 			if (update) {
 				refreshtablist();
 			}
@@ -119,23 +194,14 @@ public class supportconnector extends Thread implements IRCEventListener {
 	}
 
 	private void addToTablist(String nick, boolean update) {
-		nick = getNick(nick);
-		if (nick.length() > 0) {
-			if (!Tablist.contains(nick)) {
-				Tablist.add(nick);
-			}
-			if (update) {
-				refreshtablist();
-			}
+		if (isResolved(nick) || isMe(nick)) {
+			String user = trytranslation(nick);
+			addToTablist(nick, user, update, true);
 		}
 	}
 
 	private void refreshtablist() {
-		bot.refreshtablist(Tablist, emptymap1, emptymap2);
-	}
-
-	private String getNick(String nick) {
-		return "§0" + deobfuscatemessage(nick);
+		bot.refreshtablist(Tablist, Tablist_names, emptymap1, emptymap2);
 	}
 
 	private String base64decode(String message) {
@@ -172,7 +238,7 @@ public class supportconnector extends Thread implements IRCEventListener {
 
 	public void SendMessage(String message) {
 		sendrawchatmsg(message);
-		sendtoserverraw(obfuscatemessage(message));
+		sendtoserverraw(obfuscatemessage(CHATOP.CHAT.id + message));
 	}
 
 	private void sendtoserverraw(String message) {
@@ -199,6 +265,15 @@ public class supportconnector extends Thread implements IRCEventListener {
 
 	private void sendrawmsg(String msg) {
 		bot.logmsg(msg);
+	}
+
+	private enum CHATOP {
+		CHAT(Character.toString((char) 1)), GET_NICK(Character.toString((char) 16)), NICK_RESPONSE(Character.toString((char) 17));
+		public String id;
+
+		CHATOP(String i) {
+			this.id = i;
+		}
 	}
 
 }

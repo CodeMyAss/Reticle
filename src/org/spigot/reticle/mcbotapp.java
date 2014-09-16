@@ -183,7 +183,7 @@ public class mcbotapp {
 
 		frmReticle.setIconImage(storage.winicon.getImage());
 
-		redirectSystemStreams();
+		//redirectSystemStreams();
 
 		storage.getInstance().tabbedPane = tabbedPane;
 		storage.getInstance().menu_con = mntmNewMenuItem_2;
@@ -195,7 +195,7 @@ public class mcbotapp {
 
 		storage.getInstance().mainer = main;
 		if (storage.getSupportEnabled()) {
-			mcbot support = new mcbot(new botsettings("Support"), true, true, false, true, Color.getColor(null, 0x99ff99), Color.BLACK);
+			mcbot support = new mcbot(new botsettings("Support"), true, true, false, true, Color.getColor(null, 0x0066ff), Color.BLACK);
 			storage.getInstance().support = support;
 			support.connect();
 		}

@@ -363,6 +363,9 @@ public class mcbot {
 	}
 
 	public synchronized void logmsg(String message) {
+		if(message.endsWith("§")) {
+			message=message+" ";
+		}
 		if (message.length() > 0) {
 			// Extra space because of the split method and following loop
 			message = " [" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + message;
@@ -616,4 +619,5 @@ public class mcbot {
 		this.tableinfo.setValueAt("",1,3);
 		this.tableinfo.setValueAt("",2,3);
 	}
+
 }

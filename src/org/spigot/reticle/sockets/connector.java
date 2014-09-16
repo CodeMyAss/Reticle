@@ -152,6 +152,7 @@ public class connector extends Thread {
 		do {
 			bot.seticon(ICONSTATE.CONNECTING);
 			mainloop();
+			sendmsg("§4Connection has been closed");
 			stopMe();
 			if (reconnect) {
 				bot.seticon(ICONSTATE.CONNECTING);
@@ -205,7 +206,6 @@ public class connector extends Thread {
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
-			bot.showinfotable();
 			byte[] bytes = null;
 			// The loop
 			while (communicationavailable) {
@@ -282,9 +282,6 @@ public class connector extends Thread {
 				sendmsg("§4Error happened. Error log written into main tab. Please report this.");
 				e.printStackTrace();
 			}
-		} finally {
-			sendmsg("§4Connection has been closed");
-
 		}
 	}
 
@@ -431,6 +428,7 @@ public class connector extends Thread {
 						byte[] b = new byte[len2];
 						cis.read(b, 0, len2);
 						ByteBuffer buff = ByteBuffer.wrap(b);
+						bot.showinfotable();
 						LoginSuccessPacket lsp = new LoginSuccessPacket(buff, reader, len2);
 						String[] data = lsp.Read();
 						if (data[1] == null) {

@@ -154,7 +154,7 @@ public class botfactory {
 			txtCommands.setBackground(bot.backgroundcolor);
 			txtCommands.setForeground(bot.foregroundcolor);
 			JTable tableinfo = new JTable();
-			tableinfo.setModel(new DefaultTableModel(new Object[][]{{"Healh:","","X:"},{"Food:","","Y:"},{"Saturation:","","Z:"}}, new Object[4]));
+			tableinfo.setModel(new DefaultTableModel(new Object[][]{{"Health:","","X:"},{"Food:","","Y:"},{"Saturation:","","Z:"}}, new Object[4]));
 			tableinfo.getColumnModel().getColumn(0).setCellRenderer(rightRenderer);
 			tableinfo.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
 			tableinfo.setBackground(bot.backgroundcolor);

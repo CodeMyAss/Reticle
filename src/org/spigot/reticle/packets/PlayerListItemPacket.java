@@ -43,7 +43,7 @@ public class PlayerListItemPacket extends packet {
 				Onlines.add(o, true);
 				UUIDS.add(o, uuid);
 				if (action == 0) {
-					Nicks.add(o, reader.readString());
+					Nicks.add(o, connector.parsechat(reader.readString()));
 					int props = reader.readVarInt();
 					for (int i = 0; i < props; i++) {
 						// prop name
@@ -64,7 +64,7 @@ public class PlayerListItemPacket extends packet {
 					Changed.add(o, true);
 					if (hasdname) {
 						// display name
-						Nicks.add(o, reader.readString());
+						Nicks.add(o, connector.parsechat(reader.readString()));
 					}
 
 				} else if (action == 1) {
@@ -82,7 +82,7 @@ public class PlayerListItemPacket extends packet {
 					if (hasdname) {
 						// display name
 						Changed.add(o, true);
-						Nicks.add(o, reader.readString());
+						Nicks.add(o, connector.parsechat(reader.readString()));
 					}
 				} else if (action == 4) {
 					Nicks.add(o,null);
@@ -113,7 +113,7 @@ public class PlayerListItemPacket extends packet {
 					// Already in tablist
 					if (xchanged) {
 						// Display name changed
-						tablistnick.put(xUUID, connector.parsechat(xname));
+						tablistnick.put(xUUID, xname);
 						ret = true;
 					} else if (!xonline) {
 						// Remove us
@@ -127,7 +127,7 @@ public class PlayerListItemPacket extends packet {
 					// We are not in tablist yet
 					if (xchanged) {
 						tablist.add(xUUID);
-						tablistnick.put(xUUID,connector.parsechat(xname));
+						tablistnick.put(xUUID,xname);
 						ret = true;
 					}
 				}

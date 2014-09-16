@@ -38,7 +38,7 @@ import org.spigot.reticle.settings.struct_settings;
 import org.spigot.reticle.sockets.Reporter;
 
 public class storage {
-	public static String version = "1.03.3 beta";
+	public static final String version = "1.03.3 beta";
 
 	// Number of main tabs (For tab index calculations)
 	private int mainers = 0;
@@ -49,7 +49,7 @@ public class storage {
 
 	public final static String homepage = "http://reticle.mc-atlantida.eu/";
 
-	private static String settingfile = "settings.ini";
+	private final static String settingfile = "settings.ini";
 
 	public struct_settings settin;
 
@@ -103,9 +103,8 @@ public class storage {
 	public static final ImageIcon winicon = new ImageIcon(thisClass.getResource("mainicon.png"));
 
 	public static final String supportserver = "irc.freenode.net";
-	public static final String supportchannel = "#ReticleSupport";
-	
-	
+	public static final String supportchannel = "#ReticleSupport2";
+
 	public static void addmainer() {
 		storage.getInstance().mainers++;
 	}
@@ -208,7 +207,7 @@ public class storage {
 		return false;
 	}
 
-	private static String randomString(int len) {
+	public static String randomString(int len) {
 		String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		Random rnd = new Random();
 		StringBuilder sb = new StringBuilder(len);
@@ -546,6 +545,9 @@ public class storage {
 	}
 
 	public static String parsecolorashtml(String message) {
+		if (message == null) {
+			return message;
+		}
 		if (message.length() > 0) {
 			StringBuilder sb = new StringBuilder();
 			message = " " + message;
