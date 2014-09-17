@@ -30,6 +30,7 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JPasswordField;
 
 public class settings extends JFrame {
 
@@ -56,9 +57,18 @@ public class settings extends JFrame {
 	private JCheckBox checkautoreconnect;
 	private JTextArea textignore;
 	private JComboBox<String> protocolversion;
+	private JPasswordField mpassword;
+	private JCheckBox checkmena;
+	private JTextField textmusername;
+	private JComboBox<String> mojangusername;
 
 	public settings(final botsettings set) {
 		EventQueue.invokeLater(new Runnable() {
+			
+
+			private JCheckBox checkspas;
+			private JCheckBox checksacc;
+
 			public void run() {
 				addWindowListener(new WindowAdapter() {
 					@Override
@@ -133,7 +143,7 @@ public class settings extends JFrame {
 
 				JPanel panel_1 = new JPanel();
 				tabbedPane.addTab("Server", null, panel_1, null);
-				panel_1.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][]"));
+				panel_1.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][][][]"));
 
 				JLabel lblNewLabel_5 = new JLabel("Server name:");
 				panel_1.add(lblNewLabel_5, "cell 1 0,alignx trailing");
@@ -165,12 +175,19 @@ public class settings extends JFrame {
 				panel_1.add(checkBox, "cell 2 3");
 
 				JLabel lblNewLabel_3 = new JLabel("Nickname:");
-				panel_1.add(lblNewLabel_3, "cell 1 5,alignx trailing");
-
+				panel_1.add(lblNewLabel_3, "cell 1 4,alignx trailing");
+				
 				txtNick = new JTextField();
 				txtNick.setText("Reticle");
-				panel_1.add(txtNick, "cell 2 5,growx");
-				txtNick.setColumns(10);
+				txtNick.setColumns(10);		
+				panel_1.add(txtNick, "cell 2 4,growx");
+			
+				
+				mojangusername = new JComboBox<String>();
+				mojangusername.setModel(new DefaultComboBoxModel<String>(new String[] { "Authenticate first" }));
+				mojangusername.setEnabled(false);
+
+				panel_1.add(mojangusername, "cell 2 4,growx");
 
 				JPanel panel_2 = new JPanel();
 				tabbedPane.addTab("Scripting", null, panel_2, null);
@@ -268,21 +285,79 @@ public class settings extends JFrame {
 					frame.setIconImage(storage.winicon.getImage());
 				}
 
-				//storage.getInstance().winobj = getFrames()[0];
+				JLabel lblProtocolVersion = new JLabel("Protocol version:");
+				panel_1.add(lblProtocolVersion, "cell 1 5,alignx trailing");
+
+				
+				protocolversion = new JComboBox<String>();
+				// protocolversion.setEnabled(false);
+				protocolversion.setModel(new DefaultComboBoxModel<String>(new String[] { "4 (1.7.1/2/3/4/5)", "5(1.7.6/7/8/9/10)", "47(1.8)" }));
+				panel_1.add(protocolversion, "cell 2 5,growx");
+			
+
+				JLabel lblNewLabel_9 = new JLabel("Mojang authentication:");
+				panel_1.add(lblNewLabel_9, "cell 1 6,alignx right");
+
+				checkmena = new JCheckBox("");
+				checkmena.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						if(((JCheckBox)arg0.getSource()).isSelected()) {
+							mojangusername.setEnabled(true);
+							txtNick.setEnabled(false);
+						} else {
+							mojangusername.setEnabled(false);
+							txtNick.setEnabled(true);
+						}
+					}
+				});
+				panel_1.add(checkmena, "cell 2 6");
+				
+				JLabel lblUsernameemail = new JLabel("Username/Email:");
+				panel_1.add(lblUsernameemail, "cell 1 7,alignx trailing");
+				
+				textmusername = new JTextField();
+				panel_1.add(textmusername, "cell 2 7,growx");
+				textmusername.setColumns(10);
+
+				JLabel lblNewLabel_8 = new JLabel("Password:");
+				panel_1.add(lblNewLabel_8, "cell 1 8,alignx trailing");
+
+				mpassword = new JPasswordField();
+				panel_1.add(mpassword, "cell 2 8,growx");
+
+				JLabel lblSavePasswordraw = new JLabel("Save password (RAW!):");
+				panel_1.add(lblSavePasswordraw, "cell 1 9,alignx right");
+
+				checkspas = new JCheckBox("");
+				panel_1.add(checkspas, "cell 2 9");
+
+				JLabel lblSaveAccessToken = new JLabel("Save access token (RAW!):");
+				panel_1.add(lblSaveAccessToken, "cell 1 10,alignx right");
+
+				checksacc = new JCheckBox("");
+				panel_1.add(checksacc, "cell 2 10");
+
+				JButton btnAuthenticate = new JButton("Authenticate");
+				panel_1.add(btnAuthenticate, "cell 2 11");
+
+				JLabel lblSavingPasswordIs = new JLabel("Saving password is really not recommended");
+				lblSavingPasswordIs.setEnabled(false);
+				panel_1.add(lblSavingPasswordIs, "cell 1 12 2 1,alignx center");
+
+				JLabel lblNewLabel_10 = new JLabel(" because it is stored in settings file as text");
+				lblNewLabel_10.setEnabled(false);
+				panel_1.add(lblNewLabel_10, "cell 1 13 2 1,alignx center");
+
+
+				setVisible(true);
+
 				set_obj_struct sobj = storage.getsettingsobj();
+				sobj.protocolversion = protocolversion;
 				sobj.txtservername = txtservername;
 				sobj.textserverip = textserverip;
 				sobj.textserverport = textserverport;
 				sobj.checkBox = checkBox;
 				sobj.txtNick = txtNick;
-
-				JLabel lblProtocolVersion = new JLabel("Protocol version:");
-				panel_1.add(lblProtocolVersion, "cell 1 6,alignx trailing");
-
-				protocolversion = new JComboBox<String>();
-				// protocolversion.setEnabled(false);
-				protocolversion.setModel(new DefaultComboBoxModel<String>(new String[] { "4 (1.7.1/2/3/4/5)", "5(1.7.6/7/8/9/10)", "47(1.8)" }));
-				panel_1.add(protocolversion, "cell 2 6,growx");
 				sobj.checkactiv = checkactiv;
 				sobj.checkconcom = checkconcom;
 				sobj.checkdisccom = checkdisccom;
@@ -295,24 +370,14 @@ public class settings extends JFrame {
 				sobj.checkautoreconnect = checkautoreconnect;
 				sobj.textreconnectdelay = textreconnectdelay;
 				sobj.textignore = textignore;
-				sobj.protocolversion = protocolversion;
-
+				sobj.textmpassword=mpassword;
+				sobj.textmusername=mojangusername;
+				sobj.checkmoj=checkmena;
+				sobj.savemojpass=checkspas;
+				sobj.saveaccess=checksacc;
+				
 				storage.getInstance().setobj.setsettings(set);
-				setVisible(true);
-
 			}
 		});
-	}
-
-	public JTextField getTextantiafkdelay() {
-		return textantiafkdelay;
-	}
-
-	public JCheckBox getCheckautoreconnect() {
-		return checkautoreconnect;
-	}
-
-	public JTextField getTextreconnectdelay() {
-		return textreconnectdelay;
 	}
 }

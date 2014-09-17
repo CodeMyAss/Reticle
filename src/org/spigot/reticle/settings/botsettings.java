@@ -2,6 +2,8 @@ package org.spigot.reticle.settings;
 
 import java.util.HashMap;
 
+import javax.swing.ComboBoxModel;
+
 import org.spigot.reticle.storage;
 
 public class botsettings {
@@ -23,6 +25,11 @@ public class botsettings {
 	public String[] ignored = new String[0];
 	public boolean isMain = false;
 	public int protocolversion = 4;
+	public String mpassword;
+	public ComboBoxModel<String> musernames;
+	public boolean mojangusername;
+	public boolean savemojangpass;
+	public boolean saveaccess;
 
 	public botsettings(String name) {
 		this.nick = name;

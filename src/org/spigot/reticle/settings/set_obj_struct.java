@@ -2,6 +2,7 @@ package org.spigot.reticle.settings;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -31,6 +32,13 @@ public class set_obj_struct {
 	public JCheckBox autoupdate;
 	public JCheckBox autodebug;
 	public JCheckBox autoplugins;
+	
+	// Mojang stuff in settings
+	protected JPasswordField textmpassword;
+	protected JComboBox<String> textmusername;
+	protected JCheckBox checkmoj;
+	protected JCheckBox savemojpass;
+	protected JCheckBox saveaccess;
 
 	public void setglobals(JCheckBox b1, JCheckBox b2, JCheckBox b3) {
 		this.autoupdate = b1;
@@ -57,6 +65,11 @@ public class set_obj_struct {
 		this.textreconnectdelay.setText(set.autoreconnectdelay + "");
 		this.textignore.setText(implode("\n", set.ignored));
 		this.protocolversion.setSelectedIndex(protocolversiontoindex(set.protocolversion));
+		this.textmpassword.setText(set.mpassword);
+		this.textmusername.setModel(set.musernames);
+		this.checkmoj.setSelected(set.mojangusername);
+		this.savemojpass.setSelected(set.savemojangpass);
+		this.saveaccess.setSelected(set.saveaccess);
 	}
 
 	private int protocolversiontoindex(int ver) {
@@ -100,9 +113,14 @@ public class set_obj_struct {
 		struct.autoreconnectdelay = Integer.parseInt(this.textreconnectdelay.getText());
 		struct.ignored = this.textignore.getText().split("\n");
 		struct.protocolversion=this.indextoprococolversion(this.protocolversion.getSelectedIndex());
+		struct.mpassword=new String(this.textmpassword.getPassword());
+		struct.musernames=this.textmusername.getModel();
+		struct.mojangusername=this.checkmoj.isSelected();
+		struct.savemojangpass=this.savemojpass.isSelected();
+		struct.saveaccess=this.saveaccess.isSelected();
 		return struct;
 	}
-
+	
 	public static String implode(String pattern, String[] res) {
 		int len = res.length;
 		if (len == 0) {

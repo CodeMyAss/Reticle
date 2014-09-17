@@ -1,11 +1,14 @@
 package org.spigot.reticle;
 
+import java.net.MalformedURLException;
+
 import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.sockets.Reporter;
 
+
 public class MAIN {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws MalformedURLException, Exception {
 		loader runner;
 		Thread loader = new Thread(runner = new loader());
 		loader.start();

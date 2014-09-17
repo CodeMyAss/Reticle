@@ -38,7 +38,7 @@ import org.spigot.reticle.settings.struct_settings;
 import org.spigot.reticle.sockets.Reporter;
 
 public class storage {
-	public static final String version = "1.03.3 beta";
+	public static final String version = "1.03.4 beta";
 
 	// Number of main tabs (For tab index calculations)
 	private int mainers = 0;
@@ -51,6 +51,11 @@ public class storage {
 
 	private final static String settingfile = "settings.ini";
 
+	
+	// Mojang authentication servers
+	public final static String AuthURL="https://authserver.mojang.com/";
+	public final static String joinURL="https://sessionserver.mojang.com/session/minecraft/join";
+	
 	public struct_settings settin;
 
 	public settings settings;
