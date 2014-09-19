@@ -13,21 +13,17 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.sql.rowset.serial.SerialException;
 
 public class packet {
 	protected ByteBuffer input;
 	private ByteBuffer output;
 	protected int version = 4;
-	public InputStream sockinput;
+	private InputStream sockinput;
 	public static int MAXPACKETID = 0x40;
 	public List<Integer> ValidPackets = new ArrayList<Integer>();
 	private OutputStream sockoutput;
 	private boolean encrypted = false;
-	private CipherInputStream cis;
-	private CipherOutputStream cos;
 	protected int Threshold = 0;
 	public boolean compression;
 
@@ -40,9 +36,9 @@ public class packet {
 		}
 	}
 
-	public void setEncryptedStreams(CipherInputStream cis, CipherOutputStream cos) {
-		this.cis = cis;
-		this.cos = cos;
+	public void setEncryptedStreams(InputStream cis, OutputStream cos) {
+		this.sockinput = cis;
+		this.sockoutput = cos;
 	}
 
 	public void setEncrypted() {
@@ -51,6 +47,10 @@ public class packet {
 
 	public packet() {
 
+	}
+
+	public boolean isEncrypted() {
+		return this.encrypted;
 	}
 
 	public packet(InputStream inputStream, OutputStream outputs) {
@@ -84,18 +84,12 @@ public class packet {
 		return res;
 	}
 
-	private byte[] readInnerBytes(int len) throws IOException {
+	public byte[] readInnerBytes(int len) throws IOException {
 		byte[] b = new byte[len];
 		int read = 0;
-		if (this.encrypted) {
-			do {
-				read += this.cis.read(b, read, len - read);
-			} while (read < len);
-		} else {
-			do {
-				read += this.sockinput.read(b, read, len - read);
-			} while (read < len);
-		}
+		do {
+			read += this.sockinput.read(b, read, len - read);
+		} while (read < len);
 		return b;
 	}
 
@@ -111,16 +105,31 @@ public class packet {
 		int plen = readInnerVarInt();
 		int len = readInnerVarInt();
 		int reslen = plen - getVarntCount(len);
-		byte[] out = this.readInnerBytes(reslen);
 		if (len == 0) {
-			return out;
+			return this.readInnerBytes(reslen);
+		}
+		if (len < this.Threshold) {
+			System.err.println("Fatal compression error");
+		}
+		if (reslen < 0) {
+			return null;
+		}
+		byte[] out = this.readInnerBytes(reslen);
+		if (reslen > 10000) {
+			return null;
 		}
 		Inflater decompresser = new Inflater();
 		decompresser.setInput(out, 0, reslen);
 		byte[] result = new byte[len];
-		decompresser.inflate(result);
-		decompresser.end();
-		return result;
+		try {
+			decompresser.inflate(result);
+			decompresser.end();
+			return result;
+		} catch (DataFormatException e) {
+			System.err.println("Compression error");
+			return null;
+		}
+		// return new byte[] {(byte)-1,(byte)0};
 	}
 
 	public byte[] readArray() throws Exception {
@@ -132,12 +141,25 @@ public class packet {
 		return ret;
 	}
 
+	/*
+	 * public byte[] readInnerBytes1(int len) { byte[] b=new byte[len];
+	 * if(encrypted) { cis.readFully(b, 0, len); } else {
+	 * sockinput.read(b,0,len); } return b; }
+	 */
 	public byte[] readBytes(int len) throws IOException {
 		byte[] b = new byte[len];
 		this.input.get(b, 0, len);
 		return b;
 	}
+	
+	public byte[] readLegacyArray() throws SerialException, IOException {
+		return readBytes(readVarInt());
+	}
 
+	public byte[] readInnerLegacyArray() throws SerialException, IOException {
+		return readInnerBytes(readInnerVarInt());
+	}
+	
 	public void writeBytes(byte[] b) {
 		this.output.put(b);
 	}
@@ -172,21 +194,11 @@ public class packet {
 
 			}
 			packtotallen = this.getVarntCount(uncompressedlen) + compresspacket.length;
-			if (encrypted) {
-				cos.write(this.getVarint(packtotallen));
-				cos.write(this.getVarint(uncompressedlen));
-				cos.write(compresspacket);
-			} else {
-				sockoutput.write(this.getVarint(packtotallen));
-				sockoutput.write(this.getVarint(uncompressedlen));
-				sockoutput.write(compresspacket);
-			}
+			sockoutput.write(this.getVarint(packtotallen));
+			sockoutput.write(this.getVarint(uncompressedlen));
+			sockoutput.write(compresspacket);
 		} else {
-			if (encrypted) {
-				cos.write(output.array());
-			} else {
-				sockoutput.write(output.array());
-			}
+			sockoutput.write(output.array());
 		}
 	}
 
@@ -210,26 +222,20 @@ public class packet {
 		}
 	}
 
-	protected void readAndIgnore(int length) throws IOException {
-		// input.position(input.position()+length);
-		if (encrypted) {
-			cis.skip(length);
-		} else {
-			sockinput.skip(length);
+	protected synchronized void readAndIgnore(int length) throws IOException {
+		if (length > 0) {
+			if (sockinput.skip(length) != length) {
+				System.err.println("Stream operation failed");
+			}
 		}
 	}
 
-	protected int readInnerVarInt() throws SerialException, IOException {
+	private final int readInnerVarInt() throws SerialException, IOException {
 		int out = 0;
 		int bytes = 0;
 		byte in;
 		while (true) {
-			int ir;
-			if (encrypted) {
-				ir = this.cis.read();
-			} else {
-				ir = this.sockinput.read();
-			}
+			int ir = this.sockinput.read();
 			if (ir == -1) {
 				throw new SerialException();
 			} else {
@@ -324,18 +330,14 @@ public class packet {
 			throw new IOException();
 		}
 		byte[] b = new byte[len];
-		if (encrypted) {
-			cis.read(b, 0, len);
-		} else {
-			sockinput.read(b, 0, len);
-		}
+		sockinput.read(b, 0, len);
 		return new String(b, "UTF-8");
 	}
 
 	protected String readString() throws IOException, SerialException {
 		int len = readVarInt();
 		if (len > 32000) {
-			System.err.println("Can't read " + len);
+			System.err.println("Can't read " + len + " Encryption: " + this.encrypted);
 			throw new IOException();
 		}
 		byte[] b = new byte[len];

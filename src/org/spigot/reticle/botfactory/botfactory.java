@@ -99,12 +99,12 @@ public class botfactory {
 		autostroll.setSelected(true);
 
 		JLabel messagecount = new JLabel();
-		messagecount.setText("0");
+		messagecount.setText("1");
 
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (storage.sendmessagetoactivebot(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
+				if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
 					txtCommands.setText("");
 				}
 			}

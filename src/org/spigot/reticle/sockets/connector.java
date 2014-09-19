@@ -2,9 +2,11 @@ package org.spigot.reticle.sockets;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -13,13 +15,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.storage;
@@ -46,9 +48,9 @@ public class connector extends Thread {
 	private Socket sock;
 	private AntiAFK afkter;
 	private boolean haslogged = false;
-	private boolean hasloggedin = false;
 	private boolean encryptiondecided = false;
 	private boolean compressiondecided = false;
+	private long lastmessagetime = 0;
 
 	public boolean reconnect = false;
 	private List<String> Tablist = new ArrayList<String>();
@@ -57,13 +59,15 @@ public class connector extends Thread {
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 
-	private int maxpacketid = 0x40;
-	private int protocolversion = 4;
-	// private boolean compression = false;
+	// TODO: Up-List
+	@SuppressWarnings("unused")
+	private List<String> UpList = new ArrayList<String>();
+
+	private int maxpacketid = 0x40; // Default limit
+	private int protocolversion = 4; // Default to 1.7.2
 	private packet reader;
-	private CipherInputStream cis;
-	private CipherOutputStream cos;
-	private boolean encryption = false;
+	private InputStream cis;
+	private OutputStream cos;
 	private boolean communicationavailable = true;
 
 	private float Health;
@@ -82,6 +86,27 @@ public class connector extends Thread {
 		return this.protocolversion;
 	}
 
+	private long delaymessage() {
+		if (bot.messagesDelayed()) {
+			int delay = bot.getMessageDelay();
+			long current = System.currentTimeMillis() / 1000;
+			int towait = (int) (current - lastmessagetime);
+			if (towait <= 0) {
+				towait = -(towait) + delay;
+				lastmessagetime = towait + current;
+				return (towait + current);
+			} else if (towait <= delay && towait >= 0) {
+				lastmessagetime = towait + current;
+				return (towait + current);
+			} else {
+				lastmessagetime = current;
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
+
 	private void definepackets(packet packet) {
 		// Define served packets
 		// packet.ValidPackets.add(PluginMessagePacket.ID);
@@ -89,16 +114,15 @@ public class connector extends Thread {
 		packet.ValidPackets.add(KeepAlivePacket.ID);
 		packet.ValidPackets.add(JoinGamePacket.ID);
 		packet.ValidPackets.add(PlayerListItemPacket.ID);
-		// packet.ValidPackets.add(RespawnPacket.ID);
+		packet.ValidPackets.add(RespawnPacket.ID);
 		packet.ValidPackets.add(TeamPacket.ID);
-		// packet.ValidPackets.add(SpawnPositionPacket.ID);
+		packet.ValidPackets.add(SpawnPositionPacket.ID);
 		packet.ValidPackets.add(ConnectionResetPacket.ID);
 		packet.ValidPackets.add(SetCompressionPacket.ID);
 		packet.ValidPackets.add(SetCompressionPacket.ID2);
 		packet.ValidPackets.add(UpdateHealthPacket.ID);
 		packet.ValidPackets.add(PlayerPositionAndLookPacket.ID);
 		packet.ValidPackets.add(EntityStatusPacket.ID);
-
 	}
 
 	public int getantiafkperiod() {
@@ -133,17 +157,16 @@ public class connector extends Thread {
 		return this.bot.sendafkcommands();
 	}
 
-	public void setEncryption(byte[] keystr, packet reader) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException {
-		SecretKeySpec key = new SecretKeySpec(keystr, "AES");
-		IvParameterSpec ivr = new IvParameterSpec(keystr);
+	public void setEncryption(SecretKey keystr, packet reader) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException {
+		IvParameterSpec ivr = new IvParameterSpec(keystr.getEncoded());
 		Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
-		cipher.init(Cipher.DECRYPT_MODE, key, ivr);
+		cipher.init(Cipher.DECRYPT_MODE, keystr, ivr);
 		cis = new CipherInputStream(sock.getInputStream(), cipher);
-		cos = new CipherOutputStream(sock.getOutputStream(), cipher);
+		// TODO: Remove CryptManager from this
+		cos = CryptManager.encryptOuputStream(keystr, sock.getOutputStream());
 		reader.setEncryptedStreams(cis, cos);
 		reader.setEncrypted();
-		this.encryption = true;
-		sendmsg("Encryption activated");
+		sendmsg("§2Encryption activated");
 	}
 
 	@Override
@@ -151,7 +174,13 @@ public class connector extends Thread {
 		storage.changemenuitems();
 		do {
 			bot.seticon(ICONSTATE.CONNECTING);
+			bot.refreshOnlineMode();
+			if (!this.bot.verifyonlinesettings()) {
+				sendmsg("§4Fatal error: Bot needs Mojang Authentication!");
+				break;
+			}
 			mainloop();
+			bot.hideinfotable();
 			sendmsg("§4Connection has been closed");
 			stopMe();
 			if (reconnect) {
@@ -171,7 +200,6 @@ public class connector extends Thread {
 	private void mainloop() {
 		// Main loop
 		try {
-			communicationavailable = true;
 			sendmsg("§2Connecting");
 			if (protocolversion == 4 || protocolversion == 5) {
 				this.maxpacketid = 0x40;
@@ -185,12 +213,10 @@ public class connector extends Thread {
 			TeamsByNames = new HashMap<String, team_struct>();
 
 			haslogged = false;
-			hasloggedin = false;
 			encryptiondecided = false;
 			sock = null;
 			bot.seticon(ICONSTATE.CONNECTING);
 			sock = new Socket(bot.serverip, bot.serverport);
-			InputStream input = sock.getInputStream();
 			reader = new packet(sock.getInputStream(), sock.getOutputStream());
 			definepackets(reader);
 			storage.changemenuitems();
@@ -199,6 +225,7 @@ public class connector extends Thread {
 			new LoginStartPacket(reader, protocolversion).Write(bot.username);
 
 			// Init routine
+			communicationavailable = true;
 			int pid;
 			int len = 0;
 			int[] pack = new int[2];
@@ -211,46 +238,57 @@ public class connector extends Thread {
 			while (communicationavailable) {
 				if (reader.compression) {
 					bytes = reader.readNextCompressed();
+					if (bytes == null) {
+						continue;
+					}
 					pid = reader.getCompressedID(bytes);
 					len = reader.getCompressedLen(bytes);
 					bytes = Arrays.copyOfRange(bytes, reader.getVarntCount(pid), bytes.length);
 				} else {
 					pack = reader.readNext();
+					if (pack == null) {
+						continue;
+					}
 					len = pack[0];
 					pid = pack[1];
 				}
+				// TODO: Debug part
+				// System.out.println("PID: "+Integer.toHexString(pid)+" LEN: "+len);
 				if (pid > maxpacketid) {
-					sendmsg("Received packet id " + pid + " (Length: " + len + ",Compression: " + reader.compression + ", Encryption: " + encryption + ")");
+					sendmsg("Received packet id " + pid + " (Length: " + len + ",Compression: " + reader.compression + ", Encryption: " + reader.isEncrypted() + ")");
 					sendmsg("§4Malformed communication");
 					break;
 				}
 				if (connectedicon) {
 					bot.seticon(ICONSTATE.CONNECTED);
 				}
+				int len2 = len - reader.getVarntCount(pid);
 				if (reader.ValidPackets.contains(pid)) {
-
 					// We shall serve this one
 					if (reader.compression) {
-						int len2 = len - reader.getVarntCount(pid);
 						ByteBuffer buf = ByteBuffer.wrap(bytes);
-						processpacket(pid, len2, buf);
-					} else {
-						int len2 = len - reader.getVarntCount(pid);
-						if (len2 > 0) {
-							byte[] b = new byte[len2];
-							sock.getInputStream().read(b, 0, len2);
-							ByteBuffer buf = ByteBuffer.wrap(b);
+						if (encryptiondecided) {
 							processpacket(pid, len2, buf);
+						} else {
+							processpreloginpacket(pid, len2, buf);
 						}
-					}
-					if (!encryptiondecided) {
-						encryptiondecided = true;
+					} else {
+						if (len2 > 0) {
+							byte[] b = reader.readInnerBytes(len2);
+							ByteBuffer buf = ByteBuffer.wrap(b);
+							if (encryptiondecided) {
+								processpacket(pid, len2, buf);
+							} else {
+								processpreloginpacket(pid, len2, buf);
+							}
+						}
 					}
 				} else {
 					if (reader.compression) {
+						// Compressed packet already ignored
 					} else {
 						// We decided to ignore this one
-						new Ignored_Packet(len, pid, input).Read();
+						new Ignored_Packet(len2, pid, reader).Read();
 					}
 				}
 			}
@@ -315,6 +353,15 @@ public class connector extends Thread {
 		}
 	}
 
+	private void sendToServerRaw(String msg) {
+		long delay = delaymessage();
+		if (delay == 0) {
+			sendToServerNow(msg);
+		} else {
+			storage.ChatThread.addJob(new ChatJob(this, msg, delay));
+		}
+	}
+
 	public boolean sendtoserver(String msg) {
 		if (msg.length() > 0) {
 			if (msg.toLowerCase().equals("/revive")) {
@@ -325,22 +372,18 @@ public class connector extends Thread {
 				} catch (IOException e) {
 					return false;
 				}
-
 			} else {
 				if (this.sock != null) {
-					try {
-						if (msg.length() >= 100) {
-							String[] msgs = msg.split("(?<=\\G.{100})");
-							ChatPacket pack = new ChatPacket(null, reader, protocolversion);
-							for (String m : msgs) {
-								pack.Write(m);
-							}
-						} else {
-							new ChatPacket(null, reader, protocolversion).Write(msg);
+					if (msg.length() >= 100) {
+						// String[] msgs = msg.split("(?<=\\G.{100})");
+						String[] msgs = splitter(msg, 100);
+						for (String m : msgs) {
+							sendToServerRaw(m);
 						}
 						return true;
-					} catch (IOException e) {
-						return false;
+					} else {
+						sendToServerRaw(msg);
+						return true;
 					}
 				}
 			}
@@ -348,117 +391,138 @@ public class connector extends Thread {
 		return false;
 	}
 
+	public void sendToServerNow(String msg) {
+		try {
+			new ChatPacket(null, reader, protocolversion).Write(msg);
+		} catch (IOException e) {
+		}
+	}
+
+	private String[] splitter(String input, int maxlen) {
+		StringTokenizer tok = new StringTokenizer(input, " ");
+		StringBuilder output = new StringBuilder(input.length());
+		int lineLen = 0;
+		while (tok.hasMoreTokens()) {
+			String word = tok.nextToken()+" ";
+			if (lineLen + word.length() > maxlen) {
+				output.append("\n");
+				lineLen = 0;
+			}
+			output.append(word);
+			lineLen += word.length();
+		}
+		return output.toString().split("\n");
+	}
+
+	private void processpreloginpacket(int pid, int len, ByteBuffer buf) throws Exception {
+		switch (pid) {
+			case ConnectionResetPacket.ID2: {
+				String reason = new ConnectionResetPacket(buf, reader).Read();
+				sendmsg("§4Server closed connection. Reason:\n" + reason);
+				communicationavailable = false;
+			}
+			break;
+
+			case SetCompressionPacket.ID:
+				SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
+				compack.Read();
+				sendmsg("§2Compression activated");
+				compressiondecided = true;
+			break;
+
+			case LoginSuccessPacket.ID:
+				String[] resp = new LoginSuccessPacket(buf, reader, protocolversion).Read();
+				String uuid = resp[0];
+				String username = resp[1];
+				sendmsg("§2Received UUID: §n" + uuid);
+				sendmsg("§2Received Nick: §n" + username);
+				nowConnected();
+				encryptiondecided = true;
+				if (!compressiondecided && reader.isEncrypted()) {
+					sendmsg("§4Server responded without compressioin enabled. This might be very buggy!");
+				}
+			break;
+
+			// TODO: Reparse legacy array
+			case EncryptionRequestPacket.ID: {
+				// Maybe the server wants some encryption
+				EncryptionRequestPacket encr = new EncryptionRequestPacket(buf, reader);
+				try {
+					encr.Read();
+					encr.Write(bot);
+					setEncryption(encr.getSecret(), reader);
+				} catch (BufferUnderflowException e) {
+				}
+			}
+			break;
+
+		}
+	}
+
 	private void processpacket(int pid, int len, ByteBuffer buf) throws Exception {
-		packet pack = null;
 		switch (pid) {
 			default:
 				sendmsg("§4§l§nUnhandled packet " + pid);
-				new Ignored_Packet(len, pid, sock.getInputStream()).Read();
+				new Ignored_Packet(len, pid, reader).Read();
 			break;
-			
+
 			case EntityStatusPacket.ID:
-				new EntityStatusPacket(reader,buf).Read();
+				new EntityStatusPacket(reader, buf).Read();
+			break;
+
+			case TimeUpdatePacket.ID:
+				new TimeUpdatePacket(buf, reader).Read();
 			break;
 
 			case UpdateHealthPacket.ID:
-				// Recieved update healht
 				UpdateHealthEvent upheal = new UpdateHealthPacket(reader, buf).Read();
 				this.Health = upheal.getHealth();
 				this.Food = upheal.getFood();
 				this.Satur = upheal.getSaturation();
 				bot.updatehealth(this.Health, this.Food, this.Satur);
 			break;
-			
+
 			case PlayerPositionAndLookPacket.ID:
-				PlayerPositionAndLookEvent ppal=new PlayerPositionAndLookPacket(reader,buf,protocolversion).Read();
-				this.pos_x=(int)ppal.getX();
-				this.pos_y=(int)ppal.getY();
-				this.pos_z=(int)ppal.getZ();
-				bot.updateposition(this.pos_x,this.pos_y,this.pos_z);
-				break;
+				PlayerPositionAndLookEvent ppal = new PlayerPositionAndLookPacket(reader, buf, protocolversion).Read();
+				this.pos_x = (int) ppal.getX();
+				this.pos_y = (int) ppal.getY();
+				this.pos_z = (int) ppal.getZ();
+				bot.updateposition(this.pos_x, this.pos_y, this.pos_z);
+			break;
 
 			case KeepAlivePacket.ID:
-				if (len > 20) {
-					// This is probably not keep alive
-					String reason = new ConnectionResetPacket(buf, reader).Read();
-					sendmsg("§4Server closed connection. Reason:\n" + reason);
-					communicationavailable=false;
-					break;
-				} else {
-					// Keep us alive
-					KeepAlivePacket keepalivepack = new KeepAlivePacket(reader, protocolversion, buf);
-					keepalivepack.Read();
-					keepalivepack.Write();
-				}
+				// Keep us alive
+				KeepAlivePacket keepalivepack = new KeepAlivePacket(reader, protocolversion, buf);
+				keepalivepack.Read();
+				keepalivepack.Write();
 			break;
 
 			case JoinGamePacket.ID:
-				if (encryptiondecided) {
-					// join game
-					JoinGameEvent joingameevent = new JoinGamePacket(buf, reader, protocolversion).Read();
-					if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
-						// 2 Columns 20 rows
-						settablesize(2, 20);
-					} else if (joingameevent.getMaxPlayers() >= 50 && joingameevent.getMaxPlayers() < 70) {
-						// 3 Columns 20 rows
-						settablesize(3, 20);
-					} else if (joingameevent.getMaxPlayers() >= 70) {
-						// 4 Columns 20 rows
-						settablesize(4, 20);
-					} else {
-						// 1 Columns 20 rows
-						settablesize(1, 20);
-					}
-					this.reconnect = bot.getautoreconnect();
-					encryptiondecided = true;
-
+				// join game
+				JoinGameEvent joingameevent = new JoinGamePacket(buf, reader, protocolversion).Read();
+				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
+					// 2 Columns 20 rows
+					settablesize(2, 20);
+				} else if (joingameevent.getMaxPlayers() >= 50 && joingameevent.getMaxPlayers() < 70) {
+					// 3 Columns 20 rows
+					settablesize(3, 20);
+				} else if (joingameevent.getMaxPlayers() >= 70) {
+					// 4 Columns 20 rows
+					settablesize(4, 20);
 				} else {
-					// Maybe the server wants some encryption
-					EncryptionRequestPacket encr = new EncryptionRequestPacket(buf, reader);
-					encr.Read();
-					encr.Write();
-					setEncryption(encr.getSecret(), reader);
-
-					// Join game packet expected
-					int[] tmppack = reader.readNext();
-					len = tmppack[0];
-					pid = tmppack[1];
-					if (pid == 0) {
-						int len2 = len - reader.getVarntCount(pid);
-						byte[] b = new byte[len2];
-						cis.read(b, 0, len2);
-						ByteBuffer buff = ByteBuffer.wrap(b);
-						bot.showinfotable();
-						LoginSuccessPacket lsp = new LoginSuccessPacket(buff, reader, len2);
-						String[] data = lsp.Read();
-						if (data[1] == null) {
-							sendmsg("§4Receive abnormal message: " + data[0]);
-							communicationavailable=false;
-							return;
-						} else {
-							encryptiondecided = true;
-						}
-					} else {
-						sendmsg("§4 Server did not confirm encryption :(");
-						communicationavailable=false;
-					}
+					// 1 Columns 20 rows
+					settablesize(1, 20);
 				}
 			break;
 
 			case ChatPacket.ID:
-				if (hasloggedin) {
-					// Chat
-					ChatEvent event = new ChatPacket(buf, reader, protocolversion).Read();
-					String msg = parsechat(event.getMessage());
-					if (!isMessageIgnored(msg)) {
-						sendchatmsg(msg);
-					}
-					tryandsendlogin();
-				} else {
-					String uuid = new LoginSuccessPacket(buf, reader, protocolversion).Read()[0];
-					hasloggedin = true;
-					sendmsg("§2Received UUID: §n" + uuid);
+				// Chat
+				ChatEvent event = new ChatPacket(buf, reader, protocolversion).Read();
+				String msg = parsechat(event.getMessage());
+				if (!isMessageIgnored(msg)) {
+					sendchatmsg(msg);
 				}
+				tryandsendlogin();
 			break;
 
 			case SpawnPositionPacket.ID:
@@ -468,10 +532,9 @@ public class connector extends Thread {
 
 			case RespawnPacket.ID:
 				// Respawn
-				pack = new RespawnPacket(buf, reader);
-				((RespawnPacket) pack).Read();
+				RespawnPacket pack = new RespawnPacket(buf, reader);
+				pack.Read();
 			break;
-
 
 			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)
@@ -488,16 +551,12 @@ public class connector extends Thread {
 				new DisplayScoreBoardPacket(buf, reader).Read();
 			break;
 
-			case SetCompressionPacket.ID:
 			case SetCompressionPacket.ID2:
-
-				if (!compressiondecided) {
-					SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
-					compack.Read();
-					sendmsg("Compression activated");
-					// compack.Write();
-					compressiondecided = true;
-				}
+				SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
+				compack.Read();
+				sendmsg("Compression activated");
+				// compack.Write();
+				compressiondecided = true;
 			break;
 
 			case TeamPacket.ID:
@@ -517,6 +576,11 @@ public class connector extends Thread {
 				sendmsg("§4Server closed connection. (" + reason + ")");
 			break;
 		}
+	}
+
+	private void nowConnected() {
+		this.reconnect = bot.getautoreconnect();
+		bot.showinfotable();
 	}
 
 	private boolean isMessageIgnored(String msg) {
@@ -607,7 +671,11 @@ public class connector extends Thread {
 			JsonObject obf = parser.parse(str).getAsJsonObject();
 			return jsonreparse(obf);
 		} catch (IllegalStateException e) {
-			return parser.parse(str).getAsString();
+			if (parser.parse(str).isJsonPrimitive()) {
+				return parser.parse(str).getAsString();
+			} else {
+				return null;
+			}
 		} catch (JsonSyntaxException e) {
 			return null;
 		}
@@ -616,6 +684,72 @@ public class connector extends Thread {
 	private static String jsonreparse(JsonObject obj) {
 		StringBuilder sb = new StringBuilder();
 		String text = "";
+		if (obj.has("translate")) {
+			String who = null, message = null;
+			boolean playerchat = false;
+			boolean announcement = false;
+			boolean playerjoin = false;
+			boolean playerleft = false;
+			boolean dotty = true;
+			// Translatable component
+			String type = obj.get("translate").getAsString();
+			if (type.equals("chat.type.text")) {
+				// Player chat
+				playerchat = true;
+			} else if (type.equals("chat.type.announcement")) {
+				// Announcement
+				announcement = true;
+			} else if (type.equals("multiplayer.player.joined")) {
+				playerjoin = true;
+			} else if (type.equals("multiplayer.player.left")) {
+				playerleft = true;
+			}
+			if (obj.has("with")) {
+				JsonArray with = obj.get("with").getAsJsonArray();
+				for (JsonElement key : with) {
+					// Text
+					if (key.isJsonPrimitive()) {
+						if (playerchat) {
+							message = key.getAsString();
+						} else if (announcement) {
+							who = "§d[" + key.getAsString() + "]";
+						} else {
+							// Unknown token
+							return "";
+						}
+					} else if (key.isJsonObject()) {
+						JsonObject jobj = key.getAsJsonObject();
+						if (jobj.has("extra")) {
+							message = jsonreparse(jobj);
+						} else {
+							who = jsonreparse(jobj);
+							if (playerjoin) {
+								dotty = false;
+								who = "§e" + who;
+								message = "has joined the game.";
+							} else if (playerleft) {
+								dotty = false;
+								who = "§e" + who;
+								message = "has left the game.";
+							}
+						}
+					}
+				}
+			}
+			if (who == null) {
+				who = "";
+			} else {
+				if (dotty) {
+					who = who + ": ";
+				} else {
+					who = who + " ";
+				}
+			}
+			if (message == null) {
+				message = "";
+			}
+			return who + message;
+		}
 		// JsonArray extra;
 		if (obj.has("text")) {
 			text = obj.getAsJsonPrimitive("text").getAsString();
@@ -708,7 +842,7 @@ public class connector extends Thread {
 		return (sock != null);
 	}
 
-	public void sendchatmsg(String message) {
+	public void sendchatmsg(String message) throws IOException {
 		if (message != null) {
 			sendrawmsg("[Server] " + message);
 		}

@@ -32,7 +32,7 @@ public class Reporter extends Thread {
 			switch (act.id) {
 				case 1:
 					data[3] = URLEncoder.encode(this.issue, "UTF-8");
-					data[2] = URLEncoder.encode(storage.getInstance().settin.saveToString(), "UTF-8");
+					data[2] = URLEncoder.encode(storage.getInstance().settin.saveToString(true), "UTF-8");
 					storage.conlog("Thank you for reporting problem!");
 				break;
 

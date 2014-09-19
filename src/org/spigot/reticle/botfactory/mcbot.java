@@ -1,6 +1,7 @@
 package org.spigot.reticle.botfactory;
 
 import java.awt.Color;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -26,8 +27,10 @@ import javax.swing.text.StyledDocument;
 import org.spigot.reticle.storage;
 import org.spigot.reticle.settings.botsettings;
 import org.spigot.reticle.settings.team_struct;
+import org.spigot.reticle.sockets.Authenticator;
 import org.spigot.reticle.sockets.connector;
 import org.spigot.reticle.supporter.supportconnector;
+import org.spigot.reticle.sockets.ChatLogger;
 
 public class mcbot {
 	private JTextPane chatlog;
@@ -52,13 +55,74 @@ public class mcbot {
 	public boolean allowreport = false;
 	public boolean allowconnects = true;
 	private supportconnector supportconnector;
+	private boolean onlinemode = false;
+	private ChatLogger ChatLogger;
 
+	public boolean messagesDelayed() {
+		return this.rawbot.messagedelay != 0;
+	}
+
+	public int getMessageDelay() {
+		return this.rawbot.messagedelay;
+	}
+
+	public boolean isOnlineMode() {
+		return this.onlinemode;
+	}
+
+	public void refreshOnlineMode() {
+		this.onlinemode = this.rawbot.mojangusername;
+	}
+
+	public boolean hasAccessToken() {
+		return this.rawbot.maccesstoken != null;
+	}
+
+	public boolean hasMUsername() {
+		return this.rawbot.mcurrentusername != null;
+	}
+
+	public String getMUsername() {
+		return this.rawbot.mcurrentusername;
+	}
+
+	public boolean hasMPassword() {
+		return this.rawbot.mpassword != null;
+	}
+
+	public String getMUsernameID() {
+		return getMUsernameID(username);
+	}
+
+	public String getMUsernameID(String username) {
+		return this.rawbot.getMojangID(username);
+	}
+
+	public String getMPassword() {
+		return this.rawbot.mpassword;
+	}
+
+	public boolean hasPlayerToken() {
+		return this.rawbot.mplayertoken != null;
+	}
+
+	public String getPlayerToken() {
+		return this.rawbot.mplayertoken;
+	}
+
+	public String getAccessToken() {
+		return this.rawbot.maccesstoken;
+	}
+
+	public String getSelectedUsername() {
+		return this.rawbot.mcurrentusername;
+	}
 
 	public void setMessageCount(int c, boolean valid) {
 		if (valid) {
-			this.messagecount.setText(storage.parsecolorashtml("§2"+c));
+			this.messagecount.setText(storage.parsecolorashtml("§2" + c));
 		} else {
-			this.messagecount.setText(storage.parsecolorashtml("§4"+c));
+			this.messagecount.setText(storage.parsecolorashtml("§4" + c));
 		}
 	}
 
@@ -75,10 +139,35 @@ public class mcbot {
 	}
 
 	public void setHealth(float health) {
-		this.tableinfo.setValueAt(health+"", 0, 1);
+		this.tableinfo.setValueAt(health + "", 0, 1);
 	}
-	
-	
+
+	public boolean verifyonlinesettings() {
+		if (this.isOnlineMode()) {
+			if (hasAccessToken() && hasPlayerToken()) {
+				this.connector.sendmessage("§bRefreshing Mojang session");
+				String access = getAccessToken();
+				String player = getPlayerToken();
+				Authenticator auth = Authenticator.fromAccessToken(access, player);
+				auth.setBot(this.rawbot);
+				if (auth.refresh()) {
+					return true;
+				} else {
+					this.connector.sendmessage("§bSession lost");
+				}
+			}
+			if (hasMUsername() && hasMPassword()) {
+				this.connector.sendmessage("§bLogging to Mojang");
+				String username = getMUsername();
+				String password = getMPassword();
+				Authenticator auth = Authenticator.fromUsernameAndPassword(username, password);
+				auth.setBot(this.rawbot);
+				return auth.tryLogin();
+			}
+		}
+		return true;
+	}
+
 	public void initbot(botsettings bot, boolean main, boolean tablist, boolean yallowreport, boolean yallowconnects, Color ybackgroundcolor, Color yforegroundcolor) {
 		this.backgroundcolor = ybackgroundcolor;
 		this.foregroundcolor = yforegroundcolor;
@@ -90,13 +179,36 @@ public class mcbot {
 		this.rawbot = bot;
 		this.tablistsize[0] = 1;
 		this.tablistsize[1] = 20;
+		updateChatLogger();
 		initwin();
+	}
+
+	public boolean isChatLoggerEnabled() {
+		return this.rawbot.chatlog;
+	}
+
+	public void updateChatLogger() {
+		if (ChatLogger != null) {
+			try {
+				ChatLogger.Close();
+			} catch (IOException e) {
+			}
+		}
+		try {
+			this.ChatLogger = new ChatLogger(this.gettabname());
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void initwin() {
 		this.serverip = this.rawbot.serverip;
 		this.serverport = this.rawbot.serverport;
-		this.username = this.rawbot.nick;
+		if (this.rawbot.mojangusername) {
+			this.username = this.rawbot.mcurrentusername;
+		} else {
+			this.username = this.rawbot.nick;
+		}
 		botfactory.makenewtab(this);
 		if (ismain) {
 			seticon(ICONSTATE.MAIN);
@@ -135,7 +247,7 @@ public class mcbot {
 		this.tabler = tablist;
 		this.autoscroll = autoscroll;
 		this.messagecount = messagecount;
-		this.tableinfo=tableinfo;
+		this.tableinfo = tableinfo;
 		this.exists = true;
 	}
 
@@ -274,6 +386,7 @@ public class mcbot {
 		}
 	}
 
+	// TODO: rev. splitting
 	public boolean sendtoserver(String message) {
 		if (this.gettabname().endsWith(("@Reticle"))) {
 			if (supportconnector != null) {
@@ -337,7 +450,6 @@ public class mcbot {
 		this.serverip = ip;
 		this.serverport = port;
 		this.username = nick;
-
 	}
 
 	public enum ICONSTATE {
@@ -363,12 +475,13 @@ public class mcbot {
 	}
 
 	public synchronized void logmsg(String message) {
-		if(message.endsWith("§")) {
-			message=message+" ";
+		if (message.endsWith("§")) {
+			message = message + " ";
 		}
 		if (message.length() > 0) {
 			// Extra space because of the split method and following loop
 			message = " [" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + message;
+			chatlog(message);
 			String bold = "";
 			String underline = "";
 			String strike = "";
@@ -580,6 +693,10 @@ public class mcbot {
 			if (this.connector != null) {
 				this.connector.reconnect = bs.autoreconnect;
 			}
+			this.rawbot.maccesstoken = bs.maccesstoken;
+			this.rawbot.mplayertoken = bs.mplayertoken;
+			this.rawbot.mcurrentusername = bs.mcurrentusername;
+			this.rawbot.mojangloginusernameid = bs.mojangloginusernameid;
 		}
 	}
 
@@ -592,32 +709,41 @@ public class mcbot {
 		String healt = String.format("%.2f", health);
 		String sat = String.format("%.2f", satur);
 		this.tableinfo.setValueAt(healt, 0, 1);
-		this.tableinfo.setValueAt(""+food, 1, 1);
+		this.tableinfo.setValueAt("" + food, 1, 1);
 		this.tableinfo.setValueAt(sat, 2, 1);
 	}
 
 	public void updateposition(int pos_x, int pos_y, int pos_z) {
-		this.tableinfo.setValueAt(pos_x+"", 0, 3);
-		this.tableinfo.setValueAt(pos_y+"", 1, 3);
-		this.tableinfo.setValueAt(pos_z+"", 2, 3);
-		
+		this.tableinfo.setValueAt(pos_x + "", 0, 3);
+		this.tableinfo.setValueAt(pos_y + "", 1, 3);
+		this.tableinfo.setValueAt(pos_z + "", 2, 3);
+
 	}
 
 	public void showinfotable() {
 		this.tableinfo.setVisible(true);
 	}
-	
+
 	public void hideinfotable() {
 		this.tableinfo.setVisible(false);
 	}
-	
+
 	public void resetinfotable() {
-		this.tableinfo.setValueAt("",0,1);
-		this.tableinfo.setValueAt("",1,1);
-		this.tableinfo.setValueAt("",2,1);
-		this.tableinfo.setValueAt("",0,3);
-		this.tableinfo.setValueAt("",1,3);
-		this.tableinfo.setValueAt("",2,3);
+		this.tableinfo.setValueAt("", 0, 1);
+		this.tableinfo.setValueAt("", 1, 1);
+		this.tableinfo.setValueAt("", 2, 1);
+		this.tableinfo.setValueAt("", 0, 3);
+		this.tableinfo.setValueAt("", 1, 3);
+		this.tableinfo.setValueAt("", 2, 3);
 	}
 
+	public void chatlog(String message) {
+		if(this.isChatLoggerEnabled()) {
+			try {
+				this.ChatLogger.Log(storage.stripcolors(message.substring(1)));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

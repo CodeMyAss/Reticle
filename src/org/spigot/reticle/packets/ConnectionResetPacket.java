@@ -10,6 +10,7 @@ import javax.sql.rowset.serial.SerialException;
 public class ConnectionResetPacket extends packet {
 	private packet reader;
 	public static final int ID=0x40;
+	public static final int ID2=0x0;
 	
 	public ConnectionResetPacket(ByteBuffer s,packet reader) {
 		reader.input=s;

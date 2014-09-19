@@ -36,26 +36,33 @@ import org.spigot.reticle.settings.set_obj_struct;
 import org.spigot.reticle.settings.settings;
 import org.spigot.reticle.settings.struct_settings;
 import org.spigot.reticle.sockets.Reporter;
+import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
-	public static final String version = "1.03.4 beta";
+	public static final String version = "1.04.1 beta";
 
 	// Number of main tabs (For tab index calculations)
 	private int mainers = 0;
 
+	public static final String default_online_nick = "Authenticate first";
+
+	public static final ChatThread ChatThread = new ChatThread();
+	
 	protected EventHandler handler = new EventHandler();
 
 	private static storage instance = null;
 
 	public final static String homepage = "http://reticle.mc-atlantida.eu/";
 
+	public final static String news = "http://reticle.mc-atlantida.eu/news.php";
+	
 	private final static String settingfile = "settings.ini";
 
-	
 	// Mojang authentication servers
-	public final static String AuthURL="https://authserver.mojang.com/";
-	public final static String joinURL="https://sessionserver.mojang.com/session/minecraft/join";
-	
+	public final static String AuthURL = "https://authserver.mojang.com/";
+	public final static String joinURL = "https://sessionserver.mojang.com/session/minecraft/join";
+	public final static String joinURLalt = "http://session.minecraft.net/game/joinserver.jsp";
+
 	public struct_settings settin;
 
 	public settings settings;
@@ -301,6 +308,8 @@ public class storage {
 		}
 	}
 
+	
+	@Deprecated
 	public static void setselectedtable(int i) {
 		// + because main is not in settin
 		storage.getInstance().tabbedPane.setSelectedIndex(i + storage.getMainTabs());
@@ -318,6 +327,8 @@ public class storage {
 		}
 	}
 
+	
+	@Deprecated
 	public static boolean sendmessagetoactivebot(String message) {
 		mcbot bot = storage.getcurrentselectedbot();
 		if (bot != null) {
@@ -381,6 +392,7 @@ public class storage {
 		return storage.getInstance().tabbedPane.getTitleAt(getselectedtabindex());
 	}
 
+	
 	public static mcbot getcurrentselectedbot() {
 		return storage.getInstance().settin.bots.get(storage.getselectedtabtitle());
 	}
@@ -432,11 +444,12 @@ public class storage {
 		}
 	}
 
+	@Deprecated
 	public static botsettings getcurrenttabsettings() {
 		return storage.getInstance().settin.settings.get(getselectedtabtitle());
 	}
 
-	public static void savesettings() {
+	public static final synchronized void savesettings() {
 		try {
 			FileOutputStream f = new FileOutputStream(settingfile);
 			f.write(storage.getInstance().settin.saveToString().getBytes());
@@ -448,7 +461,7 @@ public class storage {
 		}
 	}
 
-	public static void loadsettings() throws SerialException {
+	public static final synchronized void loadsettings() throws SerialException {
 		try {
 			String setraw = new String(Files.readAllBytes(Paths.get(settingfile)));
 			// If this is initial settings load
@@ -477,10 +490,14 @@ public class storage {
 	public static void resetset(botsettings bs, String acti, int actnum) {
 		struct_settings setting = storage.getInstance().settin;
 		String nact = bs.gettabname();
+		mcbot mbot = setting.bots.get(acti);
 		setting.settings.remove(acti);
 		setting.settings.put(nact, bs);
-		mcbot mbot = setting.bots.get(acti);
-		mbot.setipandport(bs.serverip, bs.serverport, bs.servername, bs.nick);
+		if (bs.mojangusername) {
+			mbot.setipandport(bs.serverip, bs.serverport, bs.servername, bs.mcurrentusername);
+		} else {
+			mbot.setipandport(bs.serverip, bs.serverport, bs.servername, bs.nick);
+		}
 		mbot.updaterawbot(bs);
 		setting.bots.remove(acti);
 		setting.bots.put(nact, mbot);
@@ -497,7 +514,21 @@ public class storage {
 		}
 		return true;
 	}
+	
 
+	public static void removebotbytabname(String name) {
+		int id = storage.gettabbyname(name);
+		mcbot bot = storage.getcurrentselectedbot();
+		if (bot != null) {
+			bot.disconnect();
+		}
+		storage.getInstance().settin.bots.remove(name);
+		storage.getInstance().settin.settings.remove(name);
+		storage.getInstance().tabbedPane.remove(id);
+		storage.savesettings();
+	}
+
+	@Deprecated
 	public static void removecurrentbot() {
 		int id = storage.getselectedtabindex();
 		String name = storage.getselectedtabtitle();
@@ -576,8 +607,8 @@ public class storage {
 					strike = "<strike>";
 					restrike = "</strike>";
 				} else if (tmg.equals("n")) {
-					underline = "<n>";
-					reunderline = "</n>";
+					underline = "<u>";
+					reunderline = "</u>";
 				} else if (tmg.equals("o")) {
 					italic = "<i>";
 					reitalic = "</i>";
@@ -631,4 +662,15 @@ public class storage {
 		}
 		return bot;
 	}
+
+	public static int gettabbyname(String acti) {
+		int count=storage.gettabbedpane().getTabCount();
+		for(int i=0;i<count;i++) {
+			if(storage.gettabbedpane().getTitleAt(i).equals(acti)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 }

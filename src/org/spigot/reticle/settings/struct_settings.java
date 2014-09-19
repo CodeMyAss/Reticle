@@ -12,6 +12,10 @@ public class struct_settings {
 	public HashMap<String, String> globalsettings = new HashMap<String, String>();
 
 	public String saveToString() {
+		return saveToString(false);
+	}
+
+	public String saveToString(boolean sensitive) {
 		StringBuilder sb = new StringBuilder();
 		for (String key : globalsettings.keySet()) {
 			String val = globalsettings.get(key);
@@ -25,29 +29,52 @@ public class struct_settings {
 			sb.append("\t\tServer port: " + set.serverport + "\r\n");
 			sb.append("\t\tAutoconnect: " + set.autoconnect + "\r\n");
 			sb.append("\t\tNick: " + set.nick + "\r\n");
+			sb.append("\t\tChat logger: " + set.chatlog + "\r\n");
+			sb.append("\t\tMojang Nick: " + set.mcurrentusername + "\r\n");
+			sb.append("\t\tUse Mojang Authentication: " + set.mojangusername + "\r\n");
+			sb.append("\t\tUse Mojang Login Username: " + set.mojangloginusername + "\r\n");
+			sb.append("\t\tUsername ID: " + set.mojangloginusernameid + "\r\n");
+			sb.append("\t\tSave Mojang Password: " + set.savemojangpass + "\r\n");
+			if (!sensitive && set.savemojangpass) {
+				sb.append("\t\tMojang Password: " + set.mpassword + "\r\n");
+			}
+			sb.append("\t\tSave Mojang Access Token: " + set.saveaccess + "\r\n");
+			if (!sensitive && set.saveaccess && set.maccesstoken != null && set.mplayertoken != null) {
+				sb.append("\t\tMojang Access Token: " + set.maccesstoken + "\r\n");
+				sb.append("\t\tMojang Client Token: " + set.mplayertoken + "\r\n");
+			}
 			sb.append("\t\tProtocol version: " + set.protocolversion + "\r\n");
 			sb.append("\t\tAutologin: " + set.autologin + "\r\n");
 			sb.append("\t\tAutologout: " + set.autologout + "\r\n");
 			sb.append("\t\tAutoreconnect: " + set.autoreconnect + "\r\n");
+			sb.append("\t\tMessage delay: " + set.messagedelay + "\r\n");
 			sb.append("\t\tAutoreconnect delay: " + set.autoreconnectdelay + "\r\n");
 			sb.append("\t\tAutoanti-afk: " + set.autoantiafk + "\r\n");
 			sb.append("\t\tAutoanti-afk period: " + set.afkperiod + "\r\n");
 			sb.append("\t\tAutonotify: " + set.activenotify + "\r\n");
 			sb.append("\t\tAutologin commands:\r\n");
-			for (String com : set.autologincmd) {
-				sb.append("\t\t\t" + com + "\r\n");
+			if (!sensitive) {
+				for (String com : set.autologincmd) {
+					sb.append("\t\t\t" + com + "\r\n");
+				}
 			}
 			sb.append("\t\tAutologout commands:\r\n");
-			for (String com : set.autologoutcmd) {
-				sb.append("\t\t\t" + com + "\r\n");
+			if (!sensitive) {
+				for (String com : set.autologoutcmd) {
+					sb.append("\t\t\t" + com + "\r\n");
+				}
 			}
 			sb.append("\t\tAutoantiafk commands:\r\n");
-			for (String com : set.autoantiafkcmd) {
-				sb.append("\t\t\t" + com + "\r\n");
+			if (!sensitive) {
+				for (String com : set.autoantiafkcmd) {
+					sb.append("\t\t\t" + com + "\r\n");
+				}
 			}
 			sb.append("\t\tIgnored messages:\r\n");
-			for (String com : set.ignored) {
-				sb.append("\t\t\t" + com + "\r\n");
+			if (!sensitive) {
+				for (String com : set.ignored) {
+					sb.append("\t\t\t" + com + "\r\n");
+				}
 			}
 		}
 		return sb.toString();
@@ -130,8 +157,37 @@ public class struct_settings {
 					case "Nick":
 						bot.nick = param;
 					break;
+					case "Mojang Nick":
+						bot.mcurrentusername = param;
+					break;
+
+					case "Use Mojang Authentication":
+						bot.mojangusername = Boolean.parseBoolean(param);
+					break;
+					case "Use Mojang Login Username":
+						bot.mojangloginusername = param;
+					break;
+					case "Username ID":
+						bot.mojangloginusernameid = param;
+					break;
+					case "Mojang Password":
+						bot.mpassword = param;
+					break;
+					case "Mojang Access Token":
+						bot.maccesstoken = param;
+					break;
+					case "Mojang Client Token":
+						bot.mplayertoken = param;
+					break;
+					case "Save Mojang Access Token":
+						bot.saveaccess = Boolean.parseBoolean(param);
+					break;
+
+					case "Save Mojang Password":
+						bot.savemojangpass = Boolean.parseBoolean(param);
+					break;
 					case "Protocol version":
-						bot.protocolversion=Integer.parseInt(param);
+						bot.protocolversion = Integer.parseInt(param);
 					break;
 					case "Autologin":
 						bot.autologin = Boolean.parseBoolean(param);
@@ -153,6 +209,12 @@ public class struct_settings {
 					break;
 					case "Autonotify":
 						bot.activenotify = Boolean.parseBoolean(param);
+					break;
+					case "Message delay":
+						bot.messagedelay=Integer.parseInt(param);
+					break;
+					case "Chat logger":
+						bot.chatlog=Boolean.parseBoolean(param);
 					break;
 				}
 

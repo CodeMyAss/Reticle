@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.spigot.reticle.storage;
 import org.spigot.reticle.API.POST;
+import org.spigot.reticle.API.POST.POSTMETHOD;
+import org.spigot.reticle.settings.botsettings;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -13,12 +15,103 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class Authenticator {
-	private String username, password;
+public final class Authenticator {
+	private String username, password, access, client;
+	private botsettings bot;
 
-	public Authenticator(String username, String password) {
+	private Authenticator(String username, String password) {
 		this.username = username;
 		this.password = password;
+	}
+
+	private Authenticator(String token, String player, byte b) {
+		this.access = token;
+		this.client = player;
+	}
+	
+	public Authenticator(String username, String id, String access, int b) {
+		//String hex=javaHexDigest(id);
+		this.username=username;
+		this.password=id;
+		//this.password=new String(id);
+		this.access=access;
+		//this.mj = new minecraftjoin(access,id,hex);
+	}
+	
+	public boolean sendJoin() {
+		POST form = new POST(storage.joinURLalt, true);
+		form.setMethod(POSTMETHOD.GET);
+		form.addField("user", username);
+		form.addField("sessionId", access);
+		form.addField("serverId", password);
+		if (form.Execute()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static Authenticator forJoinPurpose(String username, String id, String access) {
+		return new Authenticator(username,id,access,1);
+	}
+	
+	public void setBot(botsettings bot) {
+		this.bot = bot;
+	}
+
+	public boolean refresh() {
+		POST form = new POST(storage.AuthURL + "refresh", true);
+		Gson gson = new GsonBuilder().create();
+		minecraftrefresh log = new minecraftrefresh(access, client);
+		String data = gson.toJson(log);
+		form.setSingleData(data);
+		if (form.Execute()) {
+			minecraftrefresh acc = getNewAcc(form.getResponse());
+			if (bot != null) {
+				bot.maccesstoken = acc.getAccessToken();
+				bot.mplayertoken = acc.getClientToken();
+				storage.savesettings();
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private minecraftrefresh getNewAcc(String str) {
+		JsonParser parser = new JsonParser();
+		JsonObject obf = parser.parse(str).getAsJsonObject();
+		String access = null;
+		String client = null;
+		if (obf.has("accessToken")) {
+			access = obf.get("accessToken").getAsString();
+		}
+		if (obf.has("clientToken")) {
+			client = obf.get("clientToken").getAsString();
+		}
+		return new minecraftrefresh(access, client);
+	}
+
+	public static Authenticator fromUsernameAndPassword(String username, String password) {
+		return new Authenticator(username, password);
+	}
+
+	public static Authenticator fromAccessToken(String access, String player) {
+		return new Authenticator(access, player, (byte) 0);
+	}
+
+	public boolean tryLogin() {
+		accounts acc = getProfiles();
+		if (acc == null) {
+			return false;
+		} else {
+			if (bot != null) {
+				bot.maccesstoken=acc.getAccessToken();
+				bot.mplayertoken=acc.getClientToken();
+				storage.savesettings();
+			}
+			return true;
+		}
 	}
 
 	public accounts getProfiles() {
@@ -26,12 +119,9 @@ public class Authenticator {
 		Gson gson = new GsonBuilder().create();
 		minecraftlogin log = new minecraftlogin(username, password);
 		String data = gson.toJson(log);
-		System.out.println("Data: " + data);
 		form.setSingleData(data);
 		if (form.Execute()) {
 			if (form.getResponseCode() == 200) {
-				System.out.println("Response code:" + form.getResponseCode());
-				System.out.println("Response:" + form.getResponse());
 				accounts acc = getAccount(form.getResponse());
 				return acc;
 			} else {
@@ -42,83 +132,130 @@ public class Authenticator {
 		}
 		return null;
 	}
-	
 
 	public accounts getAccount(String response) {
 		JsonParser parser = new JsonParser();
 		JsonObject obf = parser.parse(response).getAsJsonObject();
 		accounts acc;
-		if(obf.has("accessToken")) {
-			String access=obf.get("accessToken").getAsString();
-			acc=new accounts(access);
-			if(obf.has("clientToken")) {
+		if (obf.has("accessToken")) {
+			String access = obf.get("accessToken").getAsString();
+			acc = new accounts(access);
+			if (obf.has("clientToken")) {
 				acc.setClientToken(obf.get("clientToken").getAsString());
 			}
-			if(obf.has("selectedProfile")) {
-				String id=obf.get("selectedProfile").getAsJsonObject().get("id").getAsString();
-				String name=obf.get("selectedProfile").getAsJsonObject().get("name").getAsString();
+			if (obf.has("selectedProfile")) {
+				String id = obf.get("selectedProfile").getAsJsonObject().get("id").getAsString();
+				String name = obf.get("selectedProfile").getAsJsonObject().get("name").getAsString();
 				acc.setSelectedProfile(name, id);
 			}
-			if(obf.has("availableProfiles")) {
+			if (obf.has("availableProfiles")) {
 				JsonArray ar = obf.get("availableProfiles").getAsJsonArray();
-				for(JsonElement a:ar) {
-					String id=a.getAsJsonObject().get("id").getAsString();
-					String name=a.getAsJsonObject().get("name").getAsString();
-					acc.addProfile(name, id);				
+				for (JsonElement a : ar) {
+					String id = a.getAsJsonObject().get("id").getAsString();
+					String name = a.getAsJsonObject().get("name").getAsString();
+					acc.addProfile(name, id);
 				}
 			}
 			return acc;
 		}
 		return null;
 	}
-	
-	
-	@SuppressWarnings("unused")
+
 	public class accounts {
 		private String access;
 		private String client;
-		private List<profile> availableprofiles=new ArrayList<profile>();
+		private List<profile> availableprofiles = new ArrayList<profile>();
 		private profile selected;
-		
+
 		public void addProfile(String name, String id) {
-			this.availableprofiles.add(new profile(name,id));
+			this.availableprofiles.add(new profile(name, id));
 		}
-		
+
 		public profile getSelectedProfile() {
 			return selected;
 		}
-		
-		public void setSelectedProfile(String name, String id) {
-			this.selected=new profile(name,id);
+
+		public String getClientToken() {
+			return client;
 		}
-		
+
+		public void setSelectedProfile(String name, String id) {
+			this.selected = new profile(name, id);
+		}
+
 		public List<profile> getAllProfiles() {
 			return availableprofiles;
 		}
-		
+
 		public void setClientToken(String token) {
-			this.client=token;
+			this.client = token;
 		}
-		
+
+		public String getAccessToken() {
+			return this.access;
+		}
+
 		public accounts(String access) {
-			this.access=access;
+			this.access = access;
 		}
+
+
+	}
+	
+	public class profile {
+		private String id;
+		private String name;
+
 		
-		private class profile {
-			private String id;
-			private String username;
-			public profile(String username,String id) {
-				this.id=id;
-				this.username=username;
-			}
+		public String getID() {
+			return id;
+		}
+
+		public String getUsername() {
+			return name;
+		}
+
+		public profile(String username, String id) {
+			this.id = id;
+			this.name = username;
 		}
 	}
 	
+	@SuppressWarnings("unused")
+	private class minecraftjoin {
+		private String accessToken;
+		private String selectedProfile;
+		private String serverId;
+		public minecraftjoin(String acc,String id, String serv) {
+			this.accessToken=acc;
+			this.selectedProfile=id;
+			this.serverId=serv;
+		}
+	}
+
+	private class minecraftrefresh {
+		private String accessToken;
+		private String clientToken;
+		@SuppressWarnings("unused")
+		private String selectedProfile;
+
+		public minecraftrefresh(String acc, String cl) {
+			this.accessToken = acc;
+			this.clientToken = cl;
+		}
+
+		public String getAccessToken() {
+			return accessToken;
+		}
+
+		public String getClientToken() {
+			return clientToken;
+		}
+	}
 
 	@SuppressWarnings("unused")
 	private class minecraftlogin {
 		public agent agent;
-
 		private String username;
 		private String password;
 

@@ -42,7 +42,9 @@ public class PlayerListItemPacket extends packet {
 				Changed.add(o, false);
 				Onlines.add(o, true);
 				UUIDS.add(o, uuid);
+				Onlines.add(o, true);
 				if (action == 0) {
+					// Add nick
 					Nicks.add(o, connector.parsechat(reader.readString()));
 					int props = reader.readVarInt();
 					for (int i = 0; i < props; i++) {
@@ -70,13 +72,13 @@ public class PlayerListItemPacket extends packet {
 				} else if (action == 1) {
 					// update gamemode
 					reader.readVarInt();
-					Nicks.add(o,null);
+					Nicks.add(o, null);
 				} else if (action == 2) {
 					// ping update
 					reader.readVarInt();
-					Nicks.add(o,null);
+					Nicks.add(o, null);
 				} else if (action == 3) {
-					Nicks.add(o,null);
+					Nicks.add(o, null);
 					// display name update
 					boolean hasdname = reader.readBoolean();
 					if (hasdname) {
@@ -85,11 +87,11 @@ public class PlayerListItemPacket extends packet {
 						Nicks.add(o, connector.parsechat(reader.readString()));
 					}
 				} else if (action == 4) {
-					Nicks.add(o,null);
+					Nicks.add(o, null);
 					// remove player
-					Onlines.add(o, true);
+					Onlines.add(o, false);
 				} else {
-					Nicks.add(o,null);
+					Nicks.add(o, null);
 				}
 			}
 		} else {
@@ -104,6 +106,18 @@ public class PlayerListItemPacket extends packet {
 	public boolean Serve(List<String> tablist, HashMap<String, String> tablistnick) {
 		if (protocolversion >= 47) {
 			boolean ret = false;
+			for (int i = 0, o = UUIDS.size(); i < o; i++) {
+				String xUUID = UUIDS.get(i);
+				if (!Onlines.get(o)) {
+					if (tablist.contains(xUUID)) {
+						tablist.remove(xUUID);
+					}
+					if (tablistnick.containsKey(xUUID)) {
+						tablistnick.remove(xUUID);
+					}
+				}
+			}
+
 			for (int i = 0, o = UUIDS.size(); i < o; i++) {
 				String xUUID = UUIDS.get(i);
 				String xname = Nicks.get(i);
@@ -127,7 +141,7 @@ public class PlayerListItemPacket extends packet {
 					// We are not in tablist yet
 					if (xchanged) {
 						tablist.add(xUUID);
-						tablistnick.put(xUUID,xname);
+						tablistnick.put(xUUID, xname);
 						ret = true;
 					}
 				}

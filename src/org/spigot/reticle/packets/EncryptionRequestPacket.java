@@ -1,73 +1,86 @@
 package org.spigot.reticle.packets;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import java.security.PublicKey;
+import javax.crypto.SecretKey;
 import javax.sql.rowset.serial.SerialException;
+
+import org.spigot.reticle.botfactory.mcbot;
+import org.spigot.reticle.sockets.Authenticator;
+import org.spigot.reticle.sockets.CryptManager;
 
 public class EncryptionRequestPacket extends packet {
 	public static final int ID = 0x01;
 	private packet reader;
-	private byte[] secret;
 	private byte[] verify;
-	private byte[] mykey;
-
+	private String serverId;
+	private byte[] sharedSecret;
+	private SecretKey sharedKey;
 	public EncryptionRequestPacket(ByteBuffer buf, packet reader) {
 		this.reader = reader;
 		this.reader.input = buf;
 	}
 
-	public byte[] getSecret() {
-		return mykey;
+	public SecretKey getSecret() {
+		 return sharedKey;
 	}
 
-	public void Read() throws SerialException, IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, NoSuchProviderException, InvalidKeySpecException {
+	public void Read() throws SerialException, IOException, BufferUnderflowException {
 		// Server id
-		reader.readString();
+		String serverid = reader.readString();
 		// Length of public key
 		int pkl = reader.readVarInt();
 		// Public key
-		secret = reader.readBytes(pkl);
+		byte[] publicKeyBytes = reader.readBytes(pkl);
 		// Length of verify token
 		int vtl = reader.readVarInt();
 		// Verify token
 		verify = reader.readBytes(vtl);
-		// secret = javaHexDigest(new String(pk)).getBytes();
-		mykey = new byte[] { 0x1, 0x2, 0x3, 0x3, 0x3, 0x2, 0x3, 0x3, 0x2, 0x4, 0x3, 0x8, 0x3, 0x4, 0x3, 0x9 };
-		Key key = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(secret));
-		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-		cipher.init(Cipher.ENCRYPT_MODE, key);
-		verify = cipher.doFinal(verify);
-		secret = cipher.doFinal(mykey);
+		// Shared secret
+
+		PublicKey publicKey = CryptManager.decodePublicKey(publicKeyBytes);
+		sharedKey = CryptManager.createNewSharedKey();
+		sharedSecret = CryptManager.encryptData(publicKey, sharedKey.getEncoded());
+		verify = CryptManager.encryptData(publicKey, verify);
+		serverId = (new BigInteger(CryptManager.getServerIdHash(serverid.trim(), publicKey, sharedKey))).toString(16);
 	}
 
-	public void Write() throws IOException {
-		int len1 = secret.length + reader.getVarntCount(secret.length);
+	public void Write(mcbot bot) throws IOException {
+		// First of all, lets send verifycation to mojang that we are going
+		// online
+		String username = bot.getMUsername();
+		String access = bot.getAccessToken();
+		String id = serverId;
+		if (bot.isOnlineMode()) {
+			if (id != null && access != null) {
+				Authenticator auth = Authenticator.forJoinPurpose(username, id, access);
+				if (auth.sendJoin()) {
+					bot.connector.sendmessage("§2Logged to Mojang servers");
+				} else {
+					bot.connector.sendmessage("§4Failed to login to Mojang!");
+				}
+			} else {
+				bot.connector.sendmessage("§4Failed to load session data!");
+			}
+		}
+		int len1 = sharedSecret.length + reader.getVarntCount(sharedSecret.length);
 		int len2 = verify.length + reader.getVarntCount(verify.length);
 		int len3 = reader.getVarntCount(1);
 		reader.setOutputStream(len1 + len2 + len3);
 		// Packet ID
 		reader.writeVarInt(1);
 		// shared secret length
-		reader.writeVarInt(secret.length);
+		reader.writeVarInt(sharedSecret.length);
 		// shared secret
-		reader.writeBytes(secret);
+		reader.writeBytes(sharedSecret);
 		// shared verify length
 		reader.writeVarInt(verify.length);
 		// verify
 		reader.writeBytes(verify);
 		reader.Send();
 	}
+
 }

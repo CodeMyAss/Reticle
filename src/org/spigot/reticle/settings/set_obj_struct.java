@@ -1,10 +1,14 @@
 package org.spigot.reticle.settings;
 
+import java.util.HashMap;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import org.spigot.reticle.storage;
 
 public class set_obj_struct {
 
@@ -32,13 +36,16 @@ public class set_obj_struct {
 	public JCheckBox autoupdate;
 	public JCheckBox autodebug;
 	public JCheckBox autoplugins;
-	
+
 	// Mojang stuff in settings
 	protected JPasswordField textmpassword;
-	protected JComboBox<String> textmusername;
 	protected JCheckBox checkmoj;
 	protected JCheckBox savemojpass;
 	protected JCheckBox saveaccess;
+	protected JComboBox<String> musernames;
+	protected JTextField textmusername;
+	protected JTextField messagedelay;
+	protected JCheckBox chatlog;
 
 	public void setglobals(JCheckBox b1, JCheckBox b2, JCheckBox b3) {
 		this.autoupdate = b1;
@@ -66,10 +73,20 @@ public class set_obj_struct {
 		this.textignore.setText(implode("\n", set.ignored));
 		this.protocolversion.setSelectedIndex(protocolversiontoindex(set.protocolversion));
 		this.textmpassword.setText(set.mpassword);
-		this.textmusername.setModel(set.musernames);
+		this.musernames.setModel(set.musernames);
+		if (set.mcurrentusername != null) {
+			set.musernames.setSelectedItem(set.mcurrentusername);
+		}
 		this.checkmoj.setSelected(set.mojangusername);
+		if (set.mojangusername) {
+			this.txtNick.setEnabled(false);
+			this.musernames.setEnabled(true);
+		}
 		this.savemojpass.setSelected(set.savemojangpass);
 		this.saveaccess.setSelected(set.saveaccess);
+		this.textmusername.setText(set.mojangloginusername);
+		this.messagedelay.setText(set.messagedelay+"");
+		this.chatlog.setSelected(set.chatlog);
 	}
 
 	private int protocolversiontoindex(int ver) {
@@ -82,19 +99,19 @@ public class set_obj_struct {
 		}
 		return 0;
 	}
-	
+
 	private int indextoprococolversion(int index) {
-		if(index==0) {
+		if (index == 0) {
 			return 4;
-		} else if(index==1) {
+		} else if (index == 1) {
 			return 5;
-		} else if(index==2) {
+		} else if (index == 2) {
 			return 47;
 		}
 		return 4;
 	}
 
-	public botsettings getsettings() {
+	public botsettings getsettings(String accesstoken, String playertoken, HashMap<String, String> mojangusernamelist, String mcurrentusername, String mojangloginusernameid) {
 		botsettings struct = new botsettings(null);
 		struct.servername = this.txtservername.getText();
 		struct.serverip = this.textserverip.getText();
@@ -112,15 +129,35 @@ public class set_obj_struct {
 		struct.autoreconnect = this.checkautoreconnect.isSelected();
 		struct.autoreconnectdelay = Integer.parseInt(this.textreconnectdelay.getText());
 		struct.ignored = this.textignore.getText().split("\n");
-		struct.protocolversion=this.indextoprococolversion(this.protocolversion.getSelectedIndex());
-		struct.mpassword=new String(this.textmpassword.getPassword());
-		struct.musernames=this.textmusername.getModel();
-		struct.mojangusername=this.checkmoj.isSelected();
-		struct.savemojangpass=this.savemojpass.isSelected();
-		struct.saveaccess=this.saveaccess.isSelected();
+		struct.protocolversion = this.indextoprococolversion(this.protocolversion.getSelectedIndex());
+		struct.mpassword = new String(this.textmpassword.getPassword());
+		struct.musernames = this.musernames.getModel();
+		struct.mojangusername = this.checkmoj.isSelected();
+		struct.savemojangpass = this.savemojpass.isSelected();
+		struct.saveaccess = this.saveaccess.isSelected();
+		if (this.textmusername.getText() != null && this.textmusername.getText() != storage.default_online_nick) {
+			struct.mojangloginusername = this.textmusername.getText();
+		}
+		if (accesstoken != null) {
+			struct.maccesstoken = accesstoken;
+		}
+		if (playertoken != null) {
+			struct.mplayertoken = playertoken;
+		}
+		if (mojangusernamelist != null) {
+			struct.mojangusernamelist = mojangusernamelist;
+		}
+		if (mcurrentusername != null && !mcurrentusername.equals(storage.default_online_nick) && !mcurrentusername.equals("")) {
+			struct.mcurrentusername = mcurrentusername;
+		}
+		if (mojangloginusernameid != null) {
+			struct.mojangloginusernameid = mojangloginusernameid;
+		}
+		struct.messagedelay=Integer.parseInt(this.messagedelay.getText());
+		struct.chatlog=this.chatlog.isSelected();
 		return struct;
 	}
-	
+
 	public static String implode(String pattern, String[] res) {
 		int len = res.length;
 		if (len == 0) {

@@ -21,12 +21,17 @@ import javax.swing.JCheckBox;
 import javax.swing.JTextArea;
 
 import org.spigot.reticle.storage;
+import org.spigot.reticle.sockets.Authenticator;
+import org.spigot.reticle.sockets.Authenticator.accounts;
+import org.spigot.reticle.sockets.Authenticator.profile;
 
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -62,9 +67,22 @@ public class settings extends JFrame {
 	private JTextField textmusername;
 	private JComboBox<String> mojangusername;
 
+	private botsettings BOT;
+	private String accesstoken;
+	private String playertoken;
+	private HashMap<String, String> mojangusernamelist;
+	private String mcurrentusername;
+	private String mojangloginusernameid;
+	private JTextField textmessagedelay;
+
 	public settings(final botsettings set) {
+		this.mojangloginusernameid = set.mojangloginusernameid;
+		this.accesstoken = set.maccesstoken;
+		this.playertoken = set.mplayertoken;
+		this.mojangusernamelist = set.mojangusernamelist;
+		this.mcurrentusername = set.mcurrentusername;
+		this.BOT = set;
 		EventQueue.invokeLater(new Runnable() {
-			
 
 			private JCheckBox checkspas;
 			private JCheckBox checksacc;
@@ -80,7 +98,7 @@ public class settings extends JFrame {
 				setResizable(false);
 				setType(Type.POPUP);
 				setTitle("Settings");
-				setBounds(100, 100, 528, 452);
+				setBounds(100, 100, 528, 500);
 				contentPane = new JPanel();
 				contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 				contentPane.setLayout(new BorderLayout(0, 0));
@@ -105,12 +123,12 @@ public class settings extends JFrame {
 				btnNewButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
 						// New settings from user
-						botsettings bs = storage.getInstance().setobj.getsettings();
+						botsettings bs = storage.getInstance().setobj.getsettings(accesstoken, playertoken, mojangusernamelist, mcurrentusername, mojangloginusernameid);
 						// Old bot name used to identification
 						String acti = set.gettabname();
 						if (storage.verifysettings(acti, bs)) {
 							// Tab index
-							int anum = storage.getselectedtabindex();
+							int anum = storage.gettabbyname(acti);
 							storage.resetset(bs, acti, anum);
 							storage.getInstance().winobj = null;
 							dispose();
@@ -122,7 +140,8 @@ public class settings extends JFrame {
 				JButton btnNewButton_1 = new JButton("Restore settings");
 				btnNewButton_1.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						botsettings nset = storage.getInstance().settin.settings.get(storage.getselectedtabtitle());
+						String toupdate = BOT.gettabname();
+						botsettings nset = storage.getInstance().settin.settings.get(toupdate);
 						storage.getInstance().setobj.setsettings(nset);
 					}
 				});
@@ -135,7 +154,8 @@ public class settings extends JFrame {
 						if (n == JOptionPane.YES_OPTION) {
 							storage.getInstance().winobj = null;
 							dispose();
-							storage.removecurrentbot();
+							String toremovename = BOT.gettabname();
+							storage.removebotbytabname(toremovename);
 						}
 					}
 				});
@@ -176,15 +196,14 @@ public class settings extends JFrame {
 
 				JLabel lblNewLabel_3 = new JLabel("Nickname:");
 				panel_1.add(lblNewLabel_3, "cell 1 4,alignx trailing");
-				
+
 				txtNick = new JTextField();
 				txtNick.setText("Reticle");
-				txtNick.setColumns(10);		
+				txtNick.setColumns(10);
 				panel_1.add(txtNick, "cell 2 4,growx");
-			
-				
+
 				mojangusername = new JComboBox<String>();
-				mojangusername.setModel(new DefaultComboBoxModel<String>(new String[] { "Authenticate first" }));
+				mojangusername.setModel(new DefaultComboBoxModel<String>(new String[] { storage.default_online_nick }));
 				mojangusername.setEnabled(false);
 
 				panel_1.add(mojangusername, "cell 2 4,growx");
@@ -198,7 +217,7 @@ public class settings extends JFrame {
 
 				panel_3 = new JPanel();
 				tabbedPane.addTab("Behavior", null, panel_3, null);
-				panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][47.00]"));
+				panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][][47.00]"));
 
 				JLabel lblActivateTabOn = new JLabel("Activate tab on new message:");
 				panel_3.add(lblActivateTabOn, "cell 1 0,alignx right");
@@ -223,64 +242,77 @@ public class settings extends JFrame {
 
 				checkafkcom = new JCheckBox("");
 				panel_3.add(checkafkcom, "cell 2 3");
+				
+				JLabel lblEnableChatLogger = new JLabel("Enable Chat Logger:");
+				panel_3.add(lblEnableChatLogger, "cell 1 4,alignx right");
+				
+				JCheckBox checkBox_1 = new JCheckBox("");
+				panel_3.add(checkBox_1, "cell 2 4");
+
+				JLabel lblMessageDelay = new JLabel("Message delay (0 to disable):");
+				panel_3.add(lblMessageDelay, "cell 1 5,alignx trailing");
+
+				textmessagedelay = new JTextField();
+				panel_3.add(textmessagedelay, "cell 2 5,growx");
+				textmessagedelay.setColumns(10);
 
 				JLabel lblAntiafkCommandsPeriod = new JLabel("Anti-afk commands period:");
-				panel_3.add(lblAntiafkCommandsPeriod, "cell 1 4,alignx trailing");
+				panel_3.add(lblAntiafkCommandsPeriod, "cell 1 6,alignx trailing");
 
 				textantiafkdelay = new JTextField();
-				panel_3.add(textantiafkdelay, "cell 2 4,growx");
+				panel_3.add(textantiafkdelay, "cell 2 6,growx");
 				textantiafkdelay.setColumns(10);
 
 				JLabel lblReconnectAutomatically = new JLabel("Reconnect automatically:");
-				panel_3.add(lblReconnectAutomatically, "cell 1 5,alignx right");
+				panel_3.add(lblReconnectAutomatically, "cell 1 7,alignx right");
 
 				checkautoreconnect = new JCheckBox("");
-				panel_3.add(checkautoreconnect, "cell 2 5");
+				panel_3.add(checkautoreconnect, "cell 2 7");
 
 				JLabel lblReconnectDelay = new JLabel("Reconnect delay:");
-				panel_3.add(lblReconnectDelay, "cell 1 6,alignx trailing");
+				panel_3.add(lblReconnectDelay, "cell 1 8,alignx trailing");
 
 				textreconnectdelay = new JTextField();
-				panel_3.add(textreconnectdelay, "cell 2 6,growx");
+				panel_3.add(textreconnectdelay, "cell 2 8,growx");
 				textreconnectdelay.setColumns(10);
 
 				JLabel lblNewLabel_4 = new JLabel("Logout commands:");
-				panel_3.add(lblNewLabel_4, "cell 1 7,alignx right,aligny top");
+				panel_3.add(lblNewLabel_4, "cell 1 9,alignx right,aligny top");
 
 				textlogoutcom = new JTextArea();
 				JScrollPane scrollPane = new JScrollPane(textlogoutcom);
 				scrollPane.setMinimumSize(new Dimension(21, 50));
-				panel_3.add(scrollPane, "cell 2 7,grow");
+				panel_3.add(scrollPane, "cell 2 9,grow");
 
 				JLabel lblNewLabel_6 = new JLabel("Login commands:");
-				panel_3.add(lblNewLabel_6, "cell 1 8,alignx trailing,aligny top");
+				panel_3.add(lblNewLabel_6, "cell 1 10,alignx trailing,aligny top");
 
 				JScrollPane scrollPane_1 = new JScrollPane((Component) null);
 				scrollPane_1.setMinimumSize(new Dimension(21, 50));
-				panel_3.add(scrollPane_1, "cell 2 8,grow");
+				panel_3.add(scrollPane_1, "cell 2 10,grow");
 
 				textlogincom = new JTextArea();
 				scrollPane_1.setViewportView(textlogincom);
 
 				JLabel lblNewLabel_7 = new JLabel("Anti-afk commands:");
-				panel_3.add(lblNewLabel_7, "cell 1 9,alignx right,aligny top");
+				panel_3.add(lblNewLabel_7, "cell 1 11,alignx right,aligny top");
 
 				JScrollPane scrollPane_2 = new JScrollPane((Component) null);
 				scrollPane_2.setMinimumSize(new Dimension(21, 50));
-				panel_3.add(scrollPane_2, "cell 2 9,grow");
+				panel_3.add(scrollPane_2, "cell 2 11,grow");
 
 				textafkcom = new JTextArea();
 				scrollPane_2.setViewportView(textafkcom);
 
 				JLabel lblIgnoredMessages = new JLabel("Ignored Messages");
-				panel_3.add(lblIgnoredMessages, "cell 1 10,alignx right,aligny top");
+				panel_3.add(lblIgnoredMessages, "cell 1 12,alignx right,aligny top");
 
 				JScrollPane scrollPane_3 = new JScrollPane((Component) null);
 				scrollPane_2.setMinimumSize(new Dimension(21, 50));
 
 				textignore = new JTextArea();
 				scrollPane_3.setViewportView(textignore);
-				panel_3.add(scrollPane_3, "cell 2 10,grow");
+				panel_3.add(scrollPane_3, "cell 2 12,grow");
 				for (Frame frame : getFrames()) {
 					frame.setIconImage(storage.winicon.getImage());
 				}
@@ -288,12 +320,10 @@ public class settings extends JFrame {
 				JLabel lblProtocolVersion = new JLabel("Protocol version:");
 				panel_1.add(lblProtocolVersion, "cell 1 5,alignx trailing");
 
-				
 				protocolversion = new JComboBox<String>();
 				// protocolversion.setEnabled(false);
 				protocolversion.setModel(new DefaultComboBoxModel<String>(new String[] { "4 (1.7.1/2/3/4/5)", "5(1.7.6/7/8/9/10)", "47(1.8)" }));
 				panel_1.add(protocolversion, "cell 2 5,growx");
-			
 
 				JLabel lblNewLabel_9 = new JLabel("Mojang authentication:");
 				panel_1.add(lblNewLabel_9, "cell 1 6,alignx right");
@@ -301,7 +331,7 @@ public class settings extends JFrame {
 				checkmena = new JCheckBox("");
 				checkmena.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						if(((JCheckBox)arg0.getSource()).isSelected()) {
+						if (((JCheckBox) arg0.getSource()).isSelected()) {
 							mojangusername.setEnabled(true);
 							txtNick.setEnabled(false);
 						} else {
@@ -311,10 +341,10 @@ public class settings extends JFrame {
 					}
 				});
 				panel_1.add(checkmena, "cell 2 6");
-				
+
 				JLabel lblUsernameemail = new JLabel("Username/Email:");
 				panel_1.add(lblUsernameemail, "cell 1 7,alignx trailing");
-				
+
 				textmusername = new JTextField();
 				panel_1.add(textmusername, "cell 2 7,growx");
 				textmusername.setColumns(10);
@@ -338,6 +368,31 @@ public class settings extends JFrame {
 				panel_1.add(checksacc, "cell 2 10");
 
 				JButton btnAuthenticate = new JButton("Authenticate");
+				btnAuthenticate.addActionListener(new ActionListener() {
+
+					public void actionPerformed(ActionEvent arg0) {
+						Authenticator auth = Authenticator.fromUsernameAndPassword(textmusername.getText(), new String(mpassword.getPassword()));
+						accounts profiles = auth.getProfiles();
+						if (profiles != null) {
+							// Process list of usernames
+							List<profile> prof = profiles.getAllProfiles();
+							int profs = prof.size();
+							String[] users = new String[profs];
+							mojangusernamelist = new HashMap<String, String>();
+							for (int i = 0; i < profs; i++) {
+								String id = prof.get(i).getID();
+								String username = users[i] = prof.get(i).getUsername();
+								BOT.mojangusernamelist.put(username, id);
+							}
+							mojangusername.setModel(new DefaultComboBoxModel<String>(users));
+							mojangusername.setSelectedItem(profiles.getSelectedProfile());
+							mcurrentusername = profiles.getSelectedProfile().getUsername();
+							accesstoken = profiles.getAccessToken();
+							playertoken = profiles.getClientToken();
+							mojangloginusernameid = profiles.getSelectedProfile().getID();
+						}
+					}
+				});
 				panel_1.add(btnAuthenticate, "cell 2 11");
 
 				JLabel lblSavingPasswordIs = new JLabel("Saving password is really not recommended");
@@ -347,8 +402,6 @@ public class settings extends JFrame {
 				JLabel lblNewLabel_10 = new JLabel(" because it is stored in settings file as text");
 				lblNewLabel_10.setEnabled(false);
 				panel_1.add(lblNewLabel_10, "cell 1 13 2 1,alignx center");
-
-
 				setVisible(true);
 
 				set_obj_struct sobj = storage.getsettingsobj();
@@ -370,12 +423,14 @@ public class settings extends JFrame {
 				sobj.checkautoreconnect = checkautoreconnect;
 				sobj.textreconnectdelay = textreconnectdelay;
 				sobj.textignore = textignore;
-				sobj.textmpassword=mpassword;
-				sobj.textmusername=mojangusername;
-				sobj.checkmoj=checkmena;
-				sobj.savemojpass=checkspas;
-				sobj.saveaccess=checksacc;
-				
+				sobj.textmpassword = mpassword;
+				sobj.musernames = mojangusername;
+				sobj.checkmoj = checkmena;
+				sobj.savemojpass = checkspas;
+				sobj.saveaccess = checksacc;
+				sobj.textmusername = textmusername;
+				sobj.messagedelay = textmessagedelay;
+				sobj.chatlog=checkBox_1;
 				storage.getInstance().setobj.setsettings(set);
 			}
 		});

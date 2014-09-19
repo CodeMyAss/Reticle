@@ -3,6 +3,7 @@ package org.spigot.reticle.settings;
 import java.util.HashMap;
 
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 
 import org.spigot.reticle.storage;
 
@@ -25,11 +26,23 @@ public class botsettings {
 	public String[] ignored = new String[0];
 	public boolean isMain = false;
 	public int protocolversion = 4;
-	public String mpassword;
-	public ComboBoxModel<String> musernames;
-	public boolean mojangusername;
-	public boolean savemojangpass;
-	public boolean saveaccess;
+	public String mpassword="";
+	public ComboBoxModel<String> musernames=new DefaultComboBoxModel<String>(new String[] { storage.default_online_nick });
+	public boolean mojangusername=false;
+	public boolean savemojangpass=false;
+	public boolean saveaccess=true;
+	public String mcurrentusername="";
+	public String maccesstoken;
+	public String mplayertoken;
+	public HashMap<String,String> mojangusernamelist=new HashMap<String,String>();
+	public String mojangloginusername;
+	public String mojangloginusernameid;
+	public int messagedelay;
+	public boolean chatlog;
+
+	public String getMojangID(String username) {
+		return mojangloginusernameid;
+	}
 
 	public botsettings(String name) {
 		this.nick = name;

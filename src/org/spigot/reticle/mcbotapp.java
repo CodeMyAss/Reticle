@@ -65,7 +65,7 @@ public class mcbotapp {
 		frmReticle.setFont(new Font("Bodoni MT", Font.PLAIN, 12));
 		frmReticle.setForeground(Color.BLACK);
 		frmReticle.setTitle("Reticle " + version);
-		frmReticle.setBounds(100, 100, 642, 438);
+		frmReticle.setBounds(100, 100, 642, 500);
 		frmReticle.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -183,6 +183,8 @@ public class mcbotapp {
 
 		frmReticle.setIconImage(storage.winicon.getImage());
 
+		
+		//TODO: Stream redirection
 		//redirectSystemStreams();
 
 		storage.getInstance().tabbedPane = tabbedPane;
@@ -195,7 +197,7 @@ public class mcbotapp {
 
 		storage.getInstance().mainer = main;
 		if (storage.getSupportEnabled()) {
-			mcbot support = new mcbot(new botsettings("Support"), true, true, false, true, Color.getColor(null, 0x0066ff), Color.BLACK);
+			mcbot support = new mcbot(new botsettings("Support"), true, true, false, true, Color.getColor(null, 0xF7FE2E), Color.BLACK);
 			storage.getInstance().support = support;
 			support.connect();
 		}
