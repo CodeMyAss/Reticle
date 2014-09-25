@@ -67,6 +67,31 @@ public class mcbot {
 		return this.rawbot.messagedelay != 0;
 	}
 
+	private boolean StringArrayContains(String str, String[] arr) {
+		for (String element : arr) {
+			if (element.equals(str)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void addToIgnoreList(String msg) {
+		if (!StringArrayContains(msg, this.rawbot.ignored)) {
+			int len = this.rawbot.ignored.length;
+			String[] newarr = new String[len + 1];
+			for (int i = 0; i < len; i++) {
+				newarr[i] = this.rawbot.ignored[i];
+			}
+			newarr[len] = msg;
+			this.rawbot.ignored = newarr;
+			storage.savesettings();
+			this.logmsg("§2Added message to ignore list.");
+		} else {
+			this.logmsg("§4Selected message is already in ignore list.");
+		}
+	}
+
 	public int getMessageDelay() {
 		return this.rawbot.messagedelay;
 	}
@@ -191,25 +216,25 @@ public class mcbot {
 	public boolean isChatLoggerEnabled() {
 		return this.rawbot.chatlog;
 	}
-	
+
 	public boolean isChatFilterEnabled() {
-		return this.rawbot.maxlines>0;
+		return this.rawbot.maxlines > 0;
 	}
-	
+
 	public int getChatFilterLength() {
 		return this.rawbot.maxlines;
 	}
 
 	public void updateChatFilter() {
-		if(this.isChatFilterEnabled()) {
-			AbstractDocument doc=(AbstractDocument) chatlog.getStyledDocument();
-			doc.setDocumentFilter(new MaxLenFilter(chatlog,getChatFilterLength()));
+		if (this.isChatFilterEnabled()) {
+			AbstractDocument doc = (AbstractDocument) chatlog.getStyledDocument();
+			doc.setDocumentFilter(new MaxLenFilter(chatlog, getChatFilterLength()));
 		} else {
-			AbstractDocument doc=(AbstractDocument) chatlog.getStyledDocument();
-			doc.setDocumentFilter(new DocumentFilter());	
+			AbstractDocument doc = (AbstractDocument) chatlog.getStyledDocument();
+			doc.setDocumentFilter(new DocumentFilter());
 		}
 	}
-	
+
 	public void updateChatLogger() {
 		if (ChatLogger != null) {
 			try {
@@ -274,7 +299,7 @@ public class mcbot {
 		this.messagecount = messagecount;
 		this.tableinfo = tableinfo;
 		this.exists = true;
-		this.textcommands=txtCommands;
+		this.textcommands = txtCommands;
 	}
 
 	public String gettabname() {
@@ -776,14 +801,20 @@ public class mcbot {
 	}
 
 	public void setTextAtMessageBoxs(String msg) {
-		System.out.println("Setting: "+msg);
 		this.textcommands.setText(msg);
 	}
 
 	public void arrowuppressed() {
 		setTextAtMessageBoxs(uplist.getPrevious());
 	}
+
 	public void arrowdownpressed() {
 		setTextAtMessageBoxs(uplist.getNext());
+	}
+
+	public void tabpressed(JTextField area, String text) {
+		if (this.connector != null) {
+			this.connector.tabpressed(area, text);
+		}
 	}
 }

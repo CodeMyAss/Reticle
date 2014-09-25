@@ -23,6 +23,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.sql.rowset.serial.SerialException;
+import javax.swing.JTextField;
 
 import org.spigot.reticle.storage;
 import org.spigot.reticle.botfactory.mcbot;
@@ -31,6 +32,7 @@ import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.JoinGameEvent;
 import org.spigot.reticle.events.PlayerPositionAndLookEvent;
 import org.spigot.reticle.events.PluginMessageEvent;
+import org.spigot.reticle.events.TabCompleteEvent;
 import org.spigot.reticle.events.TeamEvent;
 import org.spigot.reticle.events.UpdateHealthEvent;
 import org.spigot.reticle.packets.*;
@@ -59,9 +61,7 @@ public class connector extends Thread {
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 
-	// TODO: Up-List
-	@SuppressWarnings("unused")
-	private List<String> UpList = new ArrayList<String>();
+	private TabCompleteHandler tabcomp = new TabCompleteHandler();
 
 	private int maxpacketid = 0x40; // Default limit
 	private int protocolversion = 4; // Default to 1.7.2
@@ -123,6 +123,7 @@ public class connector extends Thread {
 		packet.ValidPackets.add(UpdateHealthPacket.ID);
 		packet.ValidPackets.add(PlayerPositionAndLookPacket.ID);
 		packet.ValidPackets.add(EntityStatusPacket.ID);
+		packet.ValidPackets.add(TabCompletePacket.ID);
 	}
 
 	public int getantiafkperiod() {
@@ -218,6 +219,7 @@ public class connector extends Thread {
 			bot.seticon(ICONSTATE.CONNECTING);
 			sock = new Socket(bot.serverip, bot.serverport);
 			reader = new packet(sock.getInputStream(), sock.getOutputStream());
+			reader.ProtocolVersion = protocolversion;
 			definepackets(reader);
 			storage.changemenuitems();
 			// First, we must send HandShake and hope for good response
@@ -403,7 +405,7 @@ public class connector extends Thread {
 		StringBuilder output = new StringBuilder(input.length());
 		int lineLen = 0;
 		while (tok.hasMoreTokens()) {
-			String word = tok.nextToken()+" ";
+			String word = tok.nextToken() + " ";
 			if (lineLen + word.length() > maxlen) {
 				output.append("\n");
 				lineLen = 0;
@@ -488,6 +490,15 @@ public class connector extends Thread {
 				this.pos_y = (int) ppal.getY();
 				this.pos_z = (int) ppal.getZ();
 				bot.updateposition(this.pos_x, this.pos_y, this.pos_z);
+			break;
+
+			// TODO: Tab-Complete
+			case TabCompletePacket.ID:
+				TabCompletePacket tabpack = new TabCompletePacket(reader, buf);
+				TabCompleteEvent tabev = tabpack.Read();
+				tabcomp.setNames(tabev.getNames());
+				tabcomp.getNext();
+			// handle
 			break;
 
 			case KeepAlivePacket.ID:
@@ -862,6 +873,23 @@ public class connector extends Thread {
 
 	private void sendrawmsg(String message) {
 		bot.logmsg(message);
+	}
+
+	public void tabpressed(JTextField area, String text) {
+		TabCompletePacket pack = new TabCompletePacket(reader, null);
+		tabcomp.setComponent(area);
+		try {
+			if (tabcomp.getOriginalMessage() == null) {
+				pack.Write(text);
+			} else {
+				pack.Write(tabcomp.getOriginalMessage());
+			}
+		} catch (IOException e) {
+		}
+	}
+
+	public void unlocktabpress() {
+		tabcomp.setOriginal();
 	}
 
 }

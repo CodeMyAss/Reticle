@@ -39,7 +39,7 @@ import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
-	public static final String version = "1.04.1 beta";
+	public static final String version = "1.04.2 beta";
 
 	// Number of main tabs (For tab index calculations)
 	private int mainers = 0;
@@ -47,15 +47,15 @@ public class storage {
 	public static final String default_online_nick = "Authenticate first";
 
 	public static final ChatThread ChatThread = new ChatThread();
-	
-	protected EventHandler handler = new EventHandler();
+
+	protected final EventHandler handler = new EventHandler();
 
 	private static storage instance = null;
 
 	public final static String homepage = "http://reticle.mc-atlantida.eu/";
 
 	public final static String news = "http://reticle.mc-atlantida.eu/news.php";
-	
+
 	private final static String settingfile = "settings.ini";
 
 	// Mojang authentication servers
@@ -308,7 +308,6 @@ public class storage {
 		}
 	}
 
-	
 	@Deprecated
 	public static void setselectedtable(int i) {
 		// + because main is not in settin
@@ -327,7 +326,6 @@ public class storage {
 		}
 	}
 
-	
 	@Deprecated
 	public static boolean sendmessagetoactivebot(String message) {
 		mcbot bot = storage.getcurrentselectedbot();
@@ -392,7 +390,6 @@ public class storage {
 		return storage.getInstance().tabbedPane.getTitleAt(getselectedtabindex());
 	}
 
-	
 	public static mcbot getcurrentselectedbot() {
 		return storage.getInstance().settin.bots.get(storage.getselectedtabtitle());
 	}
@@ -514,7 +511,6 @@ public class storage {
 		}
 		return true;
 	}
-	
 
 	public static void removebotbytabname(String name) {
 		int id = storage.gettabbyname(name);
@@ -664,9 +660,9 @@ public class storage {
 	}
 
 	public static int gettabbyname(String acti) {
-		int count=storage.gettabbedpane().getTabCount();
-		for(int i=0;i<count;i++) {
-			if(storage.gettabbedpane().getTitleAt(i).equals(acti)) {
+		int count = storage.gettabbedpane().getTabCount();
+		for (int i = 0; i < count; i++) {
+			if (storage.gettabbedpane().getTitleAt(i).equals(acti)) {
 				return i;
 			}
 		}
@@ -675,18 +671,26 @@ public class storage {
 
 	public static void connectall() {
 		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
-		for(String botname:bots.keySet()) {
-			mcbot bot=bots.get(botname);
+		for (String botname : bots.keySet()) {
+			mcbot bot = bots.get(botname);
 			bot.connect();
 		}
 	}
-	
+
 	public static void disconnectall() {
 		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
-		for(String botname:bots.keySet()) {
-			mcbot bot=bots.get(botname);
+		for (String botname : bots.keySet()) {
+			mcbot bot = bots.get(botname);
 			bot.disconnect();
 		}
 	}
 
+	public static void addtoignoreforcurrentbot(String str) {
+		if (str != null) {
+			if (str.length() > 0) {
+				mcbot bot = storage.getcurrentselectedbot();
+				bot.addToIgnoreList(str);
+			}
+		}
+	}
 }

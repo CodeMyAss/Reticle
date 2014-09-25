@@ -201,7 +201,7 @@ public class mcbotapp {
 
 		
 		//TODO: Stream redirection
-		//redirectSystemStreams();
+		redirectSystemStreams();
 
 		storage.getInstance().tabbedPane = tabbedPane;
 		storage.getInstance().menu_con = mntmNewMenuItem_2;

@@ -26,6 +26,7 @@ public class packet {
 	private boolean encrypted = false;
 	protected int Threshold = 0;
 	public boolean compression;
+	public int ProtocolVersion;
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);

@@ -1,7 +1,9 @@
 package org.spigot.reticle.botfactory;
 
+import java.awt.AWTKeyStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -11,6 +13,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -126,7 +129,15 @@ public class botfactory {
 				if (e.getKeyCode() == KeyEvent.VK_DOWN) {
 					bot.arrowdownpressed();
 				}
-				if (e.getKeyCode() == '\n') {
+				if (e.getKeyCode() == KeyEvent.VK_TAB) {
+					e.consume();
+					bot.tabpressed((JTextField) e.getComponent(), ((JTextField) e.getComponent()).getText());
+				} else {
+					if (bot.connector != null) {
+						bot.connector.unlocktabpress();
+					}
+				}
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
 						txtCommands.setText("");
 						bot.setMessageCount(0, true);
@@ -147,9 +158,13 @@ public class botfactory {
 		txtPrefix.addKeyListener(scom);
 		txtSuffix.addKeyListener(scom);
 
+		txtCommands.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.<AWTKeyStroke> emptySet());
+		txtPrefix.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.<AWTKeyStroke> emptySet());
+		txtSuffix.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.<AWTKeyStroke> emptySet());
+
 		if (!bot.ismain) {
 			AbstractDocument doc = (AbstractDocument) txtpnText.getStyledDocument();
-			doc.setDocumentFilter(new MaxLenFilter(txtpnText, 200));
+			doc.setDocumentFilter(new MaxLenFilter(txtpnText, bot.getChatFilterLength()));
 		}
 
 		if (bot.tablistdisplayed) {
@@ -216,6 +231,9 @@ class contextmenu extends JPopupMenu {
 					clpbrd.setContents(stringSelection, null);
 				} else if (event.getActionCommand().equals("Clear")) {
 					txt.setText("");
+				} else if (event.getActionCommand().equals("Add to ignore list")) {
+					String text = txt.getSelectedText();
+					storage.addtoignoreforcurrentbot(text);
 				} else if (event.getActionCommand().equals("Report")) {
 					storage.sendissue();
 					storage.conlog("Reporting");
@@ -235,8 +253,11 @@ class contextmenu extends JPopupMenu {
 			JMenuItem item4 = new JMenuItem("Report");
 			item4.addActionListener(menuListener);
 			add(item4);
+		} else {
+			JMenuItem item4 = new JMenuItem("Add to ignore list");
+			item4.addActionListener(menuListener);
+			add(item4);
 		}
-
 	}
 }
 
