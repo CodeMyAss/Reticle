@@ -52,6 +52,7 @@ public class struct_settings {
 			sb.append("\t\tAutoanti-afk: " + set.autoantiafk + "\r\n");
 			sb.append("\t\tAutoanti-afk period: " + set.afkperiod + "\r\n");
 			sb.append("\t\tAutonotify: " + set.activenotify + "\r\n");
+			sb.append("\t\tMax lines: " + set.maxlines + "\r\n");
 			sb.append("\t\tAutologin commands:\r\n");
 			if (!sensitive) {
 				for (String com : set.autologincmd) {
@@ -211,10 +212,13 @@ public class struct_settings {
 						bot.activenotify = Boolean.parseBoolean(param);
 					break;
 					case "Message delay":
-						bot.messagedelay=Integer.parseInt(param);
+						bot.messagedelay = Integer.parseInt(param);
 					break;
 					case "Chat logger":
-						bot.chatlog=Boolean.parseBoolean(param);
+						bot.chatlog = Boolean.parseBoolean(param);
+					break;
+					case "Max lines":
+						bot.maxlines = Integer.parseInt(param);
 					break;
 				}
 

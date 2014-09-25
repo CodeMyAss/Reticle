@@ -74,6 +74,7 @@ public class settings extends JFrame {
 	private String mcurrentusername;
 	private String mojangloginusernameid;
 	private JTextField textmessagedelay;
+	private JTextField textmaxlines;
 
 	public settings(final botsettings set) {
 		this.mojangloginusernameid = set.mojangloginusernameid;
@@ -98,7 +99,7 @@ public class settings extends JFrame {
 				setResizable(false);
 				setType(Type.POPUP);
 				setTitle("Settings");
-				setBounds(100, 100, 528, 500);
+				setBounds(100, 100, 534, 524);
 				contentPane = new JPanel();
 				contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 				contentPane.setLayout(new BorderLayout(0, 0));
@@ -123,7 +124,13 @@ public class settings extends JFrame {
 				btnNewButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
 						// New settings from user
-						botsettings bs = storage.getInstance().setobj.getsettings(accesstoken, playertoken, mojangusernamelist, mcurrentusername, mojangloginusernameid);
+						botsettings bs;
+						try {
+						bs = storage.getInstance().setobj.getsettings(accesstoken, playertoken, mojangusernamelist, mcurrentusername, mojangloginusernameid);
+						} catch (NumberFormatException e) {
+							storage.alert("Settings error", "One or more numeric fields\ncontains one or more\nillegal characters!");
+							return;
+						}
 						// Old bot name used to identification
 						String acti = set.gettabname();
 						if (storage.verifysettings(acti, bs)) {
@@ -217,7 +224,7 @@ public class settings extends JFrame {
 
 				panel_3 = new JPanel();
 				tabbedPane.addTab("Behavior", null, panel_3, null);
-				panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][][47.00]"));
+				panel_3.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][][][47.00]"));
 
 				JLabel lblActivateTabOn = new JLabel("Activate tab on new message:");
 				panel_3.add(lblActivateTabOn, "cell 1 0,alignx right");
@@ -243,76 +250,83 @@ public class settings extends JFrame {
 				checkafkcom = new JCheckBox("");
 				panel_3.add(checkafkcom, "cell 2 3");
 				
+				JLabel lblMaxLinesTo = new JLabel("Max lines to be displayed (-1 to disable):");
+				panel_3.add(lblMaxLinesTo, "cell 1 4,alignx trailing");
+				
+				textmaxlines = new JTextField();
+				panel_3.add(textmaxlines, "cell 2 4,growx");
+				textmaxlines.setColumns(10);
+				
 				JLabel lblEnableChatLogger = new JLabel("Enable Chat Logger:");
-				panel_3.add(lblEnableChatLogger, "cell 1 4,alignx right");
+				panel_3.add(lblEnableChatLogger, "cell 1 5,alignx right");
 				
 				JCheckBox checkBox_1 = new JCheckBox("");
-				panel_3.add(checkBox_1, "cell 2 4");
+				panel_3.add(checkBox_1, "cell 2 5");
 
 				JLabel lblMessageDelay = new JLabel("Message delay (0 to disable):");
-				panel_3.add(lblMessageDelay, "cell 1 5,alignx trailing");
+				panel_3.add(lblMessageDelay, "cell 1 6,alignx trailing");
 
 				textmessagedelay = new JTextField();
-				panel_3.add(textmessagedelay, "cell 2 5,growx");
+				panel_3.add(textmessagedelay, "cell 2 6,growx");
 				textmessagedelay.setColumns(10);
 
 				JLabel lblAntiafkCommandsPeriod = new JLabel("Anti-afk commands period:");
-				panel_3.add(lblAntiafkCommandsPeriod, "cell 1 6,alignx trailing");
+				panel_3.add(lblAntiafkCommandsPeriod, "cell 1 7,alignx trailing");
 
 				textantiafkdelay = new JTextField();
-				panel_3.add(textantiafkdelay, "cell 2 6,growx");
+				panel_3.add(textantiafkdelay, "cell 2 7,growx");
 				textantiafkdelay.setColumns(10);
 
 				JLabel lblReconnectAutomatically = new JLabel("Reconnect automatically:");
-				panel_3.add(lblReconnectAutomatically, "cell 1 7,alignx right");
+				panel_3.add(lblReconnectAutomatically, "cell 1 8,alignx right");
 
 				checkautoreconnect = new JCheckBox("");
-				panel_3.add(checkautoreconnect, "cell 2 7");
+				panel_3.add(checkautoreconnect, "cell 2 8");
 
 				JLabel lblReconnectDelay = new JLabel("Reconnect delay:");
-				panel_3.add(lblReconnectDelay, "cell 1 8,alignx trailing");
+				panel_3.add(lblReconnectDelay, "cell 1 9,alignx trailing");
 
 				textreconnectdelay = new JTextField();
-				panel_3.add(textreconnectdelay, "cell 2 8,growx");
+				panel_3.add(textreconnectdelay, "cell 2 9,growx");
 				textreconnectdelay.setColumns(10);
 
 				JLabel lblNewLabel_4 = new JLabel("Logout commands:");
-				panel_3.add(lblNewLabel_4, "cell 1 9,alignx right,aligny top");
+				panel_3.add(lblNewLabel_4, "cell 1 10,alignx right,aligny top");
 
 				textlogoutcom = new JTextArea();
 				JScrollPane scrollPane = new JScrollPane(textlogoutcom);
 				scrollPane.setMinimumSize(new Dimension(21, 50));
-				panel_3.add(scrollPane, "cell 2 9,grow");
+				panel_3.add(scrollPane, "cell 2 10,grow");
 
 				JLabel lblNewLabel_6 = new JLabel("Login commands:");
-				panel_3.add(lblNewLabel_6, "cell 1 10,alignx trailing,aligny top");
+				panel_3.add(lblNewLabel_6, "cell 1 11,alignx trailing,aligny top");
 
 				JScrollPane scrollPane_1 = new JScrollPane((Component) null);
 				scrollPane_1.setMinimumSize(new Dimension(21, 50));
-				panel_3.add(scrollPane_1, "cell 2 10,grow");
+				panel_3.add(scrollPane_1, "cell 2 11,grow");
 
 				textlogincom = new JTextArea();
 				scrollPane_1.setViewportView(textlogincom);
 
 				JLabel lblNewLabel_7 = new JLabel("Anti-afk commands:");
-				panel_3.add(lblNewLabel_7, "cell 1 11,alignx right,aligny top");
+				panel_3.add(lblNewLabel_7, "cell 1 12,alignx right,aligny top");
 
 				JScrollPane scrollPane_2 = new JScrollPane((Component) null);
 				scrollPane_2.setMinimumSize(new Dimension(21, 50));
-				panel_3.add(scrollPane_2, "cell 2 11,grow");
+				panel_3.add(scrollPane_2, "cell 2 12,grow");
 
 				textafkcom = new JTextArea();
 				scrollPane_2.setViewportView(textafkcom);
 
 				JLabel lblIgnoredMessages = new JLabel("Ignored Messages");
-				panel_3.add(lblIgnoredMessages, "cell 1 12,alignx right,aligny top");
+				panel_3.add(lblIgnoredMessages, "cell 1 13,alignx right,aligny top");
 
 				JScrollPane scrollPane_3 = new JScrollPane((Component) null);
 				scrollPane_2.setMinimumSize(new Dimension(21, 50));
 
 				textignore = new JTextArea();
 				scrollPane_3.setViewportView(textignore);
-				panel_3.add(scrollPane_3, "cell 2 12,grow");
+				panel_3.add(scrollPane_3, "cell 2 13,grow");
 				for (Frame frame : getFrames()) {
 					frame.setIconImage(storage.winicon.getImage());
 				}
@@ -431,6 +445,7 @@ public class settings extends JFrame {
 				sobj.textmusername = textmusername;
 				sobj.messagedelay = textmessagedelay;
 				sobj.chatlog=checkBox_1;
+				sobj.textmaxlines=textmaxlines;
 				storage.getInstance().setobj.setsettings(set);
 			}
 		});

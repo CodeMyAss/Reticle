@@ -29,6 +29,10 @@ import javax.swing.UIManager;
 import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -50,24 +54,23 @@ public class botfactory {
 		panel.setLayout(new MigLayout("", "[615px,grow]", "[340px,grow]"));
 
 		JPanel panel_1 = new JPanel();
-		//panel.add(panel_1, "cell 0 0,grow");
+		// panel.add(panel_1, "cell 0 0,grow");
 		panel_1.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
 
 		JPanel panel_2 = new JPanel();
-		//panel.add(panel_1, "cell 0 0,grow");
+		// panel.add(panel_1, "cell 0 0,grow");
 		panel_2.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
-		
+
 		panel_1.setBackground(bot.backgroundcolor);
 
 		panel_2.setBackground(bot.backgroundcolor);
 
-		
 		JScrollPane scrollPane = new JScrollPane();
 
 		txtpnText = new JTextPane();
 		txtpnText.setText("");
 		txtpnText.setEditable(false);
-
+		
 		txtpnText.setBackground(bot.backgroundcolor);
 		txtpnText.setForeground(bot.foregroundcolor);
 
@@ -120,15 +123,15 @@ public class botfactory {
 				if (e.getKeyCode() == '\n') {
 					if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
 						txtCommands.setText("");
-						bot.setMessageCount(0,true);
+						bot.setMessageCount(0, true);
 					}
 				} else {
 					String total = txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText();
-					int len=total.length()/100+1;
-					if (total.startsWith("/") && len>1) {
-						bot.setMessageCount(len,false);
+					int len = total.length() / 100 + 1;
+					if (total.startsWith("/") && len > 1) {
+						bot.setMessageCount(len, false);
 					} else {
-						bot.setMessageCount(len,true);
+						bot.setMessageCount(len, true);
 					}
 				}
 			}
@@ -137,9 +140,12 @@ public class botfactory {
 		txtCommands.addKeyListener(scom);
 		txtPrefix.addKeyListener(scom);
 		txtSuffix.addKeyListener(scom);
+		
+		if(!bot.ismain) {
+			AbstractDocument doc=(AbstractDocument) txtpnText.getStyledDocument();
+			doc.setDocumentFilter(new MaxLenFilter(txtpnText,200));
+		}
 
-		
-		
 		if (bot.tablistdisplayed) {
 			Color color = UIManager.getColor("Table.gridColor");
 			MatteBorder border = new MatteBorder(1, 1, 1, 1, color);
@@ -154,7 +160,7 @@ public class botfactory {
 			txtCommands.setBackground(bot.backgroundcolor);
 			txtCommands.setForeground(bot.foregroundcolor);
 			JTable tableinfo = new JTable();
-			tableinfo.setModel(new DefaultTableModel(new Object[][]{{"Health:","","X:"},{"Food:","","Y:"},{"Saturation:","","Z:"}}, new Object[4]));
+			tableinfo.setModel(new DefaultTableModel(new Object[][] { { "Health:", "", "X:" }, { "Food:", "", "Y:" }, { "Saturation:", "", "Z:" } }, new Object[4]));
 			tableinfo.getColumnModel().getColumn(0).setCellRenderer(rightRenderer);
 			tableinfo.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
 			tableinfo.setBackground(bot.backgroundcolor);
@@ -180,7 +186,7 @@ public class botfactory {
 			panel.add(panel_1, "cell 0 0,grow");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(btnNewButton, "cell 0 1");
-			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount,null);
+			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount, null);
 		}
 	}
 }
@@ -225,6 +231,28 @@ class contextmenu extends JPopupMenu {
 			add(item4);
 		}
 
+	}
+}
+
+class MaxLenFilter extends DocumentFilter {
+
+	private JTextPane area;
+	private int max;
+
+	public MaxLenFilter(JTextPane area, int max) {
+		this.area = area;
+		this.max = max;
+	}
+	
+	@Override
+	public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+		super.insertString(fb, offset, string, attr);
+		int lines = area.getText().split("\\n").length;
+		if (lines > max) {
+			int linesToRemove = lines - max - 1;
+			int lengthToRemove = area.getText().indexOf("\n",linesToRemove);
+			remove(fb, 0, lengthToRemove);
+		}
 	}
 }
 

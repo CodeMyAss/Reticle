@@ -46,6 +46,7 @@ public class set_obj_struct {
 	protected JTextField textmusername;
 	protected JTextField messagedelay;
 	protected JCheckBox chatlog;
+	protected JTextField textmaxlines;
 
 	public void setglobals(JCheckBox b1, JCheckBox b2, JCheckBox b3) {
 		this.autoupdate = b1;
@@ -87,6 +88,7 @@ public class set_obj_struct {
 		this.textmusername.setText(set.mojangloginusername);
 		this.messagedelay.setText(set.messagedelay+"");
 		this.chatlog.setSelected(set.chatlog);
+		this.textmaxlines.setText(set.maxlines+"");
 	}
 
 	private int protocolversiontoindex(int ver) {
@@ -155,6 +157,7 @@ public class set_obj_struct {
 		}
 		struct.messagedelay=Integer.parseInt(this.messagedelay.getText());
 		struct.chatlog=this.chatlog.isSelected();
+		struct.maxlines=Integer.parseInt(this.textmaxlines.getText());
 		return struct;
 	}
 

@@ -19,7 +19,9 @@ import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -186,7 +188,25 @@ public class mcbot {
 	public boolean isChatLoggerEnabled() {
 		return this.rawbot.chatlog;
 	}
+	
+	public boolean isChatFilterEnabled() {
+		return this.rawbot.maxlines>0;
+	}
+	
+	public int getChatFilterLength() {
+		return this.rawbot.maxlines;
+	}
 
+	public void updateChatFilter() {
+		if(this.isChatFilterEnabled()) {
+			AbstractDocument doc=(AbstractDocument) chatlog.getStyledDocument();
+			doc.setDocumentFilter(new MaxLenFilter(chatlog,getChatFilterLength()));
+		} else {
+			AbstractDocument doc=(AbstractDocument) chatlog.getStyledDocument();
+			doc.setDocumentFilter(new DocumentFilter());	
+		}
+	}
+	
 	public void updateChatLogger() {
 		if (ChatLogger != null) {
 			try {
@@ -194,10 +214,12 @@ public class mcbot {
 			} catch (IOException e) {
 			}
 		}
-		try {
-			this.ChatLogger = new ChatLogger(this.gettabname());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		if (this.isChatLoggerEnabled()) {
+			try {
+				this.ChatLogger = new ChatLogger(this.gettabname());
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -697,6 +719,8 @@ public class mcbot {
 			this.rawbot.mplayertoken = bs.mplayertoken;
 			this.rawbot.mcurrentusername = bs.mcurrentusername;
 			this.rawbot.mojangloginusernameid = bs.mojangloginusernameid;
+			updateChatLogger();
+			updateChatFilter();
 		}
 	}
 
@@ -738,7 +762,7 @@ public class mcbot {
 	}
 
 	public void chatlog(String message) {
-		if(this.isChatLoggerEnabled()) {
+		if (this.isChatLoggerEnabled()) {
 			try {
 				this.ChatLogger.Log(storage.stripcolors(message.substring(1)));
 			} catch (IOException e) {

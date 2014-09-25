@@ -19,7 +19,7 @@ public class botsettings {
 	public boolean autoantiafk = true;
 	public boolean activenotify = false;
 	public boolean autoreconnect = true;
-	public int autoreconnectdelay = 2;
+	public int autoreconnectdelay = 5;
 	public String[] autologincmd = new String[0];
 	public String[] autologoutcmd = new String[0];
 	public String[] autoantiafkcmd = new String[0];
@@ -37,8 +37,9 @@ public class botsettings {
 	public HashMap<String,String> mojangusernamelist=new HashMap<String,String>();
 	public String mojangloginusername;
 	public String mojangloginusernameid;
-	public int messagedelay;
-	public boolean chatlog;
+	public int messagedelay=0;
+	public boolean chatlog=true;
+	public int maxlines=500;
 
 	public String getMojangID(String username) {
 		return mojangloginusernameid;

@@ -673,4 +673,20 @@ public class storage {
 		return -1;
 	}
 
+	public static void connectall() {
+		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
+		for(String botname:bots.keySet()) {
+			mcbot bot=bots.get(botname);
+			bot.connect();
+		}
+	}
+	
+	public static void disconnectall() {
+		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
+		for(String botname:bots.keySet()) {
+			mcbot bot=bots.get(botname);
+			bot.disconnect();
+		}
+	}
+
 }

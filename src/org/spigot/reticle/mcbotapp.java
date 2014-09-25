@@ -80,6 +80,22 @@ public class mcbotapp {
 				storage.displayoptionswin();
 			}
 		});
+		
+		JMenuItem mntmConnectAll = new JMenuItem("Connect all");
+		mntmConnectAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				storage.connectall();
+			}
+		});
+		mnNewMenu.add(mntmConnectAll);
+		
+		JMenuItem mntmDisconnectAll = new JMenuItem("Disconnect all");
+		mntmDisconnectAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				storage.disconnectall();
+			}
+		});
+		mnNewMenu.add(mntmDisconnectAll);
 		mnNewMenu.add(mntmNewMenuItem);
 
 		JMenuItem mntmNewMenuItem_8 = new JMenuItem("Add bot");
