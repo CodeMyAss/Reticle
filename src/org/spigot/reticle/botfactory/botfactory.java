@@ -70,7 +70,7 @@ public class botfactory {
 		txtpnText = new JTextPane();
 		txtpnText.setText("");
 		txtpnText.setEditable(false);
-		
+
 		txtpnText.setBackground(bot.backgroundcolor);
 		txtpnText.setForeground(bot.foregroundcolor);
 
@@ -120,6 +120,12 @@ public class botfactory {
 		KeyAdapter scom = new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_UP) {
+					bot.arrowuppressed();
+				}
+				if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+					bot.arrowdownpressed();
+				}
 				if (e.getKeyCode() == '\n') {
 					if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
 						txtCommands.setText("");
@@ -140,10 +146,10 @@ public class botfactory {
 		txtCommands.addKeyListener(scom);
 		txtPrefix.addKeyListener(scom);
 		txtSuffix.addKeyListener(scom);
-		
-		if(!bot.ismain) {
-			AbstractDocument doc=(AbstractDocument) txtpnText.getStyledDocument();
-			doc.setDocumentFilter(new MaxLenFilter(txtpnText,200));
+
+		if (!bot.ismain) {
+			AbstractDocument doc = (AbstractDocument) txtpnText.getStyledDocument();
+			doc.setDocumentFilter(new MaxLenFilter(txtpnText, 200));
 		}
 
 		if (bot.tablistdisplayed) {
@@ -179,14 +185,14 @@ public class botfactory {
 			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel_1, panel_2);
 			splitPane.setDividerSize(5);
 			panel.add(splitPane, "cell 0 0,grow");
-			bot.setconfig(txtpnText, table, panel_1, autostroll, messagecount, tableinfo);
+			bot.setconfig(txtpnText, table, panel_1, autostroll, messagecount, tableinfo, txtCommands);
 			splitPane.setDividerLocation(0.9);
 			splitPane.setResizeWeight(0.7);
 		} else {
 			panel.add(panel_1, "cell 0 0,grow");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(btnNewButton, "cell 0 1");
-			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount, null);
+			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount, null, null);
 		}
 	}
 }
@@ -243,14 +249,14 @@ class MaxLenFilter extends DocumentFilter {
 		this.area = area;
 		this.max = max;
 	}
-	
+
 	@Override
 	public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
 		super.insertString(fb, offset, string, attr);
 		int lines = area.getText().split("\\n").length;
 		if (lines > max) {
 			int linesToRemove = lines - max - 1;
-			int lengthToRemove = area.getText().indexOf("\n",linesToRemove);
+			int lengthToRemove = area.getText().indexOf("\n", linesToRemove);
 			remove(fb, 0, lengthToRemove);
 		}
 	}

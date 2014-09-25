@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
@@ -59,6 +60,8 @@ public class mcbot {
 	private supportconnector supportconnector;
 	private boolean onlinemode = false;
 	private ChatLogger ChatLogger;
+	private UpListKeeper uplist = new UpListKeeper();
+	private JTextField textcommands;
 
 	public boolean messagesDelayed() {
 		return this.rawbot.messagedelay != 0;
@@ -264,13 +267,14 @@ public class mcbot {
 		});
 	}
 
-	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll, JLabel messagecount, JTable tableinfo) {
+	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll, JLabel messagecount, JTable tableinfo, JTextField txtCommands) {
 		this.chatlog = chatlog;
 		this.tabler = tablist;
 		this.autoscroll = autoscroll;
 		this.messagecount = messagecount;
 		this.tableinfo = tableinfo;
 		this.exists = true;
+		this.textcommands=txtCommands;
 	}
 
 	public String gettabname() {
@@ -408,8 +412,8 @@ public class mcbot {
 		}
 	}
 
-	// TODO: rev. splitting
 	public boolean sendtoserver(String message) {
+		uplist.addMessage(message);
 		if (this.gettabname().endsWith(("@Reticle"))) {
 			if (supportconnector != null) {
 				if (supportconnector.isConnected()) {
@@ -769,5 +773,17 @@ public class mcbot {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public void setTextAtMessageBoxs(String msg) {
+		System.out.println("Setting: "+msg);
+		this.textcommands.setText(msg);
+	}
+
+	public void arrowuppressed() {
+		setTextAtMessageBoxs(uplist.getPrevious());
+	}
+	public void arrowdownpressed() {
+		setTextAtMessageBoxs(uplist.getNext());
 	}
 }
