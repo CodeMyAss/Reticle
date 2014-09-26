@@ -29,7 +29,7 @@ public final class Authenticator {
 		this.client = player;
 	}
 	
-	public Authenticator(String username, String id, String access, int b) {
+	protected Authenticator(String username, String id, String access, int b) {
 		//String hex=javaHexDigest(id);
 		this.username=username;
 		this.password=id;
@@ -38,6 +38,11 @@ public final class Authenticator {
 		//this.mj = new minecraftjoin(access,id,hex);
 	}
 	
+	/**
+	 * Send join game data to Mojang authentication servers
+	 * Returns true if successful
+	 * @return
+	 */
 	public boolean sendJoin() {
 		POST form = new POST(storage.joinURLalt, true);
 		form.setMethod(POSTMETHOD.GET);
@@ -51,14 +56,24 @@ public final class Authenticator {
 		}
 	}
 
-	public static Authenticator forJoinPurpose(String username, String id, String access) {
-		return new Authenticator(username,id,access,1);
+	public static Authenticator forJoinPurpose(String username, String ID, String accessToken) {
+		return new Authenticator(username,ID,accessToken,1);
 	}
 	
-	public void setBot(botsettings bot) {
-		this.bot = bot;
+	/**
+	 * Refresh Authenticator settings
+	 * Not safe to use
+	 * @param botSettings
+	 */
+	public void setBot(botsettings botSettings) {
+		this.bot = botSettings;
 	}
 
+	/**
+	 * Refresh access token
+	 * Returns true if sucessful
+	 * @return
+	 */
 	public boolean refresh() {
 		POST form = new POST(storage.AuthURL + "refresh", true);
 		Gson gson = new GsonBuilder().create();
@@ -96,10 +111,14 @@ public final class Authenticator {
 		return new Authenticator(username, password);
 	}
 
-	public static Authenticator fromAccessToken(String access, String player) {
-		return new Authenticator(access, player, (byte) 0);
+	public static Authenticator fromAccessToken(String accessToken, String player) {
+		return new Authenticator(accessToken, player, (byte) 0);
 	}
 
+	/**
+	 * Send login request to Mojang authenticator server
+	 * @return
+	 */
 	public boolean tryLogin() {
 		accounts acc = getProfiles();
 		if (acc == null) {
@@ -114,6 +133,10 @@ public final class Authenticator {
 		}
 	}
 
+	/**
+	 * Get available profiles. Must be logged in
+	 * @return
+	 */
 	public accounts getProfiles() {
 		POST form = new POST(storage.AuthURL + "authenticate", true);
 		Gson gson = new GsonBuilder().create();
@@ -133,7 +156,7 @@ public final class Authenticator {
 		return null;
 	}
 
-	public accounts getAccount(String response) {
+	protected accounts getAccount(String response) {
 		JsonParser parser = new JsonParser();
 		JsonObject obf = parser.parse(response).getAsJsonObject();
 		accounts acc;
@@ -161,6 +184,11 @@ public final class Authenticator {
 		return null;
 	}
 
+	/**
+	 * Account structure
+	 * @author Encorn
+	 *
+	 */
 	public class accounts {
 		private String access;
 		private String client;
@@ -202,6 +230,11 @@ public final class Authenticator {
 
 	}
 	
+	/**
+	 * Profile structure
+	 * @author Encorn
+	 *
+	 */
 	public class profile {
 		private String id;
 		private String name;

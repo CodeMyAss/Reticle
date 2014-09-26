@@ -1,6 +1,6 @@
 package org.spigot.reticle.events;
 
-public class JoinGameEvent extends event{
+public class JoinGameEvent extends Event{
 	private String leveltype;
 	private int EntityId;
 	private byte Gamemode;

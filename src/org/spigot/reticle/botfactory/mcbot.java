@@ -42,20 +42,23 @@ public class mcbot {
 	private JLabel messagecount;
 	private JTable tableinfo;
 	private botsettings rawbot;
-	public boolean isconnected = false;
-	public boolean autoconnect = false;
-	public boolean exists = false;
+	/**
+	 * Indicates state of bot
+	 */
+	protected boolean isconnected = false;
+	protected boolean autoconnect = false;
+	protected boolean exists = false;
 	public boolean ismain = false;
 	private HashMap<String, Style> styles = new HashMap<String, Style>();
 	public connector connector;
 	public String serverip;
 	public int serverport;
 	public String username;
-	public int[] tablistsize = new int[2];
-	public boolean tablistdisplayed = true;
-	public Color backgroundcolor = Color.black;
-	public Color foregroundcolor = Color.white;
-	public boolean allowreport = false;
+	protected int[] tablistsize = new int[2];
+	protected boolean tablistdisplayed = true;
+	protected Color backgroundcolor = Color.black;
+	protected Color foregroundcolor = Color.white;
+	protected boolean allowreport = false;
 	public boolean allowconnects = true;
 	private supportconnector supportconnector;
 	private boolean onlinemode = false;
@@ -63,6 +66,11 @@ public class mcbot {
 	private UpListKeeper uplist = new UpListKeeper();
 	private JTextField textcommands;
 
+	
+	/**
+	 * Returns true if messages are delayed
+	 * @return
+	 */
 	public boolean messagesDelayed() {
 		return this.rawbot.messagedelay != 0;
 	}
@@ -76,14 +84,20 @@ public class mcbot {
 		return false;
 	}
 
-	public void addToIgnoreList(String msg) {
-		if (!StringArrayContains(msg, this.rawbot.ignored)) {
+	
+	/**
+	 * Add message to list of ignored messages
+	 * Ignored messages are not displayed in chat
+	 * @param Message
+	 */
+	public void addToIgnoreList(String Message) {
+		if (!StringArrayContains(Message, this.rawbot.ignored)) {
 			int len = this.rawbot.ignored.length;
 			String[] newarr = new String[len + 1];
 			for (int i = 0; i < len; i++) {
 				newarr[i] = this.rawbot.ignored[i];
 			}
-			newarr[len] = msg;
+			newarr[len] = Message;
 			this.rawbot.ignored = newarr;
 			storage.savesettings();
 			this.logmsg("§2Added message to ignore list.");
@@ -92,51 +106,76 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Returns delay between messages
+	 * @return delay
+	 */
 	public int getMessageDelay() {
 		return this.rawbot.messagedelay;
 	}
 
+	/**
+	 * Returns true if online mode is enabled
+	 * @return
+	 */
 	public boolean isOnlineMode() {
 		return this.onlinemode;
 	}
 
+	/**
+	 * Refresh username in structures
+	 * Do not use unless you know what
+	 * exactly this does
+	 */
 	public void refreshOnlineMode() {
 		this.onlinemode = this.rawbot.mojangusername;
 	}
 
-	public boolean hasAccessToken() {
+	/**
+	 * Returns access token used for authentication
+	 * @return
+	 */
+	protected boolean hasAccessToken() {
 		return this.rawbot.maccesstoken != null;
 	}
 
-	public boolean hasMUsername() {
+	/**
+	 * Returns true if mojang username is available
+	 * @return
+	 */
+	protected boolean hasMUsername() {
 		return this.rawbot.mcurrentusername != null;
 	}
 
+	/**
+	 * Returns stored mojang username
+	 * @return
+	 */
 	public String getMUsername() {
 		return this.rawbot.mcurrentusername;
 	}
 
-	public boolean hasMPassword() {
+	protected boolean hasMPassword() {
 		return this.rawbot.mpassword != null;
 	}
 
-	public String getMUsernameID() {
+	protected String getMUsernameID() {
 		return getMUsernameID(username);
 	}
 
-	public String getMUsernameID(String username) {
+	protected String getMUsernameID(String username) {
 		return this.rawbot.getMojangID(username);
 	}
 
-	public String getMPassword() {
+	protected String getMPassword() {
 		return this.rawbot.mpassword;
 	}
 
-	public boolean hasPlayerToken() {
+	protected boolean hasPlayerToken() {
 		return this.rawbot.mplayertoken != null;
 	}
 
-	public String getPlayerToken() {
+	protected String getPlayerToken() {
 		return this.rawbot.mplayertoken;
 	}
 
@@ -144,11 +183,11 @@ public class mcbot {
 		return this.rawbot.maccesstoken;
 	}
 
-	public String getSelectedUsername() {
+	protected String getSelectedUsername() {
 		return this.rawbot.mcurrentusername;
 	}
 
-	public void setMessageCount(int c, boolean valid) {
+	protected void setMessageCount(int c, boolean valid) {
 		if (valid) {
 			this.messagecount.setText(storage.parsecolorashtml("§2" + c));
 		} else {
@@ -156,10 +195,26 @@ public class mcbot {
 		}
 	}
 
-	public mcbot(botsettings bot) {
-		initbot(bot, false, true, false, true, Color.BLACK, Color.WHITE);
+	/**
+	 * Creates new bot
+	 * Do not use this constructor
+	 * @param BotSettings
+	 */
+	public mcbot(botsettings BotSettings) {
+		initbot(BotSettings, false, true, false, true, Color.BLACK, Color.WHITE);
 	}
 
+	/**
+	 * Creates new bot
+	 * Do not use this constructor
+	 * @param bot
+	 * @param main
+	 * @param tablist
+	 * @param allowreport
+	 * @param allowconnects
+	 * @param backgroundcolor
+	 * @param foregroundcolor
+	 */
 	public mcbot(botsettings bot, boolean main, boolean tablist, boolean allowreport, boolean allowconnects, Color backgroundcolor, Color foregroundcolor) {
 		initbot(bot, main, tablist, allowreport, allowconnects, backgroundcolor, foregroundcolor);
 	}
@@ -168,14 +223,18 @@ public class mcbot {
 		supportconnector = null;
 	}
 
-	public void setHealth(float health) {
+	protected void setHealth(float health) {
 		this.tableinfo.setValueAt(health + "", 0, 1);
 	}
 
+	/**
+	 * Verify online settings
+	 * @return
+	 */
 	public boolean verifyonlinesettings() {
 		if (this.isOnlineMode()) {
 			if (hasAccessToken() && hasPlayerToken()) {
-				this.connector.sendmessage("§bRefreshing Mojang session");
+				this.connector.sendMessage("§bRefreshing Mojang session");
 				String access = getAccessToken();
 				String player = getPlayerToken();
 				Authenticator auth = Authenticator.fromAccessToken(access, player);
@@ -183,11 +242,11 @@ public class mcbot {
 				if (auth.refresh()) {
 					return true;
 				} else {
-					this.connector.sendmessage("§bSession lost");
+					this.connector.sendMessage("§bSession lost");
 				}
 			}
 			if (hasMUsername() && hasMPassword()) {
-				this.connector.sendmessage("§bLogging to Mojang");
+				this.connector.sendMessage("§bLogging to Mojang");
 				String username = getMUsername();
 				String password = getMPassword();
 				Authenticator auth = Authenticator.fromUsernameAndPassword(username, password);
@@ -198,7 +257,7 @@ public class mcbot {
 		return true;
 	}
 
-	public void initbot(botsettings bot, boolean main, boolean tablist, boolean yallowreport, boolean yallowconnects, Color ybackgroundcolor, Color yforegroundcolor) {
+	private void initbot(botsettings bot, boolean main, boolean tablist, boolean yallowreport, boolean yallowconnects, Color ybackgroundcolor, Color yforegroundcolor) {
 		this.backgroundcolor = ybackgroundcolor;
 		this.foregroundcolor = yforegroundcolor;
 		this.allowconnects = yallowconnects;
@@ -213,19 +272,19 @@ public class mcbot {
 		initwin();
 	}
 
-	public boolean isChatLoggerEnabled() {
+	protected boolean isChatLoggerEnabled() {
 		return this.rawbot.chatlog;
 	}
 
-	public boolean isChatFilterEnabled() {
+	protected boolean isChatFilterEnabled() {
 		return this.rawbot.maxlines > 0;
 	}
 
-	public int getChatFilterLength() {
+	protected int getChatFilterLength() {
 		return this.rawbot.maxlines;
 	}
 
-	public void updateChatFilter() {
+	protected void updateChatFilter() {
 		if (this.isChatFilterEnabled()) {
 			AbstractDocument doc = (AbstractDocument) chatlog.getStyledDocument();
 			doc.setDocumentFilter(new MaxLenFilter(chatlog, getChatFilterLength()));
@@ -235,7 +294,7 @@ public class mcbot {
 		}
 	}
 
-	public void updateChatLogger() {
+	protected void updateChatLogger() {
 		if (ChatLogger != null) {
 			try {
 				ChatLogger.Close();
@@ -268,6 +327,10 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Returns current protocol version
+	 * @return
+	 */
 	public int getprotocolversion() {
 		return this.rawbot.protocolversion;
 	}
@@ -284,15 +347,19 @@ public class mcbot {
 		return i;
 	}
 
-	public void seticon(final ICONSTATE state) {
+	/**
+	 * Change bot icon
+	 * @param Icon
+	 */
+	public void seticon(final ICONSTATE Icon) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				storage.gettabbedpane().setIconAt(gettabid(), state.icon);
+				storage.gettabbedpane().setIconAt(gettabid(), Icon.icon);
 			}
 		});
 	}
 
-	public void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll, JLabel messagecount, JTable tableinfo, JTextField txtCommands) {
+	protected void setconfig(JTextPane chatlog, JTable tablist, JPanel panel, JCheckBox autoscroll, JLabel messagecount, JTable tableinfo, JTextField txtCommands) {
 		this.chatlog = chatlog;
 		this.tabler = tablist;
 		this.autoscroll = autoscroll;
@@ -302,8 +369,12 @@ public class mcbot {
 		this.textcommands = txtCommands;
 	}
 
+	/**
+	 * Returns bot's tab name
+	 * @return
+	 */
 	public String gettabname() {
-		return this.rawbot.gettabname();
+		return this.rawbot.getTabName();
 	}
 
 	private Style getstyle(String combo) {
@@ -364,54 +435,99 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Returns seconds between sending afk commands
+	 * @return
+	 */
 	public int getantiafkperiod() {
 		return this.rawbot.afkperiod;
 	}
 
+	
+	/**
+	 * Returns array of ignored messages
+	 * @return
+	 */
 	public String[] getignoredmessages() {
 		return this.rawbot.ignored;
 	}
 
+	
+	/**
+	 * Returns array of commands to be send after login
+	 * @return
+	 */
 	public String[] getlogincommands() {
 		return this.rawbot.autologincmd;
 	}
 
+	
+	/**
+	 * Returns array of commands to be send before disconnect
+	 * @return
+	 */
 	public String[] getlogoutcommands() {
 		return this.rawbot.autologoutcmd;
 	}
 
+	
+	/**
+	 * Returns array of commands to be send to prevent afk state
+	 * @return
+	 */
 	public String[] getafkcommands() {
 		return this.rawbot.autoantiafkcmd;
 	}
 
+	/**
+	 * Sends login commands to server
+	 * @return
+	 */
 	public boolean sendlogincommands() {
 		return this.rawbot.autologin;
 	}
 
+	
+	/**
+	 * Sends logout commands to server
+	 * @return
+	 */
 	public boolean sendlogoutcommands() {
 		return this.rawbot.autologout;
 	}
 
+	/**
+	 * Sends afk commands to server
+	 * @return
+	 */
 	public boolean sendafkcommands() {
 		return this.rawbot.autoantiafk;
 	}
 
+	/**
+	 * Returns true if autoreconnect is enabled
+	 * @return
+	 */
 	public boolean getautoreconnect() {
 		return this.rawbot.autoreconnect;
 	}
 
+	/**
+	 * Returns seconds between reconnecting as defined in settings
+	 * @return
+	 */
 	public int getautoreconnectdelay() {
 		return this.rawbot.autoreconnectdelay;
-	}
-
-	public connector getConnector() {
-		return this.connector;
 	}
 
 	private boolean goscroll() {
 		return this.autoscroll.isSelected();
 	}
 
+	/**
+	 * Returns true if bot is connected and ready
+	 * @return
+	 */
 	public boolean isConnected() {
 		if (this.gettabname().endsWith("@Reticle")) {
 			if (this.supportconnector != null) {
@@ -428,21 +544,18 @@ public class mcbot {
 		}
 	}
 
-	public boolean isConnectedAllowReconnect() {
-		if (this.connector == null) {
-			// Initial state
-			return false;
-		} else {
-			return this.connector.isConnectedAllowReconnect();
-		}
-	}
-
-	public boolean sendtoserver(String message) {
-		uplist.addMessage(message);
+	/**
+	 * Sends text to server
+	 * (note that to send command, you must send text prefixed with '/')
+	 * @param Message
+	 * @return
+	 */
+	public boolean sendtoserver(String Message) {
+		uplist.addMessage(Message);
 		if (this.gettabname().endsWith(("@Reticle"))) {
 			if (supportconnector != null) {
 				if (supportconnector.isConnected()) {
-					supportconnector.SendMessage(message);
+					supportconnector.SendMessage(Message);
 					return true;
 				} else {
 					return false;
@@ -452,13 +565,13 @@ public class mcbot {
 			}
 		}
 		if (this.isConnected()) {
-			return this.connector.sendtoserver(message);
+			return this.connector.sendToServer(Message);
 		} else {
 			return false;
 		}
 	}
 
-	public void specialconnect() {
+	protected void specialconnect() {
 		if (this.supportconnector == null) {
 			this.supportconnector = new supportconnector(this);
 			storage.changemenuitems();
@@ -468,6 +581,9 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Connects the bot
+	 */
 	public void connect() {
 		if (this.gettabname().endsWith(("@Reticle"))) {
 			specialconnect();
@@ -493,6 +609,14 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Redefine settings
+	 * Do not use this
+	 * @param ip
+	 * @param port
+	 * @param name
+	 * @param nick
+	 */
 	public void setipandport(String ip, int port, String name, String nick) {
 		this.rawbot.serverip = ip;
 		this.rawbot.serverport = port;
@@ -513,6 +637,11 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Returns text from chat box
+	 * @param len
+	 * @return
+	 */
 	public String getmsg(int len) {
 		int lenn = chatlog.getText().length();
 		if (lenn < len) {
@@ -525,6 +654,11 @@ public class mcbot {
 		return "";
 	}
 
+	
+	/**
+	 * Logs message to chat box
+	 * @param message
+	 */
 	public synchronized void logmsg(String message) {
 		if (message.endsWith("§")) {
 			message = message + " ";
@@ -532,7 +666,7 @@ public class mcbot {
 		if (message.length() > 0) {
 			// Extra space because of the split method and following loop
 			message = " [" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + message;
-			chatlog(message);
+			chatLog(message);
 			String bold = "";
 			String underline = "";
 			String strike = "";
@@ -577,11 +711,18 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Disconnect main bot (Like support connector)
+	 * Do not use this
+	 */
 	public void specialdisconnect() {
 		this.supportconnector.Disconnect();
 		storage.changemenuitems();
 	}
 
+	/**
+	 * Disconnects bot
+	 */
 	public void disconnect() {
 		if (this.connector != null) {
 			this.connector.reconnect = false;
@@ -598,7 +739,14 @@ public class mcbot {
 		}
 	}
 
-	public void setTabSize(int cols, int rows) {
+	
+	/**
+	 * Set Player list dimension
+	 * Do not use this
+	 * @param cols
+	 * @param rows
+	 */
+	public final void setTabSize(int cols, int rows) {
 		this.tablistsize[0] = rows; // y
 		this.tablistsize[1] = cols; // x
 		int max = rows * cols;
@@ -616,7 +764,15 @@ public class mcbot {
 		});
 	}
 
-	public void refreshtablist(List<String> tablist, HashMap<String, String> tablistnick, HashMap<String, String> playerteams, HashMap<String, team_struct> teams) {
+	/**
+	 * Refresh displayed Player list
+	 * Note that Player list is already handled
+	 * @param TabList
+	 * @param TabListNicks
+	 * @param PlayerTeams
+	 * @param Teams
+	 */
+	public final void refreshtablist(List<String> TabList, HashMap<String, String> TabListNicks, HashMap<String, String> PlayerTeams, HashMap<String, team_struct> Teams) {
 		// Just replace the text on slots
 		int x = this.tablistsize[0];
 		int y = this.tablistsize[1];
@@ -630,27 +786,27 @@ public class mcbot {
 
 		int max = x * y;
 		if (max != 0) {
-			int imax = tablist.size();
+			int imax = TabList.size();
 			for (int i = 0; i < max; i++) {
 				String name;
 				if (i < imax) {
-					name = tablist.get(i);
+					name = TabList.get(i);
 				} else {
 					name = "";
 				}
 				final int locx = i % x;
 				final int locy = i / x;
 				// Now we should parse player name by his team
-				if (tablistnick.containsKey(name)) {
-					name = tablistnick.get(name);
+				if (TabListNicks.containsKey(name)) {
+					name = TabListNicks.get(name);
 				}
 				String realnamer = name;
-				if (playerteams.containsKey(name)) {
+				if (PlayerTeams.containsKey(name)) {
 					// He is in a team
-					String teamname = playerteams.get(name);
-					if (teams.containsKey(teamname)) {
+					String teamname = PlayerTeams.get(name);
+					if (Teams.containsKey(teamname)) {
 						// His team exists
-						realnamer = teams.get(teamname).getFormatedPlayer(realnamer);
+						realnamer = Teams.get(teamname).getFormatedPlayer(realnamer);
 					}
 				}
 				final String realname = storage.parsecolorashtml(realnamer);
@@ -678,7 +834,14 @@ public class mcbot {
 		}
 	}
 
-	public void refreshtablist(List<String> tablist, HashMap<String, String> playerteams, HashMap<String, team_struct> teams) {
+	/**
+	 * Refresh displayed Player list
+	 * Note that Player list is already handled
+	 * @param TabList
+	 * @param PlayerTeams
+	 * @param Teams
+	 */
+	public void refreshtablist(List<String> TabList, HashMap<String, String> PlayerTeams, HashMap<String, team_struct> Teams) {
 		// Just replace the text on slots
 		int x = this.tablistsize[0];
 		int y = this.tablistsize[1];
@@ -692,11 +855,11 @@ public class mcbot {
 
 		int max = x * y;
 		if (max != 0) {
-			int imax = tablist.size();
+			int imax = TabList.size();
 			for (int i = 0; i < max; i++) {
 				String name;
 				if (i < imax) {
-					name = tablist.get(i);
+					name = TabList.get(i);
 				} else {
 					name = "";
 				}
@@ -704,12 +867,12 @@ public class mcbot {
 				final int locy = i / x;
 				// Now we should parse player name by his team
 				String realnamer = name;
-				if (playerteams.containsKey(name)) {
+				if (PlayerTeams.containsKey(name)) {
 					// He is in a team
-					String teamname = playerteams.get(name);
-					if (teams.containsKey(teamname)) {
+					String teamname = PlayerTeams.get(name);
+					if (Teams.containsKey(teamname)) {
 						// His team exists
-						realnamer = teams.get(teamname).getFormatedPlayer(realnamer);
+						realnamer = Teams.get(teamname).getFormatedPlayer(realnamer);
 					}
 				}
 				final String realname = storage.parsecolorashtml(realnamer);
@@ -737,51 +900,80 @@ public class mcbot {
 		}
 	}
 
-	public void updaterawbot(botsettings bs) {
+	/**
+	 * To update settings
+	 * This method is not safe to use
+	 * @param BotSettings
+	 */
+	public void updaterawbot(botsettings BotSettings) {
 		// To make it reconnect if this change is necessary
-		if (bs != null) {
-			this.rawbot = bs;
+		if (BotSettings != null) {
+			this.rawbot = BotSettings;
 			if (this.connector != null) {
-				this.connector.reconnect = bs.autoreconnect;
+				this.connector.reconnect = BotSettings.autoreconnect;
 			}
-			this.rawbot.maccesstoken = bs.maccesstoken;
-			this.rawbot.mplayertoken = bs.mplayertoken;
-			this.rawbot.mcurrentusername = bs.mcurrentusername;
-			this.rawbot.mojangloginusernameid = bs.mojangloginusernameid;
+			this.rawbot.maccesstoken = BotSettings.maccesstoken;
+			this.rawbot.mplayertoken = BotSettings.mplayertoken;
+			this.rawbot.mcurrentusername = BotSettings.mcurrentusername;
+			this.rawbot.mojangloginusernameid = BotSettings.mojangloginusernameid;
 			updateChatLogger();
 			updateChatFilter();
 		}
 	}
 
-	public void resettablist() {
+	/**
+	 * Reset Player list to default
+	 */
+	public void resetPlayerList() {
 		this.setTabSize(0, 0);
 		refreshtablist(new ArrayList<String>(), new HashMap<String, String>(), new HashMap<String, team_struct>());
 	}
 
-	public void updatehealth(float health, int food, float satur) {
-		String healt = String.format("%.2f", health);
-		String sat = String.format("%.2f", satur);
+	/**
+	 * Updates health on info table
+	 * @param Health
+	 * @param Food
+	 * @param Saturation
+	 */
+	public void updateHealth(float Health, int Food, float Saturation) {
+		String healt = String.format("%.2f", Health);
+		String sat = String.format("%.2f", Saturation);
 		this.tableinfo.setValueAt(healt, 0, 1);
-		this.tableinfo.setValueAt("" + food, 1, 1);
+		this.tableinfo.setValueAt("" + Food, 1, 1);
 		this.tableinfo.setValueAt(sat, 2, 1);
 	}
 
-	public void updateposition(int pos_x, int pos_y, int pos_z) {
-		this.tableinfo.setValueAt(pos_x + "", 0, 3);
-		this.tableinfo.setValueAt(pos_y + "", 1, 3);
-		this.tableinfo.setValueAt(pos_z + "", 2, 3);
+	/**
+	 * Updates coordinates on info table
+	 * @param X
+	 * @param Y
+	 * @param Z
+	 */
+	public void updateposition(int X, int Y, int Z) {
+		this.tableinfo.setValueAt(X + "", 0, 3);
+		this.tableinfo.setValueAt(Y + "", 1, 3);
+		this.tableinfo.setValueAt(Z + "", 2, 3);
 
 	}
 
-	public void showinfotable() {
+	/**
+	 * Display info table
+	 */
+	public void showInfoTable() {
 		this.tableinfo.setVisible(true);
 	}
 
-	public void hideinfotable() {
+	/**
+	 * Hide info table
+	 */
+	public void hideInfoTable() {
 		this.tableinfo.setVisible(false);
 	}
 
-	public void resetinfotable() {
+	/**
+	 * Reset info table to default values
+	 */
+	public void resetInfoTable() {
 		this.tableinfo.setValueAt("", 0, 1);
 		this.tableinfo.setValueAt("", 1, 1);
 		this.tableinfo.setValueAt("", 2, 1);
@@ -790,29 +982,33 @@ public class mcbot {
 		this.tableinfo.setValueAt("", 2, 3);
 	}
 
-	public void chatlog(String message) {
+	/**
+	 * Log message to file
+	 * @param Message
+	 */
+	public void chatLog(String Message) {
 		if (this.isChatLoggerEnabled()) {
 			try {
-				this.ChatLogger.Log(storage.stripcolors(message.substring(1)));
+				this.ChatLogger.Log(storage.stripcolors(Message.substring(1)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
-	public void setTextAtMessageBoxs(String msg) {
+	protected void setTextAtMessageBox(String msg) {
 		this.textcommands.setText(msg);
 	}
 
-	public void arrowuppressed() {
-		setTextAtMessageBoxs(uplist.getPrevious());
+	protected void arrowuppressed() {
+		setTextAtMessageBox(uplist.getPrevious());
 	}
 
-	public void arrowdownpressed() {
-		setTextAtMessageBoxs(uplist.getNext());
+	protected void arrowdownpressed() {
+		setTextAtMessageBox(uplist.getNext());
 	}
 
-	public void tabpressed(JTextField area, String text) {
+	protected void tabpressed(JTextField area, String text) {
 		if (this.connector != null) {
 			this.connector.tabpressed(area, text);
 		}

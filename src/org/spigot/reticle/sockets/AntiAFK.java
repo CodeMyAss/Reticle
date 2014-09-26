@@ -3,8 +3,9 @@ package org.spigot.reticle.sockets;
 public class AntiAFK extends Thread {
 	private connector con;
 
-	public AntiAFK(connector con) {
-		this.con = con;
+	
+	public AntiAFK(connector connector) {
+		this.con = connector;
 	}
 
 	@Override
@@ -17,7 +18,7 @@ public class AntiAFK extends Thread {
 					sync.wait(1000 * con.getantiafkperiod());
 					String[] cmds=con.getafkcommands();
 					for(String cmd:cmds) {
-						con.sendtoserver(cmd);
+						con.sendToServer(cmd);
 					}
 				}
 			} catch (InterruptedException e) {

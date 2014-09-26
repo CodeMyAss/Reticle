@@ -10,6 +10,11 @@ import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
 
+/**
+ * Post form
+ * @author Encorn
+ *
+ */
 public class POST {
 	private String url;
 	private HashMap<String, String> fields = new HashMap<String, String>();
@@ -25,27 +30,46 @@ public class POST {
 		POST, GET
 	};
 
+	/**
+	 * Set request method
+	 * Default is POST
+	 * @param method
+	 */
 	public void setMethod(POSTMETHOD method) {
 		this.method = method.toString();
 	}
 
-	public POST(String URL, boolean resp) {
+	public POST(String URL, boolean responseWanted) {
 		this.url = URL;
-		this.resp = resp;
+		this.resp = responseWanted;
 	}
 
-	public void setContentType(String type) {
+	protected void setContentType(String type) {
 		this.content = type;
 	}
 
+	/**
+	 * Get response code (responseWanted must be true)
+	 * @return
+	 */
 	public int getResponseCode() {
 		return respcode;
 	}
 
+	
+	/**
+	 * Get response as String (responseWanted must be true)
+	 * @return
+	 */
 	public String getResponse() {
 		return response;
 	}
 
+	
+	/**
+	 * Execute request
+	 * @return
+	 */
 	public boolean Execute() {
 		try {
 			String param;
@@ -102,12 +126,22 @@ public class POST {
 		}
 	}
 
+	/**
+	 * For POST method, set single data
+	 * @param data
+	 */
 	public void setSingleData(String data) {
 		this.single = true;
 		this.singledata = data;
 	}
 
 	
+	/**
+	 * Insert value into the request
+	 * @param name
+	 * @param value
+	 * @param encode
+	 */
 	@SuppressWarnings("deprecation")
 	public void addField(String name, String value, boolean encode) {
 		if(encode) {
@@ -120,6 +154,11 @@ public class POST {
 		addField(name,value);
 	}
 	
+	/**
+	 * Insert value into the request
+	 * @param name
+	 * @param value
+	 */
 	public void addField(String name, String value) {
 		fields.put(name, value);
 	}

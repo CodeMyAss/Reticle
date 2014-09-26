@@ -45,7 +45,7 @@ public class botfactory {
 
 	private static JTextPane txtpnText;
 
-	public static void makenewtab(final mcbot bot) {
+	protected static void makenewtab(final mcbot bot) {
 
 		JPanel panel = new JPanel();
 		panel.setBackground(bot.backgroundcolor);
@@ -216,7 +216,7 @@ class contextmenu extends JPopupMenu {
 	private static final long serialVersionUID = 1L;
 	JMenuItem anItem;
 
-	public contextmenu(final JTextPane txt, boolean main) {
+	protected contextmenu(final JTextPane txt, boolean main) {
 
 		ActionListener menuListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
@@ -266,7 +266,7 @@ class MaxLenFilter extends DocumentFilter {
 	private JTextPane area;
 	private int max;
 
-	public MaxLenFilter(JTextPane area, int max) {
+	protected MaxLenFilter(JTextPane area, int max) {
 		this.area = area;
 		this.max = max;
 	}

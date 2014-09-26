@@ -5,13 +5,13 @@ public class ChatJob {
 	public final String message;
 	public final long delay;
 
-	public ChatJob(connector c, String message, long delay2) {
+	protected ChatJob(connector c, String message, long delay2) {
 		this.con = c;
 		this.message = message;
 		this.delay = delay2;
 	}
 	
-	public void Execute() {
+	protected void Execute() {
 		this.con.sendToServerNow(message);
 	}
 }

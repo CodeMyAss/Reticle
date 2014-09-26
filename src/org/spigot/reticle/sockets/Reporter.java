@@ -12,6 +12,10 @@ public class Reporter extends Thread {
 	private ACTION act;
 	public String issue = "";
 
+	/**
+	 * Reporter object
+	 * @param action
+	 */
 	public Reporter(ACTION action) {
 		this.act = action;
 	}

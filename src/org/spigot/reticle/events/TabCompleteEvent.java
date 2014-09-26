@@ -1,6 +1,6 @@
 package org.spigot.reticle.events;
 
-public class TabCompleteEvent extends event {
+public class TabCompleteEvent extends Event {
 	private String[] names;
 
 	public TabCompleteEvent(String[] sugg) {

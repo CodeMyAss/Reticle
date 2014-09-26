@@ -14,6 +14,10 @@ import org.apache.commons.io.FileUtils;
 
 public class updater extends Thread {
 
+	protected updater() {
+		
+	}
+	
 	@Override
 	public void run() {
 		try {
@@ -55,11 +59,11 @@ public class updater extends Thread {
 
 	}
 
-	public void getfilefromurl(String url,String destfile) throws IOException {
+	private void getfilefromurl(String url,String destfile) throws IOException {
 		FileUtils.copyURLToFile(new URL(url), new File(destfile));
 	}
 
-	public String readurl(String str) throws IOException {
+	private String readurl(String str) throws IOException {
 		URL url = new URL(str);
 		URLConnection con = url.openConnection();
 		InputStream in = con.getInputStream();
@@ -71,7 +75,7 @@ public class updater extends Thread {
 		return sb.toString();
 	}
 
-	public void sendmsg(String msg) {
+	private void sendmsg(String msg) {
 		storage.conlog("§b[§4Updater§b] §f" + msg);
 	}
 }

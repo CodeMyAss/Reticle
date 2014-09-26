@@ -58,12 +58,12 @@ public class EncryptionRequestPacket extends packet {
 			if (id != null && access != null) {
 				Authenticator auth = Authenticator.forJoinPurpose(username, id, access);
 				if (auth.sendJoin()) {
-					bot.connector.sendmessage("§2Logged to Mojang servers");
+					bot.connector.sendMessage("§2Logged to Mojang servers");
 				} else {
-					bot.connector.sendmessage("§4Failed to login to Mojang!");
+					bot.connector.sendMessage("§4Failed to login to Mojang!");
 				}
 			} else {
-				bot.connector.sendmessage("§4Failed to load session data!");
+				bot.connector.sendMessage("§4Failed to load session data!");
 			}
 		}
 		int len1 = sharedSecret.length + reader.getVarntCount(sharedSecret.length);

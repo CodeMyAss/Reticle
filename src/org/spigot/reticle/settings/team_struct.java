@@ -5,14 +5,14 @@ import java.util.List;
 
 public class team_struct {
 	public String teamName;
-	public String color = "";
-	public String prefix = "";
-	public String suffix = "";
+	protected String color = "";
+	protected String prefix = "";
+	protected String suffix = "";
 
 	public List<String> players = new ArrayList<String>();
 	public List<String> formatedplayers = new ArrayList<String>();
 
-	public String format;
+	protected String format;
 
 	private void reFormat() {
 		String fp = this.prefix + this.color;
@@ -23,16 +23,24 @@ public class team_struct {
 		}
 	}
 
-	public void RemovePlayers(List<String> pl) {
-		for (String player : pl) {
+	/**
+	 * Removes players from Team
+	 * @param playerList
+	 */
+	public void RemovePlayers(List<String> playerList) {
+		for (String player : playerList) {
 			if (players.contains(player)) {
 				players.remove(player);
 			}
 		}
 	}
 
-	public void AddPlayers(List<String> pl) {
-		for (String player : pl) {
+	/**
+	 * Add Players to Team
+	 * @param playerList
+	 */
+	public void AddPlayers(List<String> playerList) {
+		for (String player : playerList) {
 			if (!players.contains(player)) {
 				players.add(player);
 			}
@@ -40,6 +48,11 @@ public class team_struct {
 		reFormat();
 	}
 
+	/**
+	 * Returns string representation of team
+	 * @param name
+	 * @return
+	 */
 	public String getFormatedPlayer(String name) {
 		int i = 0;
 		for (String player : players) {
@@ -51,6 +64,13 @@ public class team_struct {
 		return "???";
 	}
 
+	/**
+	 * Change display format
+	 * Not safe to use
+	 * @param prefix
+	 * @param suffix
+	 * @param color
+	 */
 	public void setDisplayFormat(String prefix, String suffix, String color) {
 		this.prefix = prefix;
 		this.suffix = suffix;
@@ -58,7 +78,7 @@ public class team_struct {
 		reFormat();
 	}
 
-	public team_struct(String teamname) {
-		this.teamName = teamname;
+	public team_struct(String teamName) {
+		this.teamName = teamName;
 	}
 }

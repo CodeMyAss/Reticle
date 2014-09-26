@@ -1,7 +1,5 @@
 package org.spigot.reticle;
 
-import java.awt.EventQueue;
-
 import javax.sql.rowset.serial.SerialException;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -30,36 +28,10 @@ public class mcbotapp {
 
 	protected JFrame frmReticle;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					mcbotapp window = new mcbotapp();
-					window.frmReticle.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
-	 * Create the application.
-	 * 
-	 * @throws SerialException
-	 */
-	public mcbotapp() throws SerialException {
+	protected mcbotapp() throws SerialException {
 		initialize(storage.version);
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 * 
-	 * @throws SerialException
-	 */
 	private void initialize(String version) throws SerialException {
 		frmReticle = new JFrame();
 		frmReticle.setFont(new Font("Bodoni MT", Font.PLAIN, 12));
@@ -80,7 +52,7 @@ public class mcbotapp {
 				storage.displayoptionswin();
 			}
 		});
-		
+
 		JMenuItem mntmConnectAll = new JMenuItem("Connect all");
 		mntmConnectAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -88,7 +60,7 @@ public class mcbotapp {
 			}
 		});
 		mnNewMenu.add(mntmConnectAll);
-		
+
 		JMenuItem mntmDisconnectAll = new JMenuItem("Disconnect all");
 		mntmDisconnectAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -143,8 +115,8 @@ public class mcbotapp {
 				String botname = storage.getselectedtabtitle();
 				mcbot bot = storage.getInstance().settin.bots.get(botname);
 				if (bot == null) {
-					bot=storage.getspecialbot();
-					if(bot!=null) {
+					bot = storage.getspecialbot();
+					if (bot != null) {
 						bot.specialdisconnect();
 					}
 				} else {
@@ -199,9 +171,8 @@ public class mcbotapp {
 
 		frmReticle.setIconImage(storage.winicon.getImage());
 
-		
-		//TODO: Stream redirection
-		redirectSystemStreams();
+		// TODO: Stream redirection
+		// redirectSystemStreams();
 
 		storage.getInstance().tabbedPane = tabbedPane;
 		storage.getInstance().menu_con = mntmNewMenuItem_2;
@@ -219,12 +190,11 @@ public class mcbotapp {
 		}
 		storage.changemenuitems();
 		storage.savesettings();
-		storage.firsttabload();
-		storage.conlog("§6Current version is still very bugy so §l§nplease§r§6 check for updates frequently.");
-		storage.conlog("§fRunning §2§nReticle§r §fversion §4§n"+storage.version);
+		// storage.conlog("§6Current version is still very bugy so §l§nplease§r§6 check for updates frequently.");
+		storage.conlog("§fRunning §2§nReticle§r §fversion §4§n" + storage.version);
 	}
 
-	public void redirectSystemStreams() {
+	protected void redirectSystemStreams() {
 		OutputStream out = new OutputStream() {
 			@Override
 			public void write(int b) throws IOException {

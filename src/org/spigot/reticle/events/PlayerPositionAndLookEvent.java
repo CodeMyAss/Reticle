@@ -1,6 +1,6 @@
 package org.spigot.reticle.events;
 
-public class PlayerPositionAndLookEvent extends event {
+public class PlayerPositionAndLookEvent extends Event {
 	private double x;
 	private double y;
 	private double z;

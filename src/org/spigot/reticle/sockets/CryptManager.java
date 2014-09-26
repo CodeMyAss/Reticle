@@ -1,10 +1,6 @@
 package org.spigot.reticle.sockets;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -20,30 +16,25 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.bouncycastle.crypto.BufferedBlockCipher;
-import org.bouncycastle.crypto.engines.AESFastEngine;
-import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.params.ParametersWithIV;
-
-
 public class CryptManager {
+	/**
+	 * Creates new random shared key
+	 * @return
+	 */
 	public static SecretKey createNewSharedKey() {
 		try {
-			KeyGenerator var0 = KeyGenerator.getInstance("AES");
-			var0.init(128);
-			return var0.generateKey();
+			KeyGenerator gen = KeyGenerator.getInstance("AES");
+			gen.init(128);
+			return gen.generateKey();
 		} catch (NoSuchAlgorithmException var1) {
 			throw new Error(var1);
 		}
 	}
 
-	public static KeyPair createNewKeyPair() {
+	protected static KeyPair createNewKeyPair() {
 		try {
 			KeyPairGenerator var0 = KeyPairGenerator.getInstance("RSA");
 			var0.initialize(1024);
@@ -55,6 +46,13 @@ public class CryptManager {
 		}
 	}
 
+	/**
+	 * Calculates server hash
+	 * @param ServerId
+	 * @param publicKey
+	 * @param secretKey
+	 * @return
+	 */
 	public static byte[] getServerIdHash(String ServerId, PublicKey publicKey, SecretKey secretKey) {
 		try {
 			return digestOperation("SHA-1", new byte[][] { ServerId.getBytes("ISO_8859_1"), secretKey.getEncoded(), publicKey.getEncoded() });
@@ -63,7 +61,7 @@ public class CryptManager {
 		}
 	}
 
-	public static byte[] digestOperation(String Algorithm, byte[]... bytes) {
+	protected static byte[] digestOperation(String Algorithm, byte[]... bytes) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance(Algorithm);
 			byte[][] params = bytes;
@@ -79,6 +77,11 @@ public class CryptManager {
 		}
 	}
 
+	/**
+	 * Decodes public key
+	 * @param key
+	 * @return
+	 */
 	public static PublicKey decodePublicKey(byte[] key) {
 		try {
 			X509EncodedKeySpec keyspec = new X509EncodedKeySpec(key);
@@ -91,15 +94,21 @@ public class CryptManager {
 		return null;
 	}
 
-	public static SecretKey decryptSharedKey(PrivateKey privateKey, byte[] sharedKey) {
+	protected static SecretKey decryptSharedKey(PrivateKey privateKey, byte[] sharedKey) {
 		return new SecretKeySpec(decryptData(privateKey, sharedKey), "AES");
 	}
 
+	/**
+	 * Encrypts data
+	 * @param key
+	 * @param data
+	 * @return
+	 */
 	public static byte[] encryptData(Key key, byte[] data) {
 		return cipherOperation(1, key, data);
 	}
 
-	public static byte[] decryptData(Key key, byte[] data) {
+	protected static byte[] decryptData(Key key, byte[] data) {
 		return cipherOperation(2, key, data);
 	}
 
@@ -113,44 +122,16 @@ public class CryptManager {
 		return null;
 	}
 
-	private static BufferedBlockCipher createBufferedBlockCipher(boolean par0, Key key) {
-		BufferedBlockCipher var2 = new BufferedBlockCipher(new CFBBlockCipher(new AESFastEngine(), 8));
-		var2.init(par0, new ParametersWithIV(new KeyParameter(key.getEncoded()), key.getEncoded(), 0, 16));
-		return var2;
-	}
-
-	public static OutputStream encryptOuputStream(SecretKey par0SecretKey, OutputStream par1OutputStream) {
-		return new org.bouncycastle.crypto.io.CipherOutputStream(par1OutputStream, createBufferedBlockCipher(true, par0SecretKey));
-	}
-
-	public static org.bouncycastle.crypto.io.CipherInputStream decryptInputStream(SecretKey par0SecretKey, InputStream par1InputStream) {
-		return new org.bouncycastle.crypto.io.CipherInputStream(par1InputStream, createBufferedBlockCipher(false, par0SecretKey));
-	}
-
-	private static Cipher createTheCipherInstance(int p_75886_0_, String p_75886_1_, Key p_75886_2_) {
+	private static Cipher createTheCipherInstance(int code, String String, Key Key) {
 		try {
-			Cipher var3 = Cipher.getInstance(p_75886_1_);
-			var3.init(p_75886_0_, p_75886_2_);
-			return var3;
-		} catch (InvalidKeyException var4) {
-			var4.printStackTrace();
-		} catch (NoSuchAlgorithmException var5) {
-			var5.printStackTrace();
-		} catch (NoSuchPaddingException var6) {
-			var6.printStackTrace();
+			Cipher cipher = Cipher.getInstance(String);
+			cipher.init(code, Key);
+			return cipher;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		System.err.println("Cipher creation failed!");
 		return null;
-	}
-
-	public static Cipher func_151229_a(int p_151229_0_, Key p_151229_1_) {
-		try {
-			Cipher var2 = Cipher.getInstance("AES/CFB8/NoPadding");
-			var2.init(p_151229_0_, p_151229_1_, new IvParameterSpec(p_151229_1_.getEncoded()));
-			return var2;
-		} catch (GeneralSecurityException var3) {
-			throw new RuntimeException(var3);
-		}
 	}
 }

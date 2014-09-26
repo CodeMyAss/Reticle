@@ -11,13 +11,13 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class loader extends JFrame implements Runnable {
-	public loader() {
+	protected loader() {
 	}
 	private static final long serialVersionUID = 1L;
 
 	protected JFrame frame;
 	
-	public static void centre(JFrame frame) {
+	protected static void centre(JFrame frame) {
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 		int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
 		int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
@@ -43,11 +43,11 @@ class ImagePanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private Image img;
 
-	public ImagePanel(String img) {
+	protected ImagePanel(String img) {
 		this(new ImageIcon(img).getImage());
 	}
 
-	public ImagePanel(Image img) {
+	protected ImagePanel(Image img) {
 		this.img = img;
 		Dimension size = new Dimension(img.getWidth(null), img.getHeight(null));
 		setPreferredSize(size);
@@ -57,7 +57,7 @@ class ImagePanel extends JPanel {
 		setLayout(null);
 	}
 
-	public void paintComponent(Graphics g) {
+	protected void paintComponent(Graphics g) {
 		g.drawImage(img, 0, 0, null);
 	}
 

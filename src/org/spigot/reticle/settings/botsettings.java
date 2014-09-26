@@ -41,6 +41,12 @@ public class botsettings {
 	public boolean chatlog=true;
 	public int maxlines=500;
 
+	/**
+	 * Returns ID
+	 * Not safe to use
+	 * @param username
+	 * @return
+	 */
 	public String getMojangID(String username) {
 		return mojangloginusernameid;
 	}
@@ -49,7 +55,11 @@ public class botsettings {
 		this.nick = name;
 	}
 
-	public String gettabname() {
+	/**
+	 * Returns tab name
+	 * @return
+	 */
+	public String getTabName() {
 		if (isMain) {
 			return this.nick + "@" + "Reticle";
 		} else {
@@ -57,12 +67,16 @@ public class botsettings {
 		}
 	}
 
+	/**
+	 * Returns true if it is the only bot of this name
+	 * @return
+	 */
 	public boolean isExclusive() {
 		if (this.servername.toLowerCase().equals("reticle") && !isMain) {
 			return false;
 		}
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
-		String bottabname = gettabname().toLowerCase();
+		String bottabname = getTabName().toLowerCase();
 		for (String bot : bots.keySet()) {
 			if (bot.toLowerCase().equals(bottabname.toLowerCase())) {
 				return false;
@@ -71,12 +85,17 @@ public class botsettings {
 		return true;
 	}
 
+	/**
+	 * Not safe to use
+	 * @param hasthis
+	 * @return
+	 */
 	public boolean isDoubleExclusive(boolean hasthis) {
 		if (this.servername.toLowerCase().equals("reticle") && !isMain) {
 			return false;
 		}
 		HashMap<String, botsettings> bots = storage.getInstance().settin.settings;
-		String bottabname = gettabname().toLowerCase();
+		String bottabname = getTabName().toLowerCase();
 		for (String bot : bots.keySet()) {
 			if (bot.toLowerCase().equals(bottabname.toLowerCase())) {
 				/*
@@ -93,15 +112,15 @@ public class botsettings {
 		return true;
 	}
 
-	public void registerbot() {
-		storage.getInstance().settin.settings.put(gettabname(), this);
+	protected void registerbot() {
+		storage.getInstance().settin.settings.put(getTabName(), this);
 	}
 
-	public void unregisterbot() {
-		storage.getInstance().settin.settings.remove(gettabname());
+	protected void unregisterbot() {
+		storage.getInstance().settin.settings.remove(getTabName());
 	}
 
-	public void renamebot(String newname) {
+	protected void renamebot(String newname) {
 		unregisterbot();
 		registerbot();
 	}

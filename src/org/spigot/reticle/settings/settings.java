@@ -76,6 +76,11 @@ public class settings extends JFrame {
 	private JTextField textmessagedelay;
 	private JTextField textmaxlines;
 
+	/**
+	 * Init settings window
+	 * Not safe for anyone to mess with this method
+	 * @param set
+	 */
 	public settings(final botsettings set) {
 		this.mojangloginusernameid = set.mojangloginusernameid;
 		this.accesstoken = set.maccesstoken;
@@ -132,7 +137,7 @@ public class settings extends JFrame {
 							return;
 						}
 						// Old bot name used to identification
-						String acti = set.gettabname();
+						String acti = set.getTabName();
 						if (storage.verifysettings(acti, bs)) {
 							// Tab index
 							int anum = storage.gettabbyname(acti);
@@ -147,7 +152,7 @@ public class settings extends JFrame {
 				JButton btnNewButton_1 = new JButton("Restore settings");
 				btnNewButton_1.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						String toupdate = BOT.gettabname();
+						String toupdate = BOT.getTabName();
 						botsettings nset = storage.getInstance().settin.settings.get(toupdate);
 						storage.getInstance().setobj.setsettings(nset);
 					}
@@ -161,7 +166,7 @@ public class settings extends JFrame {
 						if (n == JOptionPane.YES_OPTION) {
 							storage.getInstance().winobj = null;
 							dispose();
-							String toremovename = BOT.gettabname();
+							String toremovename = BOT.getTabName();
 							storage.removebotbytabname(toremovename);
 						}
 					}

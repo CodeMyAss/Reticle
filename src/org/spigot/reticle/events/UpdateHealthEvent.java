@@ -1,6 +1,6 @@
 package org.spigot.reticle.events;
 
-public class UpdateHealthEvent extends event {
+public class UpdateHealthEvent extends Event {
 	private final float health;
 	private final int food;
 	private final float satur;

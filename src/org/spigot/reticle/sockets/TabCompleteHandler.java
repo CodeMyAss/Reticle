@@ -11,7 +11,7 @@ public class TabCompleteHandler {
 	private String origmsg;
 	private String suffixmsg;
 
-	public void setOriginal() {
+	protected void setOriginal() {
 		isLocked = true;
 		origmsg = null;
 	}
@@ -20,11 +20,11 @@ public class TabCompleteHandler {
 
 	}
 
-	public void setNames(String[] in) {
+	protected void setNames(String[] in) {
 		this.names = in;
 	}
 
-	public void setComponent(JTextField field) {
+	protected void setComponent(JTextField field) {
 		area = field;
 		if (isLocked || currentcomplete == null) {
 			int maxlen=field.getCaretPosition();
@@ -52,11 +52,11 @@ public class TabCompleteHandler {
 		}
 	}
 
-	public String getOriginalMessage() {
+	protected String getOriginalMessage() {
 		return origmsg;
 	}
 
-	public void getNext() {
+	protected void getNext() {
 		isLocked = false;
 		if (names.length > 0) {
 			current = (current + 1) % names.length;

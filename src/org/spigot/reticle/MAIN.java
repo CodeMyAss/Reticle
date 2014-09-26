@@ -6,7 +6,12 @@ import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.sockets.Reporter;
 
-
+/**
+ * Reticle - Advanced minecraft bot system
+ * 
+ * @author Encorn
+ * 
+ */
 public class MAIN {
 	public static void main(String[] args) throws MalformedURLException, Exception {
 		loader runner;
@@ -27,6 +32,11 @@ public class MAIN {
 			}
 			// Start news service
 			new News().start();
+			if (storage.getAutoplugin()) {
+				storage.loadPlugins();
+			}
+			// Load tabs
+			storage.firsttabload();
 		} catch (SerialException e) {
 			runner.frame.dispose();
 			storage.ChatThread.interrupt();

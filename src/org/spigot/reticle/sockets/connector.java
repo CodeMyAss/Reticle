@@ -19,6 +19,7 @@ import java.util.StringTokenizer;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -29,6 +30,7 @@ import org.spigot.reticle.storage;
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.events.ChatEvent;
+import org.spigot.reticle.events.Event;
 import org.spigot.reticle.events.JoinGameEvent;
 import org.spigot.reticle.events.PlayerPositionAndLookEvent;
 import org.spigot.reticle.events.PluginMessageEvent;
@@ -82,7 +84,7 @@ public class connector extends Thread {
 		this.protocolversion = bot.getprotocolversion();
 	}
 
-	public int getprotocolversion() {
+	protected int getprotocolversion() {
 		return this.protocolversion;
 	}
 
@@ -126,45 +128,44 @@ public class connector extends Thread {
 		packet.ValidPackets.add(TabCompletePacket.ID);
 	}
 
-	public int getantiafkperiod() {
+	protected int getantiafkperiod() {
 		return this.bot.getantiafkperiod();
 	}
 
-	public String[] getignoredmessages() {
+	protected String[] getignoredmessages() {
 		return this.bot.getignoredmessages();
 	}
 
-	public String[] getlogincommands() {
+	protected String[] getlogincommands() {
 		return this.bot.getlogincommands();
 	}
 
-	public String[] getlogoutcommands() {
+	protected String[] getlogoutcommands() {
 		return this.bot.getlogoutcommands();
 	}
 
-	public String[] getafkcommands() {
+	protected String[] getafkcommands() {
 		return this.bot.getafkcommands();
 	}
 
-	public boolean sendlogincommands() {
+	protected boolean sendlogincommands() {
 		return this.bot.sendlogincommands();
 	}
 
-	public boolean sendlogoutcommands() {
+	protected boolean sendlogoutcommands() {
 		return this.bot.sendlogoutcommands();
 	}
 
-	public boolean sendafkcommands() {
+	protected boolean sendafkcommands() {
 		return this.bot.sendafkcommands();
 	}
 
-	public void setEncryption(SecretKey keystr, packet reader) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException {
+	protected void setEncryption(SecretKey keystr, packet reader) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException {
 		IvParameterSpec ivr = new IvParameterSpec(keystr.getEncoded());
 		Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
 		cipher.init(Cipher.DECRYPT_MODE, keystr, ivr);
 		cis = new CipherInputStream(sock.getInputStream(), cipher);
-		// TODO: Remove CryptManager from this
-		cos = CryptManager.encryptOuputStream(keystr, sock.getOutputStream());
+		cos = new CipherOutputStream(sock.getOutputStream(), cipher);
 		reader.setEncryptedStreams(cis, cos);
 		reader.setEncrypted();
 		sendmsg("§2Encryption activated");
@@ -181,7 +182,7 @@ public class connector extends Thread {
 				break;
 			}
 			mainloop();
-			bot.hideinfotable();
+			bot.hideInfoTable();
 			sendmsg("§4Connection has been closed");
 			stopMe();
 			if (reconnect) {
@@ -325,6 +326,9 @@ public class connector extends Thread {
 		}
 	}
 
+	/**
+	 * Stop the connector (Disconnect)
+	 */
 	@SuppressWarnings("deprecation")
 	public void stopMe() {
 		communicationavailable = false;
@@ -341,10 +345,10 @@ public class connector extends Thread {
 			this.afkter = null;
 		}
 		// Reset tablist
-		bot.resettablist();
+		bot.resetPlayerList();
 		// Reset info table
-		bot.resetinfotable();
-		bot.hideinfotable();
+		bot.resetInfoTable();
+		bot.hideInfoTable();
 		// Deal with socket
 		if (sock != null) {
 			try {
@@ -364,9 +368,15 @@ public class connector extends Thread {
 		}
 	}
 
-	public boolean sendtoserver(String msg) {
-		if (msg.length() > 0) {
-			if (msg.toLowerCase().equals("/revive")) {
+	/**
+	 * Sends message to server
+	 * 
+	 * @param Message
+	 * @return
+	 */
+	public boolean sendToServer(String Message) {
+		if (Message.length() > 0) {
+			if (Message.toLowerCase().equals("/revive")) {
 				try {
 					new ClientStatusPacket(reader).Write(CLIENT_STATUS.PERFORM_RESPAWN);
 					sendmsg("§2Respawn requested");
@@ -376,15 +386,15 @@ public class connector extends Thread {
 				}
 			} else {
 				if (this.sock != null) {
-					if (msg.length() >= 100) {
+					if (Message.length() >= 100) {
 						// String[] msgs = msg.split("(?<=\\G.{100})");
-						String[] msgs = splitter(msg, 100);
+						String[] msgs = splitter(Message, 100);
 						for (String m : msgs) {
 							sendToServerRaw(m);
 						}
 						return true;
 					} else {
-						sendToServerRaw(msg);
+						sendToServerRaw(Message);
 						return true;
 					}
 				}
@@ -393,7 +403,7 @@ public class connector extends Thread {
 		return false;
 	}
 
-	public void sendToServerNow(String msg) {
+	protected void sendToServerNow(String msg) {
 		try {
 			new ChatPacket(null, reader, protocolversion).Write(msg);
 		} catch (IOException e) {
@@ -462,6 +472,7 @@ public class connector extends Thread {
 	}
 
 	private void processpacket(int pid, int len, ByteBuffer buf) throws Exception {
+		Event e = null;
 		switch (pid) {
 			default:
 				sendmsg("§4§l§nUnhandled packet " + pid);
@@ -481,7 +492,7 @@ public class connector extends Thread {
 				this.Health = upheal.getHealth();
 				this.Food = upheal.getFood();
 				this.Satur = upheal.getSaturation();
-				bot.updatehealth(this.Health, this.Food, this.Satur);
+				bot.updateHealth(this.Health, this.Food, this.Satur);
 			break;
 
 			case PlayerPositionAndLookPacket.ID:
@@ -498,6 +509,7 @@ public class connector extends Thread {
 				TabCompleteEvent tabev = tabpack.Read();
 				tabcomp.setNames(tabev.getNames());
 				tabcomp.getNext();
+				e = tabev;
 			// handle
 			break;
 
@@ -524,6 +536,7 @@ public class connector extends Thread {
 					// 1 Columns 20 rows
 					settablesize(1, 20);
 				}
+				e = joingameevent;
 			break;
 
 			case ChatPacket.ID:
@@ -531,9 +544,10 @@ public class connector extends Thread {
 				ChatEvent event = new ChatPacket(buf, reader, protocolversion).Read();
 				String msg = parsechat(event.getMessage());
 				if (!isMessageIgnored(msg)) {
-					sendchatmsg(msg);
+					sendChatMsg(msg);
 				}
 				tryandsendlogin();
+				e = event;
 			break;
 
 			case SpawnPositionPacket.ID:
@@ -543,8 +557,7 @@ public class connector extends Thread {
 
 			case RespawnPacket.ID:
 				// Respawn
-				RespawnPacket pack = new RespawnPacket(buf, reader);
-				pack.Read();
+				new RespawnPacket(buf, reader).Read();
 			break;
 
 			case PlayerListItemPacket.ID:
@@ -563,8 +576,7 @@ public class connector extends Thread {
 			break;
 
 			case SetCompressionPacket.ID2:
-				SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
-				compack.Read();
+				new SetCompressionPacket(buf, reader, protocolversion).Read();
 				sendmsg("Compression activated");
 				// compack.Write();
 				compressiondecided = true;
@@ -578,6 +590,7 @@ public class connector extends Thread {
 			case PluginMessagePacket.ID:
 				// Plugin message
 				PluginMessageEvent plmsge = new PluginMessagePacket(buf, reader).Read();
+				e = plmsge;
 				sendmsg("Channel: " + plmsge.getChannel() + " Message: " + plmsge.getMessageAsString());
 			break;
 
@@ -587,11 +600,14 @@ public class connector extends Thread {
 				sendmsg("§4Server closed connection. (" + reason + ")");
 			break;
 		}
+		if (e != null) {
+			storage.pluginManager.invokeEvent(e);
+		}
 	}
 
 	private void nowConnected() {
 		this.reconnect = bot.getautoreconnect();
-		bot.showinfotable();
+		bot.showInfoTable();
 	}
 
 	private boolean isMessageIgnored(String msg) {
@@ -608,7 +624,7 @@ public class connector extends Thread {
 		return false;
 	}
 
-	public void settablesize(int x, int y) {
+	protected void settablesize(int x, int y) {
 		// int[] dim = new int[2];
 		// dim[0] = x;
 		// dim[1] = y;
@@ -667,23 +683,29 @@ public class connector extends Thread {
 		if (!this.haslogged) {
 			this.haslogged = true;
 			if (bot.sendlogincommands()) {
-				this.sendmessage("§bSending login commands");
+				this.sendMessage("§bSending login commands");
 				String[] cmds = bot.getlogincommands();
 				for (String cmd : cmds) {
-					this.sendtoserver(cmd);
+					this.sendToServer(cmd);
 				}
 			}
 		}
 	}
 
-	public static String parsechat(String str) {
+	/**
+	 * Parse JSON chat format
+	 * 
+	 * @param String
+	 * @return
+	 */
+	public static String parsechat(String String) {
 		JsonParser parser = new JsonParser();
 		try {
-			JsonObject obf = parser.parse(str).getAsJsonObject();
+			JsonObject obf = parser.parse(String).getAsJsonObject();
 			return jsonreparse(obf);
 		} catch (IllegalStateException e) {
-			if (parser.parse(str).isJsonPrimitive()) {
-				return parser.parse(str).getAsString();
+			if (parser.parse(String).isJsonPrimitive()) {
+				return parser.parse(String).getAsString();
 			} else {
 				return null;
 			}
@@ -824,7 +846,7 @@ public class connector extends Thread {
 		return sb.toString();
 	}
 
-	public void refreshTablist() {
+	protected void refreshTablist() {
 		if (protocolversion >= 47) {
 			bot.refreshtablist(Tablist, Tablist_nicks, playerTeams, TeamsByNames);
 		} else {
@@ -832,7 +854,7 @@ public class connector extends Thread {
 		}
 	}
 
-	public enum MCCOLOR {
+	protected enum MCCOLOR {
 		black("§0"), dark_blue("§1"), dark_green("§2"), dark_aqua("§3"), dark_red("§4"), dark_purple("§5"), gold("§6"), gray("§7"), dark_gray("§8"), blue("§9"), green("§a"), aqua("§b"), red("§c"), light_purple("§d"), yellow("§e"), white("§f");
 		public String val;
 
@@ -841,27 +863,39 @@ public class connector extends Thread {
 		}
 	}
 
-	public boolean isConnected(boolean forced) {
+	protected boolean isConnected(boolean forced) {
 		return (sock != null);
 	}
 
+	/**
+	 * Returns true if bot is connected
+	 * 
+	 * @return
+	 */
 	public boolean isConnected() {
 		return (sock != null || this.reconnect);
 	}
 
-	public boolean isConnectedAllowReconnect() {
-		return (sock != null);
-	}
-
-	public void sendchatmsg(String message) throws IOException {
-		if (message != null) {
-			sendrawmsg("[Server] " + message);
+	/**
+	 * Sends message to chat box (Prefix '[Server]')
+	 * 
+	 * @param Message
+	 * @throws IOException
+	 */
+	public void sendChatMsg(String Message) throws IOException {
+		if (Message != null) {
+			sendrawmsg("[Server] " + Message);
 		}
 	}
 
-	public void sendmessage(String message) {
-		if (message != null) {
-			sendmsg(message);
+	/**
+	 * Sends message to chat box
+	 * 
+	 * @param Message
+	 */
+	public void sendMessage(String Message) {
+		if (Message != null) {
+			sendmsg(Message);
 		}
 	}
 
@@ -875,9 +909,15 @@ public class connector extends Thread {
 		bot.logmsg(message);
 	}
 
-	public void tabpressed(JTextField area, String text) {
+	/**
+	 * Invoked when Tab-complete should be invoked
+	 * 
+	 * @param textArea
+	 * @param text
+	 */
+	public void tabpressed(JTextField textArea, String text) {
 		TabCompletePacket pack = new TabCompletePacket(reader, null);
-		tabcomp.setComponent(area);
+		tabcomp.setComponent(textArea);
 		try {
 			if (tabcomp.getOriginalMessage() == null) {
 				pack.Write(text);
@@ -888,6 +928,9 @@ public class connector extends Thread {
 		}
 	}
 
+	/**
+	 * Unlock Tab-Complete handler
+	 */
 	public void unlocktabpress() {
 		tabcomp.setOriginal();
 	}

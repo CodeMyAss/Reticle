@@ -11,10 +11,20 @@ public class struct_settings {
 	public HashMap<String, mcbot> bots = new HashMap<String, mcbot>();
 	public HashMap<String, String> globalsettings = new HashMap<String, String>();
 
+	/**
+	 * Returns string representation of settings
+	 * @return
+	 */
 	public String saveToString() {
 		return saveToString(false);
 	}
 
+	/**
+	 * Returns string representation of settings
+	 * If sensitive is true, final string will not include personal data
+	 * @param sensitive
+	 * @return
+	 */
 	public String saveToString(boolean sensitive) {
 		StringBuilder sb = new StringBuilder();
 		for (String key : globalsettings.keySet()) {
@@ -81,8 +91,13 @@ public class struct_settings {
 		return sb.toString();
 	}
 
-	public void loadFromString(String str) throws SerialException {
-		String[] lines = str.split("\r\n");
+	/**
+	 * Parse settings from string representation
+	 * @param stringSettings
+	 * @throws SerialException
+	 */
+	public void loadFromString(String stringSettings) throws SerialException {
+		String[] lines = stringSettings.split("\r\n");
 		if (settings == null) {
 			settings = new HashMap<String, botsettings>();
 		}
@@ -239,7 +254,7 @@ public class struct_settings {
 					if (sb4.toString().length() > 2) {
 						bot.ignored = sb4.toString().substring(2).split("\r\n");
 					}
-					settings.put(bot.gettabname(), bot);
+					settings.put(bot.getTabName(), bot);
 					bot = new botsettings(null);
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
@@ -276,7 +291,7 @@ public class struct_settings {
 			if (sb4.toString().length() > 2) {
 				bot.ignored = sb4.toString().substring(2).split("\r\n");
 			}
-			settings.put(bot.gettabname(), bot);
+			settings.put(bot.getTabName(), bot);
 		}
 	}
 }

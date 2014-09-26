@@ -2,7 +2,7 @@ package org.spigot.reticle.events;
 
 import java.util.List;
 
-public class TeamEvent extends event {
+public class TeamEvent extends Event {
 private String team;
 private byte mode;
 private String prefix;

@@ -40,17 +40,25 @@ public class supportconnector extends Thread implements IRCEventListener {
 	private String connectnick;
 	private supportconnector cobj;
 
+	/**
+	 * Support channel handler
+	 * @param bot
+	 */
 	public supportconnector(mcbot bot) {
 		this.bot = bot;
 		Connect();
 	}
 
+	
+	/**
+	 * Disconnect the support connector
+	 */
 	@SuppressWarnings("deprecation")
 	public void Disconnect() {
 		if (session != null) {
 			session.close("");
 		}
-		bot.resettablist();
+		bot.resetPlayerList();
 		sendmsg("Disconnected");
 		this.connected = false;
 		storage.changemenuitems();
@@ -58,33 +66,41 @@ public class supportconnector extends Thread implements IRCEventListener {
 		this.stop();
 	}
 
-	public void SoftDisconnect() {
+	@Deprecated
+	protected void SoftDisconnect() {
 		if (session != null) {
 			session.removeIRCEventListener(this);
 			session.close("");
 		}
-		bot.resettablist();
+		bot.resetPlayerList();
 		sendmsg("Reconnecting...");
 		manager = new ConnectionManager(new Profile(connectnick));
 		session = manager.requestConnection(storage.supportserver);
 		session.addIRCEventListener(this.cobj);
 	}
 
+	/**
+	 * Returns true if connected
+	 * @return
+	 */
 	public boolean isConnected() {
 		return connected;
 	}
 
 	@Override
 	public void run() {
-		this.cobj=this;
+		this.cobj = this;
 		sendmsg("Connecting to support server...");
 		manager = new ConnectionManager(new Profile(connectnick));
 		session = manager.requestConnection(storage.supportserver);
 		session.addIRCEventListener(this);
 	}
 
+	/**
+	 * Connect to support channel
+	 */
 	public void Connect() {
-		bot.resettablist();
+		bot.resetPlayerList();
 		Tablist = new ArrayList<String>();
 		this.username = storage.getSupportNick();
 		this.connectnick = storage.randomString(15);
@@ -95,6 +111,10 @@ public class supportconnector extends Thread implements IRCEventListener {
 		this.start();
 	}
 
+	/**
+	 * Handler
+	 * Not safe to modify
+	 */
 	@Override
 	public void receiveEvent(IRCEvent event) {
 		Type type = event.getType();
@@ -135,8 +155,12 @@ public class supportconnector extends Thread implements IRCEventListener {
 			}
 			removeFromTablist(quitevent.getUserName(), true);
 		} else if (type == Type.CONNECTION_LOST) {
-			event.getSession().close("");
-			SoftDisconnect();
+			try {
+				event.getSession().close("");
+				// SoftDisconnect();
+				Disconnect();
+			} catch (Exception e) {
+			}
 		}
 	}
 
@@ -230,9 +254,9 @@ public class supportconnector extends Thread implements IRCEventListener {
 	}
 
 	private String defprefix(String str) {
-		return "§0"+str;
+		return "§0" + str;
 	}
-	
+
 	private void refreshtablist() {
 		bot.refreshtablist(Tablist, Tablist_names, emptymap1, emptymap2);
 	}
@@ -269,6 +293,10 @@ public class supportconnector extends Thread implements IRCEventListener {
 		return new StringBuilder(str).reverse().toString();
 	}
 
+	/**
+	 * Send message to support channel
+	 * @param message
+	 */
 	public void SendMessage(String message) {
 		sendrawchatmsg(message);
 		sendtoserverraw(obfuscatemessage(CHATOP.CHAT.id + message));

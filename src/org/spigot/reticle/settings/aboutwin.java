@@ -23,6 +23,9 @@ public class aboutwin extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 
 
+	/**
+	 * About window
+	 */
 	public aboutwin() {
 		addWindowListener(new WindowAdapter() {
 			@Override

@@ -24,6 +24,10 @@ public class ChatThread extends Thread {
 		}
 	}
 
+	/**
+	 * Add chat job to be executed by this ChatThread
+	 * @param job
+	 */
 	public synchronized void addJob(ChatJob job) {
 		this.jobs.add(job);
 	}
