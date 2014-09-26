@@ -219,13 +219,13 @@ public class connector extends Thread {
 			sock = null;
 			bot.seticon(ICONSTATE.CONNECTING);
 			sock = new Socket(bot.serverip, bot.serverport);
-			reader = new packet(sock.getInputStream(), sock.getOutputStream());
+			reader = new packet(bot,sock.getInputStream(), sock.getOutputStream());
 			reader.ProtocolVersion = protocolversion;
 			definepackets(reader);
 			storage.changemenuitems();
 			// First, we must send HandShake and hope for good response
-			new HandShakePacket(reader, protocolversion).Write(bot.serverip, bot.serverport);
-			new LoginStartPacket(reader, protocolversion).Write(bot.username);
+			new HandShakePacket(reader).Write(bot.serverip, bot.serverport);
+			new LoginStartPacket(reader).Write(bot.username);
 
 			// Init routine
 			communicationavailable = true;
@@ -405,7 +405,7 @@ public class connector extends Thread {
 
 	protected void sendToServerNow(String msg) {
 		try {
-			new ChatPacket(null, reader, protocolversion).Write(msg);
+			new ChatPacket(null, reader).Write(msg);
 		} catch (IOException e) {
 		}
 	}
@@ -436,14 +436,14 @@ public class connector extends Thread {
 			break;
 
 			case SetCompressionPacket.ID:
-				SetCompressionPacket compack = new SetCompressionPacket(buf, reader, protocolversion);
+				SetCompressionPacket compack = new SetCompressionPacket(buf, reader);
 				compack.Read();
 				sendmsg("§2Compression activated");
 				compressiondecided = true;
 			break;
 
 			case LoginSuccessPacket.ID:
-				String[] resp = new LoginSuccessPacket(buf, reader, protocolversion).Read();
+				String[] resp = new LoginSuccessPacket(buf, reader).Read();
 				String uuid = resp[0];
 				String username = resp[1];
 				sendmsg("§2Received UUID: §n" + uuid);
@@ -496,7 +496,7 @@ public class connector extends Thread {
 			break;
 
 			case PlayerPositionAndLookPacket.ID:
-				PlayerPositionAndLookEvent ppal = new PlayerPositionAndLookPacket(reader, buf, protocolversion).Read();
+				PlayerPositionAndLookEvent ppal = new PlayerPositionAndLookPacket(reader, buf).Read();
 				this.pos_x = (int) ppal.getX();
 				this.pos_y = (int) ppal.getY();
 				this.pos_z = (int) ppal.getZ();
@@ -515,14 +515,14 @@ public class connector extends Thread {
 
 			case KeepAlivePacket.ID:
 				// Keep us alive
-				KeepAlivePacket keepalivepack = new KeepAlivePacket(reader, protocolversion, buf);
+				KeepAlivePacket keepalivepack = new KeepAlivePacket(reader, buf);
 				keepalivepack.Read();
 				keepalivepack.Write();
 			break;
 
 			case JoinGamePacket.ID:
 				// join game
-				JoinGameEvent joingameevent = new JoinGamePacket(buf, reader, protocolversion).Read();
+				JoinGameEvent joingameevent = new JoinGamePacket(buf, reader).Read();
 				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
 					// 2 Columns 20 rows
 					settablesize(2, 20);
@@ -541,7 +541,7 @@ public class connector extends Thread {
 
 			case ChatPacket.ID:
 				// Chat
-				ChatEvent event = new ChatPacket(buf, reader, protocolversion).Read();
+				ChatEvent event = new ChatPacket(buf, reader).Read();
 				String msg = parsechat(event.getMessage());
 				if (!isMessageIgnored(msg)) {
 					sendChatMsg(msg);
@@ -552,7 +552,7 @@ public class connector extends Thread {
 
 			case SpawnPositionPacket.ID:
 				// Spawn position
-				new SpawnPositionPacket(buf, reader, protocolversion).Read();
+				new SpawnPositionPacket(buf, reader).Read();
 			break;
 
 			case RespawnPacket.ID:
@@ -562,7 +562,7 @@ public class connector extends Thread {
 
 			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)
-				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf, reader, protocolversion);
+				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf, reader);
 				playerlistitem.Read();
 				if (playerlistitem.Serve(Tablist, Tablist_nicks)) {
 					// Tablist needs to be refreshed
@@ -576,7 +576,7 @@ public class connector extends Thread {
 			break;
 
 			case SetCompressionPacket.ID2:
-				new SetCompressionPacket(buf, reader, protocolversion).Read();
+				new SetCompressionPacket(buf, reader).Read();
 				sendmsg("Compression activated");
 				// compack.Write();
 				compressiondecided = true;
@@ -584,7 +584,7 @@ public class connector extends Thread {
 
 			case TeamPacket.ID:
 				// Teams
-				this.handleteam(new TeamPacket(buf, reader, protocolversion).Read());
+				this.handleteam(new TeamPacket(buf, reader).Read());
 			break;
 
 			case PluginMessagePacket.ID:

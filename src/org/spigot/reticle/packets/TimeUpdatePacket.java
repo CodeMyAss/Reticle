@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class TimeUpdatePacket extends packet {
+public class TimeUpdatePacket extends AbstractPacket {
 	public static final int ID=0x03;
 	private packet reader;
 	

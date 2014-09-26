@@ -5,11 +5,11 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class LoginSuccessPacket extends packet {
+public class LoginSuccessPacket extends AbstractPacket {
 	public static final int ID = 0x02;
 	private packet reader;
 
-	public LoginSuccessPacket(ByteBuffer buf, packet reader, int protocolversion) throws IOException {
+	public LoginSuccessPacket(ByteBuffer buf, packet reader) throws IOException {
 		this.reader = reader;
 		this.reader.input = buf;
 	}

@@ -32,7 +32,7 @@ public class PluginManager {
 	private void enablePlugins() {
 		for (Plugin pl : Plugins.keySet()) {
 			PluginInfo plinfo = Plugins.get(pl);
-			storage.conlog("Enabling " + plinfo.Name + " version " + plinfo.Version + " made by " + plinfo.Author);
+			storage.conlog("§bEnabling §f" + plinfo.Name + "§b version §f" + plinfo.Version + " §bmade by §f" + plinfo.Author);
 			pl.onEnable();
 		}
 	}

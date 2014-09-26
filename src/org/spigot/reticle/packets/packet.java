@@ -15,6 +15,8 @@ import java.util.zip.Inflater;
 
 import javax.sql.rowset.serial.SerialException;
 
+import org.spigot.reticle.botfactory.mcbot;
+
 public class packet {
 	protected ByteBuffer input;
 	private ByteBuffer output;
@@ -27,6 +29,7 @@ public class packet {
 	protected int Threshold = 0;
 	public boolean compression;
 	public int ProtocolVersion;
+	public final mcbot bot;
 
 	public enum SIZER {
 		BOOLEAN(1), BYTE(1), SHORT(2), INT(4), LONG(8), FLAT(4), DOUBLE(8);
@@ -46,25 +49,27 @@ public class packet {
 		this.encrypted = true;
 	}
 
-	public packet() {
-
+	public packet(mcbot bot) {
+		this.bot=bot;
 	}
 
 	public boolean isEncrypted() {
 		return this.encrypted;
 	}
 
-	public packet(InputStream inputStream, OutputStream outputs) {
+	public packet(mcbot bot,InputStream inputStream, OutputStream outputs) {
+		this.bot=bot;
 		this.sockinput = inputStream;
 		this.sockoutput = outputs;
 	}
 
-	public packet(InputStream inputStream) {
+	public packet(mcbot bot,InputStream inputStream) {
 		this.sockinput = inputStream;
+		this.bot=bot;
 	}
 
-	public packet(int len, ByteBuffer input) throws IOException {
-		// sock = s;
+	public packet(mcbot bot,int len, ByteBuffer input) throws IOException {
+		this.bot=bot;
 		this.input = input;
 		int vcount = getVarntCount(len);
 		this.output = ByteBuffer.allocate(len + vcount);

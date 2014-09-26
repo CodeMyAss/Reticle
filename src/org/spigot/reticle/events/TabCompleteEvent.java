@@ -1,9 +1,12 @@
 package org.spigot.reticle.events;
 
+import org.spigot.reticle.botfactory.mcbot;
+
 public class TabCompleteEvent extends Event {
 	private String[] names;
 
-	public TabCompleteEvent(String[] sugg) {
+	public TabCompleteEvent(mcbot bot,String[] sugg) {
+		super(bot);
 		this.names = sugg;
 	}
 

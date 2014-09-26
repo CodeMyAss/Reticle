@@ -5,22 +5,20 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class KeepAlivePacket extends packet {
+public class KeepAlivePacket extends AbstractPacket {
 	public static final int ID = 0;
 
 	private packet reader;
 	private int code;
 
-	private int protocolversion;
 
-	public KeepAlivePacket(packet reader, int protocolversion, ByteBuffer buff) {
+	public KeepAlivePacket(packet reader, ByteBuffer buff) {
 		this.reader = reader;
 		this.reader.input = buff;
-		this.protocolversion = protocolversion;
 	}
 
 	public void Read() throws IOException, SerialException {
-		if (protocolversion >= 47) {
+		if (reader.ProtocolVersion >= 47) {
 			code=reader.readVarInt();
 		} else {
 			code=reader.readInt();
@@ -30,7 +28,7 @@ public class KeepAlivePacket extends packet {
 	public void Write() throws IOException {
 		// Packet id
 		reader.writeVarInt(KeepAlivePacket.ID);
-		if (protocolversion >= 47) {
+		if (reader.ProtocolVersion >= 47) {
 			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + (reader.getVarntCount(code)));
 			reader.writeVarInt(ID);
 			reader.writeVarInt(code);

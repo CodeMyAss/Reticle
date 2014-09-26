@@ -5,25 +5,23 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class SetCompressionPacket extends packet {
+public class SetCompressionPacket extends AbstractPacket {
 
 	public static final int ID = 0x3;
 	public static final int ID2 = 0x46;
 	
 	public static final int ID_out = 0x3;
 
-	private int protocolversion;
 	private packet reader;
 
-	public SetCompressionPacket(ByteBuffer buf,packet reader, int protocolversion) {
-		this.protocolversion = protocolversion;
+	public SetCompressionPacket(ByteBuffer buf,packet reader) {
 		this.reader=reader;
 		this.reader.input=buf;
 	}
 
 	public void Read() throws SerialException, IOException {
 		int treshhold = 0;
-		if (protocolversion >= 47) {
+		if (reader.ProtocolVersion >= 47) {
 			treshhold = reader.readVarInt();
 			reader.Threshold=treshhold;
 			reader.compression=true;

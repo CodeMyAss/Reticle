@@ -7,7 +7,7 @@ import javax.sql.rowset.serial.SerialException;
 
 
 
-public class ConnectionResetPacket extends packet {
+public class ConnectionResetPacket extends AbstractPacket {
 	private packet reader;
 	public static final int ID=0x40;
 	public static final int ID2=0x0;

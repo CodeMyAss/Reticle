@@ -12,7 +12,7 @@ import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.sockets.Authenticator;
 import org.spigot.reticle.sockets.CryptManager;
 
-public class EncryptionRequestPacket extends packet {
+public class EncryptionRequestPacket extends AbstractPacket {
 	public static final int ID = 0x01;
 	private packet reader;
 	private byte[] verify;

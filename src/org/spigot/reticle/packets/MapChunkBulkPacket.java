@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class MapChunkBulkPacket {
+public class MapChunkBulkPacket extends AbstractPacket {
 	public static final int ID = 0x26;
 	private packet reader;
     int x;

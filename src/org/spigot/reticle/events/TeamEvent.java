@@ -2,6 +2,8 @@ package org.spigot.reticle.events;
 
 import java.util.List;
 
+import org.spigot.reticle.botfactory.mcbot;
+
 public class TeamEvent extends Event {
 private String team;
 private byte mode;
@@ -15,7 +17,8 @@ private List<String> players;
 	
 	
 	
-	public TeamEvent(String team,byte mode,String prefix,String suffix,String name,byte ffire,String nametag,byte color,List<String> players) {
+	public TeamEvent(mcbot bot,String team,byte mode,String prefix,String suffix,String name,byte ffire,String nametag,byte color,List<String> players) {
+		super(bot);
 		this.team=team;
 		this.mode=mode;
 		this.prefix=prefix;

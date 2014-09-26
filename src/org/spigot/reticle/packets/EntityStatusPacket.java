@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class EntityStatusPacket extends packet {
+public class EntityStatusPacket extends AbstractPacket {
 	public static final int ID = 0x1A;
 	private packet reader;
 

@@ -6,7 +6,7 @@ import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.events.TabCompleteEvent;
 
-public class TabCompletePacket extends packet {
+public class TabCompletePacket extends AbstractPacket {
 	private packet reader;
 	public static final int ID = 0x3A;
 	public static final int ID_OUT = 0x14;
@@ -22,7 +22,7 @@ public class TabCompletePacket extends packet {
 		for (int i = 0; i < count; i++) {
 			names[i] = reader.readString();
 		}
-		return new TabCompleteEvent(names);
+		return new TabCompleteEvent(reader.bot,names);
 	}
 
 	public void Write(String name) throws IOException {

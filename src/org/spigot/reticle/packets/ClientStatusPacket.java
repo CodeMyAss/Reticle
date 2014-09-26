@@ -2,7 +2,7 @@ package org.spigot.reticle.packets;
 
 import java.io.IOException;
 
-public class ClientStatusPacket extends packet {
+public class ClientStatusPacket extends AbstractPacket {
 	private static final int ID_out = 0x16;
 	private packet reader;
 

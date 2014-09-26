@@ -2,7 +2,7 @@ package org.spigot.reticle.packets;
 
 import java.io.IOException;
 
-public class Ignored_Packet extends packet {
+public class Ignored_Packet extends AbstractPacket {
 	private int len;
 	private packet reader;
 	public Ignored_Packet(int len, int id, packet reader) throws IOException {

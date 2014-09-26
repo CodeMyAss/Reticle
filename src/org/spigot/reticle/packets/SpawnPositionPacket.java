@@ -5,19 +5,17 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class SpawnPositionPacket extends packet {
+public class SpawnPositionPacket extends AbstractPacket {
 	public static final int ID = 0x5;
-	private int protocolversion;
 	private packet reader;
 
-	public SpawnPositionPacket(ByteBuffer sock,packet reader, int protocolversion) {
+	public SpawnPositionPacket(ByteBuffer sock,packet reader) {
 		this.reader=reader;
 		this.reader.input = sock;
-		this.protocolversion = protocolversion;
 	}
 
 	public void Read() throws IOException, SerialException {
-		if (protocolversion >= 47) {
+		if (reader.ProtocolVersion >= 47) {
 			reader.readLong();
 		} else {
 			// X

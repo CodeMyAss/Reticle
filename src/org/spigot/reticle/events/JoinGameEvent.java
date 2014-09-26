@@ -1,5 +1,7 @@
 package org.spigot.reticle.events;
 
+import org.spigot.reticle.botfactory.mcbot;
+
 public class JoinGameEvent extends Event{
 	private String leveltype;
 	private int EntityId;
@@ -9,7 +11,8 @@ public class JoinGameEvent extends Event{
 	private byte MaxPlayers;
 	private boolean rdebug;
 	
-	public JoinGameEvent(int entityid,byte gm,byte dim,byte diff,byte maxplayers,String leveltype, boolean rdebug) {
+	public JoinGameEvent(mcbot bot,int entityid,byte gm,byte dim,byte diff,byte maxplayers,String leveltype, boolean rdebug) {
+		super(bot);
 		this.leveltype=leveltype;
 		this.EntityId=entityid;
 		this.Gamemode=gm;
@@ -19,7 +22,8 @@ public class JoinGameEvent extends Event{
 		this.rdebug=rdebug;
 	}
 	
-	public JoinGameEvent(int entityid,byte gm,byte dim,byte diff,byte maxplayers,String leveltype) {
+	public JoinGameEvent(mcbot bot,int entityid,byte gm,byte dim,byte diff,byte maxplayers,String leveltype) {
+		super(bot);
 		this.leveltype=leveltype;
 		this.EntityId=entityid;
 		this.Gamemode=gm;

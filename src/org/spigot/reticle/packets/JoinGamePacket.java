@@ -7,13 +7,11 @@ import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.events.JoinGameEvent;
 
-public class JoinGamePacket extends packet {
+public class JoinGamePacket extends AbstractPacket {
 	public static final int ID=0x1;
-	private int protocolversion;
 	private packet reader;
 	
-	public JoinGamePacket(ByteBuffer sock,packet reader,int protocolversion) {
-		this.protocolversion=protocolversion;
+	public JoinGamePacket(ByteBuffer sock,packet reader) {
 		this.reader=reader;
 		this.reader.input=sock;
 	}
@@ -31,11 +29,11 @@ public class JoinGamePacket extends packet {
 		Byte maxplayers=reader.readByte();
 		//Level type
 		String leveltype=reader.readString();
-		if(protocolversion>=47) {
+		if(reader.ProtocolVersion>=47) {
 			boolean rdebug=reader.readBoolean();
-			return new JoinGameEvent(id, gm, dim, diff, maxplayers, leveltype, rdebug);
+			return new JoinGameEvent(reader.bot,id, gm, dim, diff, maxplayers, leveltype, rdebug);
 		}
-		return new JoinGameEvent(id, gm, dim, diff, maxplayers, leveltype);
+		return new JoinGameEvent(reader.bot,id, gm, dim, diff, maxplayers, leveltype);
 	}
 	
 }

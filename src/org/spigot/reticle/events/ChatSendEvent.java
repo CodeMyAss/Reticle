@@ -6,8 +6,8 @@ public class ChatSendEvent extends ChatEvent {
 	private mcbot sender;
 	
 	
-	public ChatSendEvent(String message, mcbot sender) {
-		super(message);
+	public ChatSendEvent(mcbot bot,String message, mcbot sender) {
+		super(bot,message);
 		this.sender=sender;
 	}
 

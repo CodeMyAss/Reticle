@@ -35,8 +35,8 @@ public class Plugin {
 	public void onUnload() {
 	}
 
-	private final boolean isListener(Class<?> cls) {
-		return cls.isAssignableFrom(Listener.class);
+	private final boolean isListener(Class<?> Class) {
+		return Listener.class.isAssignableFrom(Class);
 	}
 
 	/**
@@ -47,7 +47,6 @@ public class Plugin {
 	protected final void addEventListener(Plugin Plugin, Object Instance) {
 		Class<?> cls = Instance.getClass();
 		if (isListener(cls)) {
-			System.out.println("YES");
 			Method[] methods = cls.getMethods();
 			String MasterClasses = "org.spigot.reticle.events.";
 			for (Method method : methods) {

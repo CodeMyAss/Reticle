@@ -7,11 +7,11 @@ import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.events.PlayerPositionAndLookEvent;
 
-public class PlayerPositionAndLookPacket extends packet {
+public class PlayerPositionAndLookPacket extends AbstractPacket {
 	public static final int ID=0x08;
 	private packet reader;
 
-	public PlayerPositionAndLookPacket(packet reader, ByteBuffer buf, int protocolversion) {
+	public PlayerPositionAndLookPacket(packet reader, ByteBuffer buf) {
 		this.reader=reader;
 		this.reader.input=buf;
 	}
@@ -23,6 +23,6 @@ public class PlayerPositionAndLookPacket extends packet {
 		float yaw=reader.readFloat();
 		float pitch=reader.readFloat();
 		byte flags=reader.readByte();
-		return new PlayerPositionAndLookEvent(x, y, z, pitch, yaw, flags);
+		return new PlayerPositionAndLookEvent(reader.bot,x, y, z, pitch, yaw, flags);
 	}
 }

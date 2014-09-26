@@ -10,26 +10,24 @@ import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.sockets.connector;
 
-public class PlayerListItemPacket extends packet {
+public class PlayerListItemPacket extends AbstractPacket {
 	public static final int ID = 0x38;
 	private String name;
 	private boolean online;
-	private int protocolversion;
 	private List<String> UUIDS;
 	private List<String> Nicks;
 	private List<Boolean> Onlines;
 	private List<Boolean> Changed;
 	private packet reader;
 
-	public PlayerListItemPacket(ByteBuffer sock, packet reader, int protocolversion) {
+	public PlayerListItemPacket(ByteBuffer sock, packet reader) {
 		this.reader = reader;
 		this.reader.input = sock;
-		this.protocolversion = protocolversion;
 
 	}
 
 	public void Read() throws IOException, SerialException {
-		if (protocolversion >= 47) {
+		if (reader.ProtocolVersion >= 47) {
 			UUIDS = new ArrayList<String>();
 			Nicks = new ArrayList<String>();
 			Onlines = new ArrayList<Boolean>();
@@ -104,7 +102,7 @@ public class PlayerListItemPacket extends packet {
 
 	// Meaning of true return value is to update tablist
 	public boolean Serve(List<String> tablist, HashMap<String, String> tablistnick) {
-		if (protocolversion >= 47) {
+		if (reader.ProtocolVersion >= 47) {
 			boolean ret = false;
 			for (int i = 0, o = UUIDS.size(); i < o; i++) {
 				String xUUID = UUIDS.get(i);

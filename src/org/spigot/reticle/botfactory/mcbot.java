@@ -130,6 +130,14 @@ public class mcbot {
 	public void refreshOnlineMode() {
 		this.onlinemode = this.rawbot.mojangusername;
 	}
+	
+	
+	/**
+	 * Requests focus (Make bot's tab active)
+	 */
+	public void requestFocus() {
+		storage.setselectedtable(gettabname());
+	}
 
 	/**
 	 * Returns access token used for authentication
@@ -700,6 +708,8 @@ public class mcbot {
 					doc.insertString(doc.getLength(), restmsg, style);
 				} catch (BadLocationException e) {
 					e.printStackTrace();
+				} catch (Error e) {
+					return;
 				}
 			}
 			if (this.goscroll()) {

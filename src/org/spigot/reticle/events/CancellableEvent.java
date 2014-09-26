@@ -1,8 +1,14 @@
 package org.spigot.reticle.events;
 
+import org.spigot.reticle.botfactory.mcbot;
+
 public class CancellableEvent extends Event {
 	
 	
+	public CancellableEvent(mcbot bot) {
+		super(bot);
+	}
+
 	private boolean cancelled=false;
 	
 

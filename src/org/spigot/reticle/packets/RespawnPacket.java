@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
-public class RespawnPacket extends packet {
+public class RespawnPacket extends AbstractPacket {
 	public static final int ID=0x7;
 	private packet reader;
 

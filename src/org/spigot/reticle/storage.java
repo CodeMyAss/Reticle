@@ -37,7 +37,7 @@ import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
-	public static final String version = "1.04.2 beta";
+	public static final String version = "1.04.3 beta";
 
 	/**
 	 * Number of main tabs (For tab index calculations

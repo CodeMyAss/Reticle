@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 import org.spigot.reticle.events.PluginMessageEvent;
 
-public class PluginMessagePacket extends packet {
+public class PluginMessagePacket extends AbstractPacket {
 	private packet reader;
 	public static final int ID=0x3F;
 	
@@ -16,6 +16,6 @@ public class PluginMessagePacket extends packet {
 	public PluginMessageEvent Read() throws Exception {
 		String channel=reader.readString();
 		byte[] data=reader.readArray();
-		return new PluginMessageEvent(channel,data);
+		return new PluginMessageEvent(reader.bot,channel,data);
 	}
 }

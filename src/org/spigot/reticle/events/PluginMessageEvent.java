@@ -1,10 +1,13 @@
 package org.spigot.reticle.events;
 
+import org.spigot.reticle.botfactory.mcbot;
+
 public class PluginMessageEvent extends CancellableEvent {
 	private byte[] message;
 	private String channel;
 
-	public PluginMessageEvent(String channel, byte[] message) {
+	public PluginMessageEvent(mcbot bot,String channel, byte[] message) {
+		super(bot);
 		this.channel = channel;
 		this.message = message;
 	}

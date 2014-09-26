@@ -9,15 +9,13 @@ import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.events.TeamEvent;
 
-public class TeamPacket extends packet {
+public class TeamPacket extends AbstractPacket {
 	public static final int ID = 0x3E;
-	private int protocolversion;
 	private packet reader;
 
-	public TeamPacket(ByteBuffer buffer,packet reader, int protocolversion) {
+	public TeamPacket(ByteBuffer buffer,packet reader) {
 		this.reader=reader;
 		this.reader.input = buffer;
-		this.protocolversion = protocolversion;
 	}
 
 	public TeamEvent Read() throws IOException, SerialException {
@@ -34,7 +32,7 @@ public class TeamPacket extends packet {
 				suffix = reader.readString();
 				ffire = reader.readByte();
 				int pcount;
-				if (protocolversion >= 47) {
+				if (reader.ProtocolVersion >= 47) {
 					nametag = reader.readString();
 					color = reader.readByte();
 					pcount = reader.readVarInt();
@@ -51,7 +49,7 @@ public class TeamPacket extends packet {
 				prefix = reader.readString();
 				suffix = reader.readString();
 				ffire = reader.readByte();
-				if (protocolversion >= 47) {
+				if (reader.ProtocolVersion >= 47) {
 					nametag = reader.readString();
 					color = reader.readByte();
 				}
@@ -59,7 +57,7 @@ public class TeamPacket extends packet {
 
 			case 3: // New players are added
 				int pcount0;
-				if (protocolversion >= 47) {
+				if (reader.ProtocolVersion >= 47) {
 					pcount0 = reader.readVarInt();
 				} else {
 					pcount0 = reader.readShort();
@@ -71,7 +69,7 @@ public class TeamPacket extends packet {
 
 			case 4: // Players are removed from team
 				int pcount1;
-				if (protocolversion >= 47) {
+				if (reader.ProtocolVersion >= 47) {
 					pcount1 = reader.readVarInt();
 				} else {
 					pcount1 = reader.readShort();
@@ -82,7 +80,7 @@ public class TeamPacket extends packet {
 				}
 			break;
 		}
-		return new TeamEvent(teamname, mode, prefix, suffix, teamdisplayname, ffire, nametag, color, players);
+		return new TeamEvent(reader.bot,teamname, mode, prefix, suffix, teamdisplayname, ffire, nametag, color, players);
 	}
 
 }
