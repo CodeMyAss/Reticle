@@ -875,7 +875,7 @@ public class connector extends Thread {
 						text = nobj.get("text").getAsString();
 					}
 
-					sb.append(bold + underline + strike + italic + color + reset + text);
+					sb.append(bold + underline + strike + italic + color + reset + text + "§r");
 				}
 			}
 		}
