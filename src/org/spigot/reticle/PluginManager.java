@@ -21,6 +21,14 @@ public class PluginManager {
 	protected PluginManager() {
 
 	}
+	
+	/**
+	 * @param Plugin The plugin
+	 * @return PluginInfo for selected plugin
+	 */
+	public PluginInfo getPluginInfo(Plugin Plugin) {
+		return Plugins.get(Plugin);
+	}
 
 	/**
 	 * Finds plugin based on its file name

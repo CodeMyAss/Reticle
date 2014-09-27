@@ -14,8 +14,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.Set;
-
 import javax.sql.rowset.serial.SerialException;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -39,11 +37,6 @@ import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
 	public static final String version = "1.04.4 beta";
-
-	/**
-	 * Number of main tabs (For tab index calculations
-	 */
-	private int mainers = 0;
 
 	/**
 	 * Default text to be displayed for authentication
@@ -94,7 +87,7 @@ public class storage {
 	 * Help commands keeper
 	 */
 	public final static helpCommandsKeeper helper = new helpCommandsKeeper();
-	
+
 	/**
 	 * Structure of settings
 	 */
@@ -183,20 +176,6 @@ public class storage {
 
 	protected static void loadPlugins() {
 		storage.pluginManager.loadAllPlugins();
-	}
-
-	/**
-	 * Invoking this method will cause unpredictable results
-	 */
-	public static void addmainer() {
-		storage.getInstance().mainers++;
-	}
-
-	/**
-	 * Return number of special tabs
-	 */
-	public static int getMainTabs() {
-		return storage.getInstance().mainers;
 	}
 
 	/**
@@ -462,22 +441,17 @@ public class storage {
 
 	/**
 	 * Activates tab based by it's name
+	 * 
 	 * @param TabName
 	 */
 	public static void setselectedtable(String TabName) {
-		Set<String> indexes = storage.getInstance().settin.bots.keySet();
-		int i = 0;
-		for (String index : indexes) {
-			if (index.equals(TabName)) {
-				storage.getInstance().tabbedPane.setSelectedIndex(i + storage.getMainTabs());
-				break;
-			}
-			i++;
-		}
+		int i = storage.gettabbyname(TabName);
+		storage.getInstance().tabbedPane.setSelectedIndex(i);
 	}
 
 	/**
 	 * Deprecated. Will be removed soon
+	 * 
 	 * @param message
 	 * @return
 	 */
@@ -520,6 +494,7 @@ public class storage {
 
 	/**
 	 * Returns setting object
+	 * 
 	 * @return
 	 */
 	public static set_obj_struct getsettingsobj() {
@@ -555,6 +530,7 @@ public class storage {
 
 	/**
 	 * Displays alert window
+	 * 
 	 * @param Title
 	 * @param Message
 	 */
@@ -580,6 +556,7 @@ public class storage {
 
 	/**
 	 * Returns String stripped of formating
+	 * 
 	 * @param String
 	 * @return
 	 */
@@ -589,6 +566,7 @@ public class storage {
 
 	/**
 	 * Sends message to Main tab
+	 * 
 	 * @param Message
 	 */
 	public static void conlog(String Message) {
@@ -616,12 +594,12 @@ public class storage {
 	}
 
 	private static void init() {
-		helper.addEntry("help", "Contains all registered commands", new String[]{});
-		helper.addEntry("pl", "Displays all currently loaded plugins", new String[]{});
-		helper.addEntry("plugins", "same as pl", new String[]{});
-		helper.addEntry("plugin", "same as pl", new String[]{"<load|unload>","<plugin filename|plugin name>"});
+		helper.addEntry("help", "Contains all registered commands", new String[] {});
+		helper.addEntry("pl", "Displays all currently loaded plugins", new String[] {});
+		helper.addEntry("plugins", "same as pl", new String[] {});
+		helper.addEntry("plugin", "same as pl", new String[] { "<load|unload|info>", "<plugin filename|plugin name>" });
 	}
-	
+
 	@Deprecated
 	private static botsettings getcurrenttabsettings() {
 		return storage.getInstance().settin.settings.get(getselectedtabtitle());
@@ -644,6 +622,7 @@ public class storage {
 
 	/**
 	 * Invoked whenever the settings are loaded
+	 * 
 	 * @throws SerialException
 	 */
 	public static final synchronized void loadsettings() throws SerialException {
@@ -666,8 +645,9 @@ public class storage {
 	}
 
 	/**
-	 * Returns static access to Storage object
-	 * Everything related to bots is find here
+	 * Returns static access to Storage object Everything related to bots is
+	 * find here
+	 * 
 	 * @return
 	 */
 	public static storage getInstance() {
@@ -678,8 +658,8 @@ public class storage {
 	}
 
 	/**
-	 * Called whenever bot settings are changed
-	 * Affects tab and settings itself
+	 * Called whenever bot settings are changed Affects tab and settings itself
+	 * 
 	 * @param BotSettings
 	 * @param OldTabName
 	 * @param TabIndex
@@ -704,6 +684,7 @@ public class storage {
 
 	/**
 	 * Returns true if settings provided in BotSettings are correct
+	 * 
 	 * @param OldTabName
 	 * @param BotSettings
 	 * @return
@@ -720,6 +701,7 @@ public class storage {
 
 	/**
 	 * Removes bot based on Tab name
+	 * 
 	 * @param BotTabName
 	 */
 	public static void removebotbytabname(String BotTabName) {
@@ -774,6 +756,7 @@ public class storage {
 
 	/**
 	 * Returns HTML formated Message
+	 * 
 	 * @param Message
 	 * @return
 	 */
@@ -837,6 +820,7 @@ public class storage {
 
 	/**
 	 * Reports exception
+	 * 
 	 * @param e
 	 * @return
 	 */
@@ -854,7 +838,6 @@ public class storage {
 		}
 	}
 
-	
 	protected static mcbot getspecialbot() {
 		mcbot bot = null;
 		String tab = storage.getselectedtabtitle();
@@ -868,6 +851,7 @@ public class storage {
 
 	/**
 	 * Returns bot tab index based by name
+	 * 
 	 * @param BotTabName
 	 * @return
 	 */
@@ -898,8 +882,9 @@ public class storage {
 	}
 
 	/**
-	 * Inserts Message into ignored message list
-	 * Messages in this list are not displayed in chat
+	 * Inserts Message into ignored message list Messages in this list are not
+	 * displayed in chat
+	 * 
 	 * @param Message
 	 */
 	public static void addtoignoreforcurrentbot(String Message) {
@@ -916,6 +901,7 @@ public class storage {
 
 	/**
 	 * PHP - like implode
+	 * 
 	 * @param pattern
 	 * @param res
 	 * @return Imploded string
@@ -935,7 +921,7 @@ public class storage {
 			return result.substring(patlen);
 		}
 	}
-	
+
 	protected static void closing() {
 		storage.pluginManager.unloadAllPlugins();
 	}

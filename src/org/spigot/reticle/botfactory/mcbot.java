@@ -355,7 +355,6 @@ public class mcbot {
 		botfactory.makenewtab(this);
 		if (ismain) {
 			seticon(ICONSTATE.MAIN);
-			storage.addmainer();
 		} else {
 			seticon(ICONSTATE.DISCONNECTED);
 		}
@@ -646,6 +645,15 @@ public class mcbot {
 							}
 						} else {
 							storage.conlog("This plugin is already loaded");
+						}
+					} else if (params[1].equalsIgnoreCase("info")) {
+						String plname = params[2];
+						Plugin pl = storage.pluginManager.getPluginByName(plname);
+						if (pl == null) {
+							storage.conlog("This plugin is not loaded");
+						} else {
+							PluginInfo plinfo=storage.pluginManager.getPluginInfo(pl);
+							storage.conlog("§oPlugin info\nName: §6"+plinfo.Name+"\n§fAuthor: §6"+plinfo.Author+"§f\nVersion: §6"+plinfo.Version);
 						}
 					}
 				} else {

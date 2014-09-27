@@ -131,7 +131,7 @@ public class connector extends Thread {
 				return 0;
 			}
 		} else {
-			lastmessagetime=current;
+			lastmessagetime = current;
 			if (!automessage) {
 				lastmessagetimewithoutautomessage = lastmessagetime;
 			}
@@ -366,7 +366,7 @@ public class connector extends Thread {
 		if (bot.sendlogoutcommands()) {
 			String[] cmds = bot.getlogoutcommands();
 			for (String cmd : cmds) {
-				sendToServer(cmd,true);
+				sendToServer(cmd, true);
 			}
 		}
 		// Stop afkter process
@@ -398,12 +398,11 @@ public class connector extends Thread {
 		}
 	}
 
-
 	/**
 	 * Sends message to server
 	 * 
 	 * @param Message
-	 * @param isAutomatic 
+	 * @param isAutomatic
 	 * @return
 	 */
 	public boolean sendToServer(String Message, boolean isAutomatic) {
@@ -421,11 +420,11 @@ public class connector extends Thread {
 					if (Message.length() >= 100) {
 						String[] msgs = splitter(Message, 100);
 						for (String m : msgs) {
-							sendToServerRaw(m,isAutomatic);
+							sendToServerRaw(m, isAutomatic);
 						}
 						return true;
 					} else {
-						sendToServerRaw(Message,isAutomatic);
+						sendToServerRaw(Message, isAutomatic);
 						return true;
 					}
 				}
@@ -573,11 +572,11 @@ public class connector extends Thread {
 			case ChatPacket.ID:
 				// Chat
 				ChatEvent event = new ChatPacket(buf, reader).Read();
-				String msg = event.getFormatedMessage();
-				if (!isMessageIgnored(msg)) {
+				if (!event.isIgnored()) {
+					String msg = event.getFormatedMessage();
 					sendChatMsg(msg);
+					tryandsendlogin();
 				}
-				tryandsendlogin();
 				e = event;
 			break;
 
@@ -641,11 +640,18 @@ public class connector extends Thread {
 		bot.showInfoTable();
 	}
 
-	private boolean isMessageIgnored(String msg) {
-		if (msg == null) {
+	/**
+	 * Checks if message should be ignored
+	 * 
+	 * @param message
+	 *            - Message to be checked
+	 * @return True if message should be ignored, false if otherwise
+	 */
+	public boolean isMessageIgnored(String message) {
+		if (message == null) {
 			return false;
 		}
-		String parsedmsg = storage.stripcolors(msg);
+		String parsedmsg = storage.stripcolors(message);
 		String[] ignored = getignoredmessages();
 		for (String str : ignored) {
 			if (parsedmsg.equals(str)) {
@@ -717,7 +723,7 @@ public class connector extends Thread {
 				this.sendMessage("§bSending login commands");
 				String[] cmds = bot.getlogincommands();
 				for (String cmd : cmds) {
-					this.sendToServer(cmd,true);
+					this.sendToServer(cmd, true);
 				}
 			}
 		}
