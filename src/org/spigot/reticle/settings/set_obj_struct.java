@@ -179,7 +179,5 @@ public class set_obj_struct {
 			}
 			return result.substring(patlen);
 		}
-
 	}
-
 }

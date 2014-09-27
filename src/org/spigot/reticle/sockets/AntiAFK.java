@@ -18,7 +18,7 @@ public class AntiAFK extends Thread {
 					sync.wait(1000 * con.getantiafkperiod());
 					String[] cmds=con.getafkcommands();
 					for(String cmd:cmds) {
-						con.sendToServer(cmd);
+						con.sendToServer(cmd,true);
 					}
 				}
 			} catch (InterruptedException e) {

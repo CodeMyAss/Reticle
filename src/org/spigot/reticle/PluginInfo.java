@@ -1,6 +1,8 @@
 package org.spigot.reticle;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URLClassLoader;
 
 import org.spigot.reticle.API.Plugin;
 
@@ -13,24 +15,24 @@ public class PluginInfo {
 	private Plugin instance;
 	private Class<?> Class;
 	public final String Name;
+	private URLClassLoader loader;
 
-	protected PluginInfo(String author, File fileEntry, String version, String name, Class<?> Class) {
+	protected PluginInfo(URLClassLoader clazzL, String author, File fileEntry, String version, String name, Class<?> Class) {
 		this.Author = author;
 		this.FileName = fileEntry;
 		this.Version = version;
 		this.Class = Class;
 		this.Name = name;
+		this.loader=clazzL;
 	}
 
-	protected boolean Load() {
+	protected void closeLoader() {
 		try {
-			instance = (Plugin) Class.newInstance();
-			return true;
-		} catch (Exception e) {
-			return false;
+			loader.close();
+		} catch (IOException e) {
 		}
 	}
-
+	
 	protected Plugin getInstance() {
 		if (instance == null) {
 			try {

@@ -1,23 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="Create Runnable Jar for Project Reticle with Jar-in-Jar Loader">
+<project default="create_run_jar" name="Create Runnable Jar for Project Reticle">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
-        <jar destfile="C:/www/minecraft server/atlantida/admin/cchat/Reticle.jar">
+        <jar destfile="C:/www/minecraft server/atlantida/admin/cchat/Reticle.jar" filesetmanifest="mergewithoutmain">
             <manifest>
-                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
-                <attribute name="Rsrc-Main-Class" value="org.spigot.reticle.MAIN"/>
+                <attribute name="Main-Class" value="org.spigot.reticle.MAIN"/>
                 <attribute name="Class-Path" value="."/>
-                <attribute name="Rsrc-Class-Path" value="./ miglayout15-swing.jar forms-1.3.0.jar gson-2.2.4.jar commons-io-2.4.jar jerklib.jar lcrypto-jdk16-143.jar"/>
             </manifest>
-            <zipfileset src="jar-in-jar-loader.zip"/>
             <fileset dir="C:/Documents and Settings/Tom/workspace/Reticle/target/classes"/>
-            <zipfileset dir="C:\Documents and Settings\Tom\workspace\Reticle" includes="miglayout15-swing.jar"/>
-            <zipfileset dir="C:\Documents and Settings\Tom\workspace\Reticle" includes="forms-1.3.0.jar"/>
-            <zipfileset dir="C:\www\minecraft server\atlantida\admin\cchat\winlib" includes="gson-2.2.4.jar"/>
-            <zipfileset dir="C:\www\minecraft server\atlantida\admin\cchat\test\libs" includes="commons-io-2.4.jar"/>
-            <zipfileset dir="C:\www\minecraft server\atlantida\admin\cchat\winlib" includes="jerklib.jar"/>
-            <zipfileset dir="C:\www\minecraft server\atlantida\admin\cchat\winlib" includes="lcrypto-jdk16-143.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/Documents and Settings/Tom/workspace/Reticle/miglayout15-swing.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/Documents and Settings/Tom/workspace/Reticle/forms-1.3.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/winlib/gson-2.2.4.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/test/libs/commons-io-2.4.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/winlib/jerklib.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/winlib/lcrypto-jdk16-143.jar"/>
         </jar>
     </target>
 </project>

@@ -24,6 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
+
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.resources.resources;
@@ -37,7 +38,7 @@ import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
-	public static final String version = "1.04.3 beta";
+	public static final String version = "1.04.4 beta";
 
 	/**
 	 * Number of main tabs (For tab index calculations
@@ -89,6 +90,11 @@ public class storage {
 	 */
 	public final static String joinURLalt = "http://session.minecraft.net/game/joinserver.jsp";
 
+	/**
+	 * Help commands keeper
+	 */
+	public final static helpCommandsKeeper helper = new helpCommandsKeeper();
+	
 	/**
 	 * Structure of settings
 	 */
@@ -593,6 +599,7 @@ public class storage {
 	}
 
 	protected static void firsttabload() {
+		init();
 		HashMap<String, botsettings> tabs = storage.getInstance().settin.settings;
 		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
 		if (tabs != null) {
@@ -608,6 +615,13 @@ public class storage {
 		}
 	}
 
+	private static void init() {
+		helper.addEntry("help", "Contains all registered commands", new String[]{});
+		helper.addEntry("pl", "Displays all currently loaded plugins", new String[]{});
+		helper.addEntry("plugins", "same as pl", new String[]{});
+		helper.addEntry("plugin", "same as pl", new String[]{"<load|unload>","<plugin filename|plugin name>"});
+	}
+	
 	@Deprecated
 	private static botsettings getcurrenttabsettings() {
 		return storage.getInstance().settin.settings.get(getselectedtabtitle());
@@ -898,5 +912,31 @@ public class storage {
 				}
 			}
 		}
+	}
+
+	/**
+	 * PHP - like implode
+	 * @param pattern
+	 * @param res
+	 * @return Imploded string
+	 */
+	public static String implode(String pattern, String[] res) {
+		int len = res.length;
+		if (len == 0) {
+			return "";
+		} else if (len == 1) {
+			return res[0];
+		} else {
+			int patlen = pattern.length();
+			String result = "";
+			for (String s : res) {
+				result = result + pattern + s;
+			}
+			return result.substring(patlen);
+		}
+	}
+	
+	protected static void closing() {
+		storage.pluginManager.unloadAllPlugins();
 	}
 }

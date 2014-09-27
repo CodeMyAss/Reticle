@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +28,9 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+import org.spigot.reticle.PluginInfo;
 import org.spigot.reticle.storage;
+import org.spigot.reticle.API.Plugin;
 import org.spigot.reticle.settings.botsettings;
 import org.spigot.reticle.settings.team_struct;
 import org.spigot.reticle.sockets.Authenticator;
@@ -66,9 +69,9 @@ public class mcbot {
 	private UpListKeeper uplist = new UpListKeeper();
 	private JTextField textcommands;
 
-	
 	/**
 	 * Returns true if messages are delayed
+	 * 
 	 * @return
 	 */
 	public boolean messagesDelayed() {
@@ -84,10 +87,17 @@ public class mcbot {
 		return false;
 	}
 
-	
 	/**
-	 * Add message to list of ignored messages
-	 * Ignored messages are not displayed in chat
+	 * @return True if bot tab is active
+	 */
+	public boolean hasFocus() {
+		return storage.gettabbedpane().getSelectedIndex() == storage.gettabbyname(gettabname());
+	}
+
+	/**
+	 * Add message to list of ignored messages Ignored messages are not
+	 * displayed in chat
+	 * 
 	 * @param Message
 	 */
 	public void addToIgnoreList(String Message) {
@@ -106,8 +116,21 @@ public class mcbot {
 		}
 	}
 
+	protected boolean isMainTab() {
+		return (gettabname().equals("Main@Reticle"));
+	}
+
+	protected boolean isSupportTab() {
+		return (gettabname().equals("Support@Reticle"));
+	}
+
+	protected boolean isSpecialTab() {
+		return (gettabname().endsWith("@Reticle"));
+	}
+
 	/**
 	 * Returns delay between messages
+	 * 
 	 * @return delay
 	 */
 	public int getMessageDelay() {
@@ -116,6 +139,7 @@ public class mcbot {
 
 	/**
 	 * Returns true if online mode is enabled
+	 * 
 	 * @return
 	 */
 	public boolean isOnlineMode() {
@@ -123,15 +147,13 @@ public class mcbot {
 	}
 
 	/**
-	 * Refresh username in structures
-	 * Do not use unless you know what
-	 * exactly this does
+	 * Refresh username in structures Do not use unless you know what exactly
+	 * this does
 	 */
 	public void refreshOnlineMode() {
 		this.onlinemode = this.rawbot.mojangusername;
 	}
-	
-	
+
 	/**
 	 * Requests focus (Make bot's tab active)
 	 */
@@ -141,6 +163,7 @@ public class mcbot {
 
 	/**
 	 * Returns access token used for authentication
+	 * 
 	 * @return
 	 */
 	protected boolean hasAccessToken() {
@@ -149,6 +172,7 @@ public class mcbot {
 
 	/**
 	 * Returns true if mojang username is available
+	 * 
 	 * @return
 	 */
 	protected boolean hasMUsername() {
@@ -157,6 +181,7 @@ public class mcbot {
 
 	/**
 	 * Returns stored mojang username
+	 * 
 	 * @return
 	 */
 	public String getMUsername() {
@@ -204,8 +229,8 @@ public class mcbot {
 	}
 
 	/**
-	 * Creates new bot
-	 * Do not use this constructor
+	 * Creates new bot Do not use this constructor
+	 * 
 	 * @param BotSettings
 	 */
 	public mcbot(botsettings BotSettings) {
@@ -213,8 +238,8 @@ public class mcbot {
 	}
 
 	/**
-	 * Creates new bot
-	 * Do not use this constructor
+	 * Creates new bot Do not use this constructor
+	 * 
 	 * @param bot
 	 * @param main
 	 * @param tablist
@@ -237,6 +262,7 @@ public class mcbot {
 
 	/**
 	 * Verify online settings
+	 * 
 	 * @return
 	 */
 	public boolean verifyonlinesettings() {
@@ -337,6 +363,7 @@ public class mcbot {
 
 	/**
 	 * Returns current protocol version
+	 * 
 	 * @return
 	 */
 	public int getprotocolversion() {
@@ -357,6 +384,7 @@ public class mcbot {
 
 	/**
 	 * Change bot icon
+	 * 
 	 * @param Icon
 	 */
 	public void seticon(final ICONSTATE Icon) {
@@ -379,6 +407,7 @@ public class mcbot {
 
 	/**
 	 * Returns bot's tab name
+	 * 
 	 * @return
 	 */
 	public String gettabname() {
@@ -445,42 +474,43 @@ public class mcbot {
 
 	/**
 	 * Returns seconds between sending afk commands
+	 * 
 	 * @return
 	 */
 	public int getantiafkperiod() {
 		return this.rawbot.afkperiod;
 	}
 
-	
 	/**
 	 * Returns array of ignored messages
+	 * 
 	 * @return
 	 */
 	public String[] getignoredmessages() {
 		return this.rawbot.ignored;
 	}
 
-	
 	/**
 	 * Returns array of commands to be send after login
+	 * 
 	 * @return
 	 */
 	public String[] getlogincommands() {
 		return this.rawbot.autologincmd;
 	}
 
-	
 	/**
 	 * Returns array of commands to be send before disconnect
+	 * 
 	 * @return
 	 */
 	public String[] getlogoutcommands() {
 		return this.rawbot.autologoutcmd;
 	}
 
-	
 	/**
 	 * Returns array of commands to be send to prevent afk state
+	 * 
 	 * @return
 	 */
 	public String[] getafkcommands() {
@@ -489,15 +519,16 @@ public class mcbot {
 
 	/**
 	 * Sends login commands to server
+	 * 
 	 * @return
 	 */
 	public boolean sendlogincommands() {
 		return this.rawbot.autologin;
 	}
 
-	
 	/**
 	 * Sends logout commands to server
+	 * 
 	 * @return
 	 */
 	public boolean sendlogoutcommands() {
@@ -506,6 +537,7 @@ public class mcbot {
 
 	/**
 	 * Sends afk commands to server
+	 * 
 	 * @return
 	 */
 	public boolean sendafkcommands() {
@@ -514,6 +546,7 @@ public class mcbot {
 
 	/**
 	 * Returns true if autoreconnect is enabled
+	 * 
 	 * @return
 	 */
 	public boolean getautoreconnect() {
@@ -522,6 +555,7 @@ public class mcbot {
 
 	/**
 	 * Returns seconds between reconnecting as defined in settings
+	 * 
 	 * @return
 	 */
 	public int getautoreconnectdelay() {
@@ -534,49 +568,130 @@ public class mcbot {
 
 	/**
 	 * Returns true if bot is connected and ready
+	 * 
 	 * @return
 	 */
 	public boolean isConnected() {
-		if (this.gettabname().endsWith("@Reticle")) {
-			if (this.supportconnector != null) {
-				return this.supportconnector.isConnected();
+		if (this.isSpecialTab()) {
+			if (this.isSupportTab()) {
+				if (this.supportconnector != null) {
+					return this.supportconnector.isConnected();
+				} else {
+					return false;
+				}
+			} else if (this.isMainTab()) {
+				return true;
+			}
+		} else {
+			if (this.connector == null) {
+				// Initial state
+				return false;
+			} else {
+				return this.connector.isConnected();
+			}
+		}
+		return false;
+	}
+
+	// TODO: Manage main commands
+	private void manageMainCommand(String command) {
+		String cmd = command.split(" ")[0].toLowerCase();
+		String[] params;
+		if (cmd.length() != command.length()) {
+			// More params to come
+			params = command.split(" ");
+		} else {
+			params = new String[0];
+		}
+		switch (cmd) {
+			default:
+				storage.conlog("Command not recognized. Use §o§6help§r for list of all commands");
+			break;
+			
+			case "help":
+				storage.conlog("§nReticle help§r\n" +storage.helper.getHelpString());
+			break;
+
+			case "pl":
+			case "plugins":
+				StringBuilder sb = new StringBuilder();
+				Collection<PluginInfo> infos = storage.pluginManager.getPluginInfos();
+				for (PluginInfo pl : infos) {
+					sb.append(", " + pl.Name);
+				}
+				if(infos.size()==0) {
+					sb.append("  ");
+				}
+				storage.conlog("Loaded plugins (" + infos.size() + "): " + sb.toString().substring(2));
+			break;
+
+			case "plugin":
+				if (params.length == 3) {
+					if (params[1].equalsIgnoreCase("unload")) {
+						String plname = params[2];
+						Plugin pl = storage.pluginManager.getPluginByName(plname);
+						if (pl == null) {
+							storage.conlog("This plugin is not loaded");
+						} else {
+							storage.pluginManager.unloadPlugin(pl);
+							storage.conlog("Plugin unloaded successfully");
+						}
+					} else if (params[1].equalsIgnoreCase("load")) {
+						String plname = params[2];
+						if (storage.pluginManager.getPluginByFileName(plname) == null) {
+							if (storage.pluginManager.loadPlugin(plname)) {
+								storage.conlog("Plugin loaded successfully");
+							} else {
+								storage.conlog("Failed to load plugin");
+							}
+						} else {
+							storage.conlog("This plugin is already loaded");
+						}
+					}
+				} else {
+					storage.conlog("Usage: /plugin <load|unload> <pluginname>\nTo list all loaded plugins use /plugins");
+				}
+			break;
+		}
+	}
+
+	public boolean sendtoserver(String Message, boolean automessage) {
+		uplist.addMessage(Message);
+		if (this.isSpecialTab()) {
+			if (this.isMainTab()) {
+				manageMainCommand(Message);
+				return true;
+			} else if (this.isSupportTab()) {
+				if (supportconnector != null) {
+					if (supportconnector.isConnected()) {
+						supportconnector.SendMessage(Message);
+						return true;
+					} else {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+		} else {
+			if (this.isConnected()) {
+				return this.connector.sendToServer(Message, automessage);
 			} else {
 				return false;
 			}
 		}
-		if (this.connector == null) {
-			// Initial state
-			return false;
-		} else {
-			return this.connector.isConnected();
-		}
+		return false;
 	}
 
 	/**
-	 * Sends text to server
-	 * (note that to send command, you must send text prefixed with '/')
+	 * Sends text to server (note that to send command, you must send text
+	 * prefixed with '/')
+	 * 
 	 * @param Message
 	 * @return
 	 */
 	public boolean sendtoserver(String Message) {
-		uplist.addMessage(Message);
-		if (this.gettabname().endsWith(("@Reticle"))) {
-			if (supportconnector != null) {
-				if (supportconnector.isConnected()) {
-					supportconnector.SendMessage(Message);
-					return true;
-				} else {
-					return false;
-				}
-			} else {
-				return false;
-			}
-		}
-		if (this.isConnected()) {
-			return this.connector.sendToServer(Message);
-		} else {
-			return false;
-		}
+		return sendtoserver(Message, true);
 	}
 
 	protected void specialconnect() {
@@ -618,8 +733,8 @@ public class mcbot {
 	}
 
 	/**
-	 * Redefine settings
-	 * Do not use this
+	 * Redefine settings Do not use this
+	 * 
 	 * @param ip
 	 * @param port
 	 * @param name
@@ -647,6 +762,7 @@ public class mcbot {
 
 	/**
 	 * Returns text from chat box
+	 * 
 	 * @param len
 	 * @return
 	 */
@@ -662,9 +778,9 @@ public class mcbot {
 		return "";
 	}
 
-	
 	/**
 	 * Logs message to chat box
+	 * 
 	 * @param message
 	 */
 	public synchronized void logmsg(String message) {
@@ -722,8 +838,7 @@ public class mcbot {
 	}
 
 	/**
-	 * Disconnect main bot (Like support connector)
-	 * Do not use this
+	 * Disconnect main bot (Like support connector) Do not use this
 	 */
 	public void specialdisconnect() {
 		this.supportconnector.Disconnect();
@@ -749,10 +864,9 @@ public class mcbot {
 		}
 	}
 
-	
 	/**
-	 * Set Player list dimension
-	 * Do not use this
+	 * Set Player list dimension Do not use this
+	 * 
 	 * @param cols
 	 * @param rows
 	 */
@@ -775,8 +889,8 @@ public class mcbot {
 	}
 
 	/**
-	 * Refresh displayed Player list
-	 * Note that Player list is already handled
+	 * Refresh displayed Player list Note that Player list is already handled
+	 * 
 	 * @param TabList
 	 * @param TabListNicks
 	 * @param PlayerTeams
@@ -845,8 +959,8 @@ public class mcbot {
 	}
 
 	/**
-	 * Refresh displayed Player list
-	 * Note that Player list is already handled
+	 * Refresh displayed Player list Note that Player list is already handled
+	 * 
 	 * @param TabList
 	 * @param PlayerTeams
 	 * @param Teams
@@ -911,8 +1025,8 @@ public class mcbot {
 	}
 
 	/**
-	 * To update settings
-	 * This method is not safe to use
+	 * To update settings This method is not safe to use
+	 * 
 	 * @param BotSettings
 	 */
 	public void updaterawbot(botsettings BotSettings) {
@@ -941,6 +1055,7 @@ public class mcbot {
 
 	/**
 	 * Updates health on info table
+	 * 
 	 * @param Health
 	 * @param Food
 	 * @param Saturation
@@ -955,6 +1070,7 @@ public class mcbot {
 
 	/**
 	 * Updates coordinates on info table
+	 * 
 	 * @param X
 	 * @param Y
 	 * @param Z
@@ -994,6 +1110,7 @@ public class mcbot {
 
 	/**
 	 * Log message to file
+	 * 
 	 * @param Message
 	 */
 	public void chatLog(String Message) {

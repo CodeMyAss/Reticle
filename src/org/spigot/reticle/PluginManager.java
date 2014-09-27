@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -15,12 +16,74 @@ import org.spigot.reticle.events.Event;
 
 public class PluginManager {
 	private HashMap<Plugin, PluginInfo> Plugins = new HashMap<Plugin, PluginInfo>();
-	private HashMap<Class<?>, HashMap<Plugin, HashMap<Method,Object>>> methods_by_plugins = new HashMap<Class<?>, HashMap<Plugin, HashMap<Method,Object>>>();
+	private HashMap<Class<?>, HashMap<Plugin, HashMap<Method, Object>>> methods_by_plugins = new HashMap<Class<?>, HashMap<Plugin, HashMap<Method, Object>>>();
 
 	protected PluginManager() {
-		
+
+	}
+
+	/**
+	 * Finds plugin based on its file name
+	 * 
+	 * @param pl
+	 * @return plugin
+	 */
+	public Plugin getPluginByFileName(String pl) {
+		for (PluginInfo info : Plugins.values()) {
+			if (info.FileName.getName().equalsIgnoreCase(pl) || info.FileName.getName().equalsIgnoreCase(pl + ".jar")) {
+				return info.getInstance();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Finds plugin specified by name
+	 * 
+	 * @param PluginName
+	 * @return Plugin or null if not found
+	 */
+	public Plugin getPluginByName(String PluginName) {
+		for (PluginInfo info : Plugins.values()) {
+			if (info.Name.equalsIgnoreCase(PluginName)) {
+				return info.getInstance();
+			}
+		}
+		return null;
 	}
 	
+	
+	protected void unloadAllPlugins() {
+		Object[] Pluginss =  Plugins.keySet().toArray();
+		for(Object pl:Pluginss) {
+			unloadPlugin((Plugin)pl);
+		}
+	}
+
+	/**
+	 * Unloads plugin
+	 * 
+	 * @param Plugin
+	 */
+	public void unloadPlugin(Plugin Plugin) {
+		if (this.pluginExists(Plugin)) {
+			Plugin.onUnload();
+			this.RemoveAllMethodsForPlugin(Plugin);
+			PluginInfo plinfo = Plugins.get(Plugin);
+			plinfo.closeLoader();
+			Plugins.remove(Plugin);
+		}
+	}
+
+	/**
+	 * Parse all enabled plugins
+	 * 
+	 * @return Array of loaded plugins
+	 */
+	public Collection<PluginInfo> getPluginInfos() {
+		return Plugins.values();
+	}
+
 	private void registerPlugin(PluginInfo plug) {
 		Plugin pl = plug.getInstance();
 		if (!pluginExists(pl)) {
@@ -31,9 +94,27 @@ public class PluginManager {
 
 	private void enablePlugins() {
 		for (Plugin pl : Plugins.keySet()) {
-			PluginInfo plinfo = Plugins.get(pl);
-			storage.conlog("§bEnabling §f" + plinfo.Name + "§b version §f" + plinfo.Version + " §bmade by §f" + plinfo.Author);
-			pl.onEnable();
+			enablePlugin(pl);
+		}
+	}
+
+	private void enablePlugin(Plugin pl) {
+		PluginInfo plinfo = Plugins.get(pl);
+		storage.conlog("§bEnabling §f" + plinfo.Name + "§b version §f" + plinfo.Version + " §bmade by §f" + plinfo.Author);
+		pl.onEnable();
+	}
+
+	public boolean loadPlugin(String filename) {
+		PluginInfo pl = tryLoadPlugin(new File("plugins/" + filename));
+		if (pl == null) {
+			pl = tryLoadPlugin(new File("plugins/" + filename + ".jar"));
+		}
+		if (pl == null) {
+			return false;
+		} else {
+			registerPlugin(pl);
+			enablePlugin(pl.getInstance());
+			return true;
 		}
 	}
 
@@ -41,7 +122,6 @@ public class PluginManager {
 		try {
 			ClassLoader currentThreadClassLoader = Thread.currentThread().getContextClassLoader();
 			URLClassLoader ClazzL = new URLClassLoader(new URL[] { fileEntry.toURI().toURL() }, currentThreadClassLoader);
-			Thread.currentThread().setContextClassLoader(ClazzL);
 			BufferedReader in = new BufferedReader(new InputStreamReader(ClazzL.getResourceAsStream("plugin.yml")));
 			String author = null;
 			String name = null;
@@ -61,11 +141,17 @@ public class PluginManager {
 					version = param;
 				}
 			}
+			in.close();
 			if (main == null || author == null || name == null || version == null) {
+				ClazzL.close();
+				return null;
+			}
+			if (this.getPluginByName(name) != null) {
+				ClazzL.close();
 				return null;
 			}
 			Class<?> c = ClazzL.loadClass(main);
-			return new PluginInfo(author, fileEntry, version, name, c);
+			return new PluginInfo(ClazzL, author, fileEntry, version, name, c);
 		} catch (Exception e) {
 			return null;
 		}
@@ -94,16 +180,9 @@ public class PluginManager {
 		enablePlugins();
 	}
 
-	/**
-	 * Returns true if Plugin exists and is loaded
-	 * @param Plugin
-	 * @return
-	 */
 	protected boolean pluginExists(Plugin Plugin) {
 		return Plugins.containsKey(Plugin);
 	}
-
-
 
 	protected boolean pluginHasMethod(Plugin Plugin, Method Method, Class<?> Class) {
 		if (methods_by_plugins.containsKey(Class)) {
@@ -135,6 +214,7 @@ public class PluginManager {
 
 	/**
 	 * Invoked when event is being dispatched to listeners
+	 * 
 	 * @param e
 	 */
 	public void invokeEvent(Event e) {
@@ -144,7 +224,7 @@ public class PluginManager {
 				Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
 				for (Method method : methods) {
 					try {
-						Object instance=methods_by_plugins.get(cls).get(plugin).get(method);
+						Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
 						method.invoke(instance, e);
 					} catch (IllegalAccessException e1) {
 						e1.printStackTrace();
@@ -158,7 +238,6 @@ public class PluginManager {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private void RemoveAllMethodsForPlugin(Plugin pl) {
 		for (Class<?> cls : methods_by_plugins.keySet()) {
 			if (methods_by_plugins.get(cls).containsKey(pl)) {
@@ -169,6 +248,7 @@ public class PluginManager {
 
 	/**
 	 * Called when method is added to dispatcher
+	 * 
 	 * @param Plugin
 	 * @param Method
 	 * @param Class
@@ -176,13 +256,13 @@ public class PluginManager {
 	 */
 	public void addMethod(Plugin Plugin, Method Method, Class<?> Class, Object Instance) {
 		if (!methods_by_plugins.containsKey(Class)) {
-			methods_by_plugins.put(Class, new HashMap<Plugin, HashMap<Method,Object>>());
+			methods_by_plugins.put(Class, new HashMap<Plugin, HashMap<Method, Object>>());
 		}
 		if (!methods_by_plugins.get(Class).containsKey(Plugin)) {
-			methods_by_plugins.get(Class).put(Plugin, new HashMap<Method,Object>());
+			methods_by_plugins.get(Class).put(Plugin, new HashMap<Method, Object>());
 		}
 		if (!methods_by_plugins.get(Class).get(Plugin).containsKey(Method)) {
-			methods_by_plugins.get(Class).get(Plugin).put(Method,Instance);
+			methods_by_plugins.get(Class).get(Plugin).put(Method, Instance);
 		}
 	}
 }

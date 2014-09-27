@@ -23,6 +23,8 @@ import java.io.PrintStream;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class mcbotapp {
 
@@ -34,6 +36,12 @@ public class mcbotapp {
 
 	private void initialize(String version) throws SerialException {
 		frmReticle = new JFrame();
+		frmReticle.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent arg0) {
+				storage.closing();
+			}
+		});
 		frmReticle.setFont(new Font("Bodoni MT", Font.PLAIN, 12));
 		frmReticle.setForeground(Color.BLACK);
 		frmReticle.setTitle("Reticle " + version);

@@ -110,7 +110,7 @@ public class botfactory {
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
+				if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText(),false)) {
 					txtCommands.setText("");
 				}
 			}
@@ -138,7 +138,7 @@ public class botfactory {
 					}
 				}
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText())) {
+					if (bot.sendtoserver((txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText()),false)) {
 						txtCommands.setText("");
 						bot.setMessageCount(0, true);
 					}
@@ -207,7 +207,7 @@ public class botfactory {
 			panel.add(panel_1, "cell 0 0,grow");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
 			panel_1.add(btnNewButton, "cell 0 1");
-			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount, null, null);
+			bot.setconfig(txtpnText, null, panel_1, autostroll, messagecount, null, txtCommands);
 		}
 	}
 }

@@ -55,6 +55,7 @@ public class connector extends Thread {
 	private boolean encryptiondecided = false;
 	private boolean compressiondecided = false;
 	private long lastmessagetime = 0;
+	private long lastmessagetimewithoutautomessage = 0;
 
 	public boolean reconnect = false;
 	private List<String> Tablist = new ArrayList<String>();
@@ -84,27 +85,56 @@ public class connector extends Thread {
 		this.protocolversion = bot.getprotocolversion();
 	}
 
+	/**
+	 * @return Timestamp of last outgoing message Note that this includes
+	 *         automatically sent messages
+	 */
+	public long getLastOutgoingMessageTime() {
+		return lastmessagetime;
+	}
+
+	/**
+	 * @return Timestamp of last sent message Note that this only includes
+	 *         messages sent manually
+	 */
+	public long getLastMessageSentTime() {
+		return lastmessagetimewithoutautomessage;
+	}
+
 	protected int getprotocolversion() {
 		return this.protocolversion;
 	}
 
-	private long delaymessage() {
+	private long delaymessage(boolean automessage) {
+		long current = System.currentTimeMillis() / 1000;
 		if (bot.messagesDelayed()) {
 			int delay = bot.getMessageDelay();
-			long current = System.currentTimeMillis() / 1000;
 			int towait = (int) (current - lastmessagetime);
 			if (towait <= 0) {
 				towait = -(towait) + delay;
 				lastmessagetime = towait + current;
+				if (!automessage) {
+					lastmessagetimewithoutautomessage = lastmessagetime;
+				}
 				return (towait + current);
 			} else if (towait <= delay && towait >= 0) {
 				lastmessagetime = towait + current;
+				if (!automessage) {
+					lastmessagetimewithoutautomessage = lastmessagetime;
+				}
 				return (towait + current);
 			} else {
 				lastmessagetime = current;
+				if (!automessage) {
+					lastmessagetimewithoutautomessage = lastmessagetime;
+				}
 				return 0;
 			}
 		} else {
+			lastmessagetime=current;
+			if (!automessage) {
+				lastmessagetimewithoutautomessage = lastmessagetime;
+			}
 			return 0;
 		}
 	}
@@ -219,7 +249,7 @@ public class connector extends Thread {
 			sock = null;
 			bot.seticon(ICONSTATE.CONNECTING);
 			sock = new Socket(bot.serverip, bot.serverport);
-			reader = new packet(bot,sock.getInputStream(), sock.getOutputStream());
+			reader = new packet(bot, sock.getInputStream(), sock.getOutputStream());
 			reader.ProtocolVersion = protocolversion;
 			definepackets(reader);
 			storage.changemenuitems();
@@ -336,7 +366,7 @@ public class connector extends Thread {
 		if (bot.sendlogoutcommands()) {
 			String[] cmds = bot.getlogoutcommands();
 			for (String cmd : cmds) {
-				bot.sendtoserver(cmd);
+				sendToServer(cmd,true);
 			}
 		}
 		// Stop afkter process
@@ -359,8 +389,8 @@ public class connector extends Thread {
 		}
 	}
 
-	private void sendToServerRaw(String msg) {
-		long delay = delaymessage();
+	private void sendToServerRaw(String msg, boolean isauto) {
+		long delay = delaymessage(isauto);
 		if (delay == 0) {
 			sendToServerNow(msg);
 		} else {
@@ -368,13 +398,15 @@ public class connector extends Thread {
 		}
 	}
 
+
 	/**
 	 * Sends message to server
 	 * 
 	 * @param Message
+	 * @param isAutomatic 
 	 * @return
 	 */
-	public boolean sendToServer(String Message) {
+	public boolean sendToServer(String Message, boolean isAutomatic) {
 		if (Message.length() > 0) {
 			if (Message.toLowerCase().equals("/revive")) {
 				try {
@@ -387,14 +419,13 @@ public class connector extends Thread {
 			} else {
 				if (this.sock != null) {
 					if (Message.length() >= 100) {
-						// String[] msgs = msg.split("(?<=\\G.{100})");
 						String[] msgs = splitter(Message, 100);
 						for (String m : msgs) {
-							sendToServerRaw(m);
+							sendToServerRaw(m,isAutomatic);
 						}
 						return true;
 					} else {
-						sendToServerRaw(Message);
+						sendToServerRaw(Message,isAutomatic);
 						return true;
 					}
 				}
@@ -542,7 +573,7 @@ public class connector extends Thread {
 			case ChatPacket.ID:
 				// Chat
 				ChatEvent event = new ChatPacket(buf, reader).Read();
-				String msg = parsechat(event.getMessage());
+				String msg = event.getFormatedMessage();
 				if (!isMessageIgnored(msg)) {
 					sendChatMsg(msg);
 				}
@@ -686,7 +717,7 @@ public class connector extends Thread {
 				this.sendMessage("§bSending login commands");
 				String[] cmds = bot.getlogincommands();
 				for (String cmd : cmds) {
-					this.sendToServer(cmd);
+					this.sendToServer(cmd,true);
 				}
 			}
 		}
