@@ -896,8 +896,8 @@ public class storage {
 	/**
 	 * Returns bot tab index based by name
 	 * 
-	 * @param BotTabName
-	 * @return
+	 * @param BotTabName Bot identification
+	 * @return Returns index of bot
 	 */
 	public static int gettabbyname(String BotTabName) {
 		int count = storage.gettabbedpane().getTabCount();

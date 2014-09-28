@@ -18,12 +18,12 @@ public class helpCommandsKeeper {
 	
 	/**
 	 * Checks whether or not the command already exists
-	 * @param Command
+	 * @param Command Command to be checked
 	 * @return True if command exists, false if otherwise
 	 */
-	public boolean CommandExists(String command) {
+	public boolean CommandExists(String Command) {
 		for(entry ent:Entries) {
-			if(ent.com.equalsIgnoreCase(command)) {
+			if(ent.com.equalsIgnoreCase(Command)) {
 				return true;
 			}
 		}

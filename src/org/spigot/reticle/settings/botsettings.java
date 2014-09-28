@@ -48,9 +48,8 @@ public class botsettings {
 
 	/**
 	 * Returns ID Not safe to use
-	 * 
-	 * @param username
-	 * @return
+	 * @param username Username to get ID from
+	 * @return Returns Mojang username ID
 	 */
 	public String getMojangID(String username) {
 		return mojangloginusernameid;

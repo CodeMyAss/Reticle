@@ -49,9 +49,9 @@ public class team_struct {
 	}
 
 	/**
-	 * Returns string representation of team
-	 * @param name
-	 * @return
+	 * Returns string representation of player in team
+	 * @param name Name of player to be formated
+	 * @return Returns String representation of player
 	 */
 	public String getFormatedPlayer(String name) {
 		int i = 0;

@@ -81,7 +81,7 @@ public class supportconnector extends Thread implements IRCEventListener {
 
 	/**
 	 * Returns true if connected
-	 * @return
+	 * @return Returns True if connected, False if not connected
 	 */
 	public boolean isConnected() {
 		return connected;

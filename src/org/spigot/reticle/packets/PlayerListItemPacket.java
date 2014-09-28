@@ -3,21 +3,16 @@ package org.spigot.reticle.packets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.sql.rowset.serial.SerialException;
 
+import org.spigot.reticle.events.PlayerListEvent;
 import org.spigot.reticle.sockets.connector;
 
 public class PlayerListItemPacket extends AbstractPacket {
 	public static final int ID = 0x38;
-	private String name;
-	private boolean online;
-	private List<String> UUIDS;
-	private List<String> Nicks;
-	private List<Boolean> Onlines;
-	private List<Boolean> Changed;
+
 	private packet reader;
 
 	public PlayerListItemPacket(ByteBuffer sock, packet reader) {
@@ -26,7 +21,13 @@ public class PlayerListItemPacket extends AbstractPacket {
 
 	}
 
-	public void Read() throws IOException, SerialException {
+	public PlayerListEvent Read() throws IOException, SerialException {
+		String name = null;
+		boolean online = false;
+		List<String> UUIDS = null;
+		List<String> Nicks = null;
+		List<Boolean> Onlines = null;
+		List<Boolean> Changed = null;
 		if (reader.ProtocolVersion >= 47) {
 			UUIDS = new ArrayList<String>();
 			Nicks = new ArrayList<String>();
@@ -98,74 +99,30 @@ public class PlayerListItemPacket extends AbstractPacket {
 			// Ping
 			reader.readShort();
 		}
+		return new PlayerListEvent(reader.bot, name, online, UUIDS, Nicks, Onlines, Changed);
 	}
 
-	// Meaning of true return value is to update tablist
-	public boolean Serve(List<String> tablist, HashMap<String, String> tablistnick) {
-		if (reader.ProtocolVersion >= 47) {
-			boolean ret = false;
-			for (int i = 0, o = UUIDS.size(); i < o; i++) {
-				String xUUID = UUIDS.get(i);
-				if (!Onlines.get(o)) {
-					if (tablist.contains(xUUID)) {
-						tablist.remove(xUUID);
-					}
-					if (tablistnick.containsKey(xUUID)) {
-						tablistnick.remove(xUUID);
-					}
-				}
-			}
-
-			for (int i = 0, o = UUIDS.size(); i < o; i++) {
-				String xUUID = UUIDS.get(i);
-				String xname = Nicks.get(i);
-				boolean xonline = Onlines.get(i);
-				boolean xchanged = Changed.get(i);
-				if (tablist.contains(xUUID)) {
-					// Already in tablist
-					if (xchanged) {
-						// Display name changed
-						tablistnick.put(xUUID, xname);
-						ret = true;
-					} else if (!xonline) {
-						// Remove us
-						tablist.remove(xUUID);
-						if (tablistnick.containsKey(xUUID)) {
-							tablistnick.remove(xUUID);
-						}
-						ret = true;
-					}
-				} else {
-					// We are not in tablist yet
-					if (xchanged) {
-						tablist.add(xUUID);
-						tablistnick.put(xUUID, xname);
-						ret = true;
-					}
-				}
-			}
-			return ret;
-		} else {
-			if (tablist.contains(name)) {
-				// We are already in tablist
-				if (online) {
-					// And online (Correct)
-				} else {
-					// Bot not online (Suicide)
-					tablist.remove(name);
-					return true;
-				}
-			} else {
-				// We are not in tablist yet
-				if (online) {
-					// But online (Must add)
-					tablist.add(name);
-					return true;
-				} else {
-					// And not online (correct)
-				}
-			}
-		}
-		return false;
-	}
+	/*
+	 * public boolean Serve(List<String> tablist, HashMap<String, String>
+	 * tablistnick) { if (reader.ProtocolVersion >= 47) { boolean ret = false;
+	 * for (int i = 0, o = UUIDS.size(); i < o; i++) { String xUUID =
+	 * UUIDS.get(i); if (!Onlines.get(o)) { if (tablist.contains(xUUID)) {
+	 * tablist.remove(xUUID); } if (tablistnick.containsKey(xUUID)) {
+	 * tablistnick.remove(xUUID); } } }
+	 * 
+	 * for (int i = 0, o = UUIDS.size(); i < o; i++) { String xUUID =
+	 * UUIDS.get(i); String xname = Nicks.get(i); boolean xonline =
+	 * Onlines.get(i); boolean xchanged = Changed.get(i); if
+	 * (tablist.contains(xUUID)) { // Already in tablist if (xchanged) { //
+	 * Display name changed tablistnick.put(xUUID, xname); ret = true; } else if
+	 * (!xonline) { // Remove us tablist.remove(xUUID); if
+	 * (tablistnick.containsKey(xUUID)) { tablistnick.remove(xUUID); } ret =
+	 * true; } } else { // We are not in tablist yet if (xchanged) {
+	 * tablist.add(xUUID); tablistnick.put(xUUID, xname); ret = true; } } }
+	 * return ret; } else { if (tablist.contains(name)) { // We are already in
+	 * tablist if (online) { // And online (Correct) } else { // Bot not online
+	 * (Suicide) tablist.remove(name); return true; } } else { // We are not in
+	 * tablist yet if (online) { // But online (Must add) tablist.add(name);
+	 * return true; } else { // And not online (correct) } } } return false; }
+	 */
 }

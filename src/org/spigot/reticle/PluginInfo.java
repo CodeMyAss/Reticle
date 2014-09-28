@@ -38,6 +38,7 @@ public class PluginInfo {
 			try {
 				instance = (Plugin) Class.newInstance();
 			} catch (Exception e) {
+				System.err.println("Failed to create instance of plugin "+this.Name);
 				e.printStackTrace();
 			}
 		}

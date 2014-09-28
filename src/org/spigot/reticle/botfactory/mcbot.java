@@ -32,6 +32,7 @@ import javax.swing.text.StyledDocument;
 import org.spigot.reticle.PluginInfo;
 import org.spigot.reticle.storage;
 import org.spigot.reticle.API.Plugin;
+import org.spigot.reticle.events.ConsoleCommandEvent;
 import org.spigot.reticle.settings.botsettings;
 import org.spigot.reticle.settings.team_struct;
 import org.spigot.reticle.sockets.Authenticator;
@@ -398,7 +399,7 @@ public class mcbot {
 	/**
 	 * Returns current protocol version
 	 * 
-	 * @return
+	 * @return Returns current protocol version
 	 */
 	public int getprotocolversion() {
 		return this.rawbot.protocolversion;
@@ -516,7 +517,7 @@ public class mcbot {
 	/**
 	 * Returns array of ignored messages
 	 * 
-	 * @return
+	 * @return Returns array of ignored messages
 	 */
 	public String[] getignoredmessages() {
 		return this.rawbot.ignored;
@@ -532,7 +533,7 @@ public class mcbot {
 	/**
 	 * Returns array of commands to be send before disconnect
 	 * 
-	 * @return
+	 * @return Returns array of commands to be send before disconnect
 	 */
 	public String[] getlogoutcommands() {
 		return this.rawbot.autologoutcmd;
@@ -548,7 +549,7 @@ public class mcbot {
 	/**
 	 * Sends login commands to server
 	 * 
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean sendlogincommands() {
 		return this.rawbot.autologin;
@@ -557,7 +558,7 @@ public class mcbot {
 	/**
 	 * Sends logout commands to server
 	 * 
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean sendlogoutcommands() {
 		return this.rawbot.autologout;
@@ -619,17 +620,16 @@ public class mcbot {
 
 	// TODO: Manage main commands
 	private void manageMainCommand(String command) {
-		String cmd = command.split(" ")[0].toLowerCase();
-		String[] params;
-		if (cmd.length() != command.length()) {
-			// More params to come
-			params = command.split(" ");
-		} else {
-			params = new String[0];
-		}
+		ConsoleCommandEvent event = new ConsoleCommandEvent(this,command);
+		String cmd = event.getCommandName().toLowerCase();
+		String[] params=event.getParams();
 		switch (cmd) {
 			default:
-				storage.conlog("Command not recognized. Use §o§6help§r for list of all commands");
+				storage.pluginManager.invokeEvent(event, true);
+				if(!event.isCancelled()) {
+					storage.conlog("Command not recognized. Use §o§6help§r for list of all commands");
+				}
+				
 			break;
 
 			case "help":
@@ -758,8 +758,8 @@ public class mcbot {
 	 * Sends text to server (note that to send command, you must send text
 	 * prefixed with '/')
 	 * 
-	 * @param Message
-	 * @return
+	 * @param Message Message to be send to server
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean sendtoserver(String Message) {
 		return sendtoserver(Message, true);

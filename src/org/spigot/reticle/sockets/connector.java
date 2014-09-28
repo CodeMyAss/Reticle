@@ -32,6 +32,7 @@ import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.Event;
 import org.spigot.reticle.events.JoinGameEvent;
+import org.spigot.reticle.events.PlayerListEvent;
 import org.spigot.reticle.events.PlayerPositionAndLookEvent;
 import org.spigot.reticle.events.PluginMessageEvent;
 import org.spigot.reticle.events.TabCompleteEvent;
@@ -610,12 +611,12 @@ public class connector extends Thread {
 				new RespawnPacket(buf, reader).Read();
 			break;
 
+			//TODO: Check functionality
 			case PlayerListItemPacket.ID:
 				// We got tablist update (yay)
 				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf, reader);
-				playerlistitem.Read();
-				if (playerlistitem.Serve(Tablist, Tablist_nicks)) {
-					// Tablist needs to be refreshed
+				PlayerListEvent plevent = playerlistitem.Read();
+				if (serverPlayerList(plevent, Tablist, Tablist_nicks)) {
 					this.refreshTablist();
 				}
 			break;
@@ -653,6 +654,74 @@ public class connector extends Thread {
 		if (e != null) {
 			storage.pluginManager.invokeEvent(e, bot.getAllowedPlugins());
 		}
+	}
+
+	private boolean serverPlayerList(PlayerListEvent event, List<String> tablist, HashMap<String, String> tablistnick) {
+		if (reader.ProtocolVersion >= 47) {
+			boolean ret = false;
+			for (int i = 0, o = event.UUIDS.size(); i < o; i++) {
+				String xUUID = event.UUIDS.get(i);
+				if (!event.Onlines.get(o)) {
+					if (tablist.contains(xUUID)) {
+						tablist.remove(xUUID);
+					}
+					if (tablistnick.containsKey(xUUID)) {
+						tablistnick.remove(xUUID);
+					}
+				}
+			}
+
+			for (int i = 0, o = event.UUIDS.size(); i < o; i++) {
+				String xUUID = event.UUIDS.get(i);
+				String xname = event.Nicks.get(i);
+				boolean xonline = event.Onlines.get(i);
+				boolean xchanged = event.Changed.get(i);
+				if (tablist.contains(xUUID)) {
+					// Already in tablist
+					if (xchanged) {
+						// Display name changed
+						tablistnick.put(xUUID, xname);
+						ret = true;
+					} else if (!xonline) {
+						// Remove us
+						tablist.remove(xUUID);
+						if (tablistnick.containsKey(xUUID)) {
+							tablistnick.remove(xUUID);
+						}
+						ret = true;
+					}
+				} else {
+					// We are not in tablist yet
+					if (xchanged) {
+						tablist.add(xUUID);
+						tablistnick.put(xUUID, xname);
+						ret = true;
+					}
+				}
+			}
+			return ret;
+		} else {
+			if (tablist.contains(event.name)) {
+				// We are already in tablist
+				if (event.online) {
+					// And online (Correct)
+				} else {
+					// Bot not online (Suicide)
+					tablist.remove(event.name);
+					return true;
+				}
+			} else {
+				// We are not in tablist yet
+				if (event.online) {
+					// But online (Must add)
+					tablist.add(event.name);
+					return true;
+				} else {
+					// And not online (correct)
+				}
+			}
+		}
+		return false;
 	}
 
 	private void nowConnected() {

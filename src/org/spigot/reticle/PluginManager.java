@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.spigot.reticle.API.Plugin;
+import org.spigot.reticle.events.ConsoleCommandEvent;
 import org.spigot.reticle.events.Event;
 
 public class PluginManager {
@@ -105,7 +106,7 @@ public class PluginManager {
 
 	private void registerPlugin(PluginInfo plug) {
 		Plugin pl = plug.getInstance();
-		if (!pluginExists(pl)) {
+		if (!pluginExists(pl) && pl != null) {
 			Plugins.put(pl, plug);
 			pl.onLoad();
 		}
@@ -240,22 +241,31 @@ public class PluginManager {
 	 *            List of enabled plugins
 	 */
 	public void invokeEvent(Event e, List<String> list) {
+		invokeEvent(e, list, false);
+	}
+
+	public void invokeEvent(ConsoleCommandEvent event, boolean override) {
+		invokeEvent(event, null, true);
+	}
+
+	private void invokeEvent(Event e, List<String> list, boolean override) {
 		Class<?> cls = e.getClass();
 		if (ClassIsHandled(cls)) {
 			for (Plugin plugin : methods_by_plugins.get(cls).keySet()) {
-				if (list.contains(Plugins.get(plugin).Name)) {
-					Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
-					for (Method method : methods) {
-						try {
-							Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
-							method.invoke(instance, e);
-						} catch (IllegalAccessException e1) {
-							e1.printStackTrace();
-						} catch (IllegalArgumentException e1) {
-							e1.printStackTrace();
-						} catch (InvocationTargetException e1) {
-							e1.printStackTrace();
-						}
+				if (!override && list != null) {
+					if (!list.contains(Plugins.get(plugin).Name)) {
+						continue;
+					}
+				}
+				Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
+				for (Method method : methods) {
+					try {
+						Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
+						method.invoke(instance, e);
+					} catch (IllegalAccessException e1) {
+					} catch (IllegalArgumentException e1) {
+					} catch (InvocationTargetException e1) {
+						e1.printStackTrace();
 					}
 				}
 			}
