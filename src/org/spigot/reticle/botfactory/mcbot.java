@@ -629,7 +629,6 @@ public class mcbot {
 				if(!event.isCancelled()) {
 					storage.conlog("Command not recognized. Use §o§6help§r for list of all commands");
 				}
-				
 			break;
 
 			case "help":
@@ -650,9 +649,9 @@ public class mcbot {
 			break;
 
 			case "plugin":
-				if (params.length == 3) {
-					if (params[1].equalsIgnoreCase("unload")) {
-						String plname = params[2];
+				if (params.length == 2) {
+					if (params[0].equalsIgnoreCase("unload")) {
+						String plname = params[1];
 						Plugin pl = storage.pluginManager.getPluginByName(plname);
 						if (pl == null) {
 							storage.conlog("This plugin is not loaded");
@@ -660,8 +659,8 @@ public class mcbot {
 							storage.pluginManager.unloadPlugin(pl);
 							storage.conlog("Plugin unloaded successfully");
 						}
-					} else if (params[1].equalsIgnoreCase("load")) {
-						String plname = params[2];
+					} else if (params[0].equalsIgnoreCase("load")) {
+						String plname = params[1];
 						if (storage.pluginManager.getPluginByFileName(plname) == null) {
 							if (storage.pluginManager.loadPlugin(plname)) {
 								storage.conlog("Plugin loaded successfully");
@@ -671,8 +670,8 @@ public class mcbot {
 						} else {
 							storage.conlog("This plugin is already loaded");
 						}
-					} else if (params[1].equalsIgnoreCase("info")) {
-						String plname = params[2];
+					} else if (params[0].equalsIgnoreCase("info")) {
+						String plname = params[1];
 						Plugin pl = storage.pluginManager.getPluginByName(plname);
 						if (pl == null) {
 							storage.conlog("This plugin is not loaded");
@@ -680,8 +679,8 @@ public class mcbot {
 							PluginInfo plinfo = storage.pluginManager.getPluginInfo(pl);
 							storage.conlog("§oPlugin info\nName: §6" + plinfo.Name + "\n§fAuthor: §6" + plinfo.Author + "§f\nVersion: §6" + plinfo.Version);
 						}
-					} else if (params[1].equalsIgnoreCase("enabledall")) {
-						String plname = params[2];
+					} else if (params[0].equalsIgnoreCase("enabledall")) {
+						String plname = params[1];
 						Plugin pl = storage.pluginManager.getPluginByName(plname);
 						if (pl == null) {
 							storage.conlog("This plugin is not loaded");
@@ -693,8 +692,8 @@ public class mcbot {
 							}
 							storage.conlog("Plugin §6" + plinfo.Name + "§r§f has been enabled on all servers");
 						}
-					} else if (params[1].equalsIgnoreCase("disableall")) {
-						String plname = params[2];
+					} else if (params[0].equalsIgnoreCase("disableall")) {
+						String plname = params[1];
 						Plugin pl = storage.pluginManager.getPluginByName(plname);
 						if (pl == null) {
 							storage.conlog("This plugin is not loaded");

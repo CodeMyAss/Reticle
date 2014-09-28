@@ -4,6 +4,7 @@ import org.spigot.reticle.botfactory.mcbot;
 
 public class Event {
 	private final mcbot bot;
+	private final long time;
 	
 	/**
 	 * Returns bot of origin
@@ -13,9 +14,17 @@ public class Event {
 		return bot;
 	}
 	
+	/**
+	 * Returns invocation time
+	 * @return Returns timestamp of invocation
+	 */
+	public final long getTime() {
+		return time;
+	}
 	
 	protected Event(mcbot bot) {
 		this.bot=bot;
+		this.time=System.currentTimeMillis() / 1000;
 	}
 	
 	/**

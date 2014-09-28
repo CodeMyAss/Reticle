@@ -554,14 +554,12 @@ public class connector extends Thread {
 				bot.updateposition(this.pos_x, this.pos_y, this.pos_z);
 			break;
 
-			// TODO: Tab-Complete
 			case TabCompletePacket.ID:
 				TabCompletePacket tabpack = new TabCompletePacket(reader, buf);
 				TabCompleteEvent tabev = tabpack.Read();
 				tabcomp.setNames(tabev.getNames());
 				tabcomp.getNext();
 				e = tabev;
-			// handle
 			break;
 
 			case KeepAlivePacket.ID:

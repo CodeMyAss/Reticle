@@ -15,6 +15,8 @@
             <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/test/libs/commons-io-2.4.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/winlib/jerklib.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/winlib/lcrypto-jdk16-143.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/winlib/jfontchooser.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/www/minecraft server/atlantida/admin/cchat/winlib/xstream-1.4.7.jar"/>
         </jar>
     </target>
 </project>
