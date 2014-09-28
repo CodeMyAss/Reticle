@@ -14,7 +14,7 @@ public class CancellableEvent extends Event {
 
 	/**
 	 * Returns true if event was cancelled
-	 * @return
+	 * @return Returns True if cancelled, False if otherwise
 	 */
 	public boolean isCancelled() {
 		if(cancelled) {

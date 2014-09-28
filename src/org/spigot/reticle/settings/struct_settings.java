@@ -17,7 +17,7 @@ public class struct_settings {
 	/**
 	 * Returns string representation of settings
 	 * 
-	 * @return
+	 * @return Returns string representation of settings
 	 */
 	public String saveToString() {
 		return saveToString(false);
@@ -27,8 +27,8 @@ public class struct_settings {
 	 * Returns string representation of settings If sensitive is true, final
 	 * string will not include personal data
 	 * 
-	 * @param sensitive
-	 * @return
+	 * @param sensitive True if string can contain sensitive data (Including passwords)
+	 * @return Returns string representation of settings
 	 */
 	public String saveToString(boolean sensitive) {
 		StringBuilder sb = new StringBuilder();

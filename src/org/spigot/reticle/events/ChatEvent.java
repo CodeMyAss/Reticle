@@ -30,7 +30,7 @@ public class ChatEvent extends CancellableEvent {
 	
 	/**
 	 * Returns message as it is received from server
-	 * @return
+	 * @return Returns message as it is received from server
 	 */
 	public String getMessage() {
 		return message;
@@ -38,7 +38,7 @@ public class ChatEvent extends CancellableEvent {
 
 	/**
 	 * Returns formated message
-	 * @return
+	 * @return Returns formated message
 	 */
 	public String getFormatedMessage() {
 		return connector.parsechat(message);
@@ -46,8 +46,7 @@ public class ChatEvent extends CancellableEvent {
 
 	/**
 	 * Returns chat position
-	 * 
-	 * @return
+	 * @return Returns chat position
 	 */
 	public int getPosition() {
 		return pos;

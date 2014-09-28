@@ -7,7 +7,7 @@ public class Event {
 	
 	/**
 	 * Returns bot of origin
-	 * @return
+	 * @return Returns bot of origin
 	 */
 	public final mcbot getBot() {
 		return bot;
@@ -20,7 +20,7 @@ public class Event {
 	
 	/**
 	 * Returns event name
-	 * @return
+	 * @return Returns event name
 	 */
 	protected String getEventName() {
 		return "Event";

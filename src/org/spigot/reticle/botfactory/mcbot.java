@@ -73,7 +73,7 @@ public class mcbot {
 	/**
 	 * Returns true if messages are delayed
 	 * 
-	 * @return
+	 * @return Returns True if messages should be delayed, False if otherwise
 	 */
 	public boolean messagesDelayed() {
 		return this.rawbot.messagedelay != 0;
@@ -162,7 +162,7 @@ public class mcbot {
 	/**
 	 * Returns true if online mode is enabled
 	 * 
-	 * @return
+	 * @return Returns True if online mode is active, False if otherwise
 	 */
 	public boolean isOnlineMode() {
 		return this.onlinemode;
@@ -186,7 +186,7 @@ public class mcbot {
 	/**
 	 * Returns access token used for authentication
 	 * 
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	protected boolean hasAccessToken() {
 		return this.rawbot.maccesstoken != null;
@@ -195,16 +195,14 @@ public class mcbot {
 	/**
 	 * Returns true if mojang username is available
 	 * 
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	protected boolean hasMUsername() {
 		return this.rawbot.mcurrentusername != null;
 	}
 
 	/**
-	 * Returns stored mojang username
-	 * 
-	 * @return
+	 * @return Returns Mojang username
 	 */
 	public String getMUsername() {
 		return this.rawbot.mcurrentusername;
@@ -285,7 +283,7 @@ public class mcbot {
 	/**
 	 * Verify online settings
 	 * 
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean verifyonlinesettings() {
 		if (this.isOnlineMode()) {
@@ -444,7 +442,7 @@ public class mcbot {
 	/**
 	 * Returns bot's tab name
 	 * 
-	 * @return
+	 * @return Returns Tab name as String
 	 */
 	public String gettabname() {
 		return this.rawbot.getTabName();
@@ -509,9 +507,7 @@ public class mcbot {
 	}
 
 	/**
-	 * Returns seconds between sending afk commands
-	 * 
-	 * @return
+	 * @return  Returns seconds between sending afk commands
 	 */
 	public int getantiafkperiod() {
 		return this.rawbot.afkperiod;
@@ -527,9 +523,7 @@ public class mcbot {
 	}
 
 	/**
-	 * Returns array of commands to be send after login
-	 * 
-	 * @return
+	 * @return Returns array of commands to be send after login
 	 */
 	public String[] getlogincommands() {
 		return this.rawbot.autologincmd;
@@ -545,9 +539,7 @@ public class mcbot {
 	}
 
 	/**
-	 * Returns array of commands to be send to prevent afk state
-	 * 
-	 * @return
+	 * @return Returns array of commands to be send to prevent afk state
 	 */
 	public String[] getafkcommands() {
 		return this.rawbot.autoantiafkcmd;
@@ -574,7 +566,7 @@ public class mcbot {
 	/**
 	 * Sends afk commands to server
 	 * 
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean sendafkcommands() {
 		return this.rawbot.autoantiafk;
@@ -583,16 +575,14 @@ public class mcbot {
 	/**
 	 * Returns true if autoreconnect is enabled
 	 * 
-	 * @return
+	 * @return Returns true if autoreconnect is enabled
 	 */
 	public boolean getautoreconnect() {
 		return this.rawbot.autoreconnect;
 	}
 
 	/**
-	 * Returns seconds between reconnecting as defined in settings
-	 * 
-	 * @return
+	 * @return Returns seconds between reconnecting as defined in settings
 	 */
 	public int getautoreconnectdelay() {
 		return this.rawbot.autoreconnectdelay;
@@ -603,9 +593,7 @@ public class mcbot {
 	}
 
 	/**
-	 * Returns true if bot is connected and ready
-	 * 
-	 * @return
+	 * @return Returns true if bot is connected and ready
 	 */
 	public boolean isConnected() {
 		if (this.isSpecialTab()) {
@@ -851,8 +839,8 @@ public class mcbot {
 	/**
 	 * Returns text from chat box
 	 * 
-	 * @param len
-	 * @return
+	 * @param len Length of message to return
+	 * @return Returns message from chat box
 	 */
 	public String getmsg(int len) {
 		int lenn = chatlog.getText().length();

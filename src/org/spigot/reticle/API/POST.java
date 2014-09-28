@@ -50,7 +50,7 @@ public class POST {
 
 	/**
 	 * Get response code (responseWanted must be true)
-	 * @return
+	 * @return Returns response code
 	 */
 	public int getResponseCode() {
 		return respcode;
@@ -59,7 +59,7 @@ public class POST {
 	
 	/**
 	 * Get response as String (responseWanted must be true)
-	 * @return
+	 * @return Returns response String
 	 */
 	public String getResponse() {
 		return response;
@@ -68,7 +68,7 @@ public class POST {
 	
 	/**
 	 * Execute request
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean Execute() {
 		try {

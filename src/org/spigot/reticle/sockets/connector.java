@@ -423,7 +423,7 @@ public class connector extends Thread {
 	 * 
 	 * @param Message
 	 * @param isAutomatic
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean sendToServer(String Message, boolean isAutomatic) {
 		if (Message.length() > 0) {
@@ -753,7 +753,7 @@ public class connector extends Thread {
 	 * Parse JSON chat format
 	 * 
 	 * @param String
-	 * @return
+	 * @return Returns formated string
 	 */
 	public static String parsechat(String String) {
 		JsonParser parser = new JsonParser();
@@ -927,7 +927,7 @@ public class connector extends Thread {
 	/**
 	 * Returns true if bot is connected
 	 * 
-	 * @return
+	 * @return Returns True if connected, False if not connected
 	 */
 	public boolean isConnected() {
 		return (sock != null || this.reconnect);

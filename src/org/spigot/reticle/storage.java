@@ -491,7 +491,8 @@ public class storage {
 	 * Deprecated. Will be removed soon
 	 * 
 	 * @param message
-	 * @return
+	 * @return Returns True if successful, False if otherwise
+	 * @deprecated
 	 */
 	@Deprecated
 	public static boolean sendmessagetoactivebot(String message) {
@@ -538,7 +539,7 @@ public class storage {
 	/**
 	 * Returns setting object
 	 * 
-	 * @return
+	 * @return Returns setting object
 	 */
 	public static set_obj_struct getsettingsobj() {
 		return storage.getInstance().setobj;
@@ -600,8 +601,8 @@ public class storage {
 	/**
 	 * Returns String stripped of formating
 	 * 
-	 * @param String
-	 * @return
+	 * @param String String to be stripped
+	 * @return Returns Stripped string
 	 */
 	public static String stripcolors(String String) {
 		return String.replaceAll("(\\§.)", "");
@@ -691,7 +692,7 @@ public class storage {
 	 * Returns static access to Storage object Everything related to bots is
 	 * find here
 	 * 
-	 * @return
+	 * @return Returns storage instance
 	 */
 	public static storage getInstance() {
 		if (instance == null) {
@@ -730,7 +731,7 @@ public class storage {
 	 * 
 	 * @param OldTabName
 	 * @param BotSettings
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public static boolean verifysettings(String OldTabName, botsettings BotSettings) {
 		boolean namecorrection = !(OldTabName.toLowerCase().equals(BotSettings.getTabName().toLowerCase()));
@@ -800,8 +801,8 @@ public class storage {
 	/**
 	 * Returns HTML formated Message
 	 * 
-	 * @param Message
-	 * @return
+	 * @param Message Message to be parsed
+	 * @return Returns parsed message
 	 */
 	public static String parsecolorashtml(String Message) {
 		if (Message == null) {
@@ -864,8 +865,8 @@ public class storage {
 	/**
 	 * Reports exception
 	 * 
-	 * @param e
-	 * @return
+ 	 * @param e The exception to be reported
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public static boolean reportthis(Exception e) {
 		if (storage.getAutodebug()) {

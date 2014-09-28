@@ -4,13 +4,19 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.sql.rowset.serial.SerialException;
 
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.sockets.Authenticator;
-import org.spigot.reticle.sockets.CryptManager;
 
 public class EncryptionRequestPacket extends AbstractPacket {
 	public static final int ID = 0x01;
@@ -19,13 +25,14 @@ public class EncryptionRequestPacket extends AbstractPacket {
 	private String serverId;
 	private byte[] sharedSecret;
 	private SecretKey sharedKey;
+
 	public EncryptionRequestPacket(ByteBuffer buf, packet reader) {
 		this.reader = reader;
 		this.reader.input = buf;
 	}
 
 	public SecretKey getSecret() {
-		 return sharedKey;
+		return sharedKey;
 	}
 
 	public void Read() throws SerialException, IOException, BufferUnderflowException {
@@ -41,11 +48,11 @@ public class EncryptionRequestPacket extends AbstractPacket {
 		verify = reader.readBytes(vtl);
 		// Shared secret
 
-		PublicKey publicKey = CryptManager.decodePublicKey(publicKeyBytes);
-		sharedKey = CryptManager.createNewSharedKey();
-		sharedSecret = CryptManager.encryptData(publicKey, sharedKey.getEncoded());
-		verify = CryptManager.encryptData(publicKey, verify);
-		serverId = (new BigInteger(CryptManager.getServerIdHash(serverid.trim(), publicKey, sharedKey))).toString(16);
+		PublicKey publicKey = decodekey(publicKeyBytes);
+		sharedKey = newkey();
+		sharedSecret = encryptdata(publicKey, sharedKey.getEncoded());
+		verify = encryptdata(publicKey, verify);
+		serverId = (new BigInteger(getserverid(serverid.trim(), publicKey, sharedKey))).toString(16);
 	}
 
 	public void Write(mcbot bot) throws IOException {
@@ -81,6 +88,53 @@ public class EncryptionRequestPacket extends AbstractPacket {
 		// verify
 		reader.writeBytes(verify);
 		reader.Send();
+	}
+
+	private PublicKey decodekey(byte[] key) {
+		try {
+			return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(key));
+		} catch (Exception e) {
+			System.err.println("Failed to decode public key!");
+			return null;
+		}
+	}
+
+	private byte[] encryptdata(Key key, byte[] data) {
+		try {
+			Cipher cipher = Cipher.getInstance(key.getAlgorithm());
+			cipher.init(1, key);
+			return cipher.doFinal(data);
+		} catch (Exception e) {
+			System.err.println("Failed to encrypt data!");
+			return null;
+		}
+	}
+
+	private byte[] getserverid(String ServerId, PublicKey publicKey, SecretKey secretKey) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-1");
+			byte[][] params = new byte[][] { secretKey.getEncoded(), publicKey.getEncoded() };
+			int len = params.length;
+			for (int i = 0; i < len; ++i) {
+				byte[] encr = params[i];
+				digest.update(encr);
+			}
+			return digest.digest();
+		} catch (Exception e) {
+			System.err.println("Failed to generate server ID!");
+			return null;
+		}
+	}
+
+	private SecretKey newkey() {
+		try {
+			KeyGenerator gen = KeyGenerator.getInstance("AES");
+			gen.init(128);
+			return gen.generateKey();
+		} catch (Exception e) {
+			System.err.println("Failed to generate key!");
+			return null;
+		}
 	}
 
 }

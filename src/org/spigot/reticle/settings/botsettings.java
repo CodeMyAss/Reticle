@@ -63,7 +63,7 @@ public class botsettings {
 	/**
 	 * Returns tab name
 	 * 
-	 * @return
+	 * @return Returns tab name
 	 */
 	public String getTabName() {
 		if (isMain) {
@@ -76,7 +76,7 @@ public class botsettings {
 	/**
 	 * Returns true if it is the only bot of this name
 	 * 
-	 * @return
+	 * @return Returns true if it is the only bot of this name
 	 */
 	public boolean isExclusive() {
 		if (this.servername.toLowerCase().equals("reticle") && !isMain) {
@@ -95,8 +95,8 @@ public class botsettings {
 	/**
 	 * Not safe to use
 	 * 
-	 * @param hasthis
-	 * @return
+	 * @param hasthis Internal structure handler
+	 * @return True if bot is exclusive
 	 */
 	public boolean isDoubleExclusive(boolean hasthis) {
 		if (this.servername.toLowerCase().equals("reticle") && !isMain) {

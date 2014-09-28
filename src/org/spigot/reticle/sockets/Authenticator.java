@@ -41,7 +41,7 @@ public final class Authenticator {
 	/**
 	 * Send join game data to Mojang authentication servers
 	 * Returns true if successful
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean sendJoin() {
 		POST form = new POST(storage.joinURLalt, true);
@@ -71,8 +71,7 @@ public final class Authenticator {
 
 	/**
 	 * Refresh access token
-	 * Returns true if sucessful
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean refresh() {
 		POST form = new POST(storage.AuthURL + "refresh", true);
@@ -117,7 +116,7 @@ public final class Authenticator {
 
 	/**
 	 * Send login request to Mojang authenticator server
-	 * @return
+	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean tryLogin() {
 		accounts acc = getProfiles();
@@ -135,7 +134,7 @@ public final class Authenticator {
 
 	/**
 	 * Get available profiles. Must be logged in
-	 * @return
+	 * @return Returns Profiles listed in this Account
 	 */
 	public accounts getProfiles() {
 		POST form = new POST(storage.AuthURL + "authenticate", true);
