@@ -50,7 +50,7 @@ public class ConsoleCommandEvent extends CancellableEvent {
 		super(bot);
 		this.name = message.split(" ")[0];
 		this.lowname=this.name.toLowerCase();
-		this.hasparams = (getCommandName().length() > message.length());
+		this.hasparams = (name.length() < message.length());
 		if (hasparams) {
 			this.params = message.substring(name.length() + 1).split(" ");
 		} else {

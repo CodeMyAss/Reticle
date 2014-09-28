@@ -48,6 +48,12 @@ public class storage {
 	 */
 	public static final String default_online_nick = "Authenticate first";
 
+	
+	/**
+	 * Many uses
+	 */
+	public static final String LineSeparator = System.lineSeparator();
+	
 	/**
 	 * Thread for dealing with chat messages
 	 */

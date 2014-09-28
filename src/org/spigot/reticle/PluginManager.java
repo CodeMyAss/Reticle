@@ -3,7 +3,6 @@ package org.spigot.reticle;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -262,9 +261,7 @@ public class PluginManager {
 					try {
 						Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
 						method.invoke(instance, e);
-					} catch (IllegalAccessException e1) {
-					} catch (IllegalArgumentException e1) {
-					} catch (InvocationTargetException e1) {
+					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
 				}

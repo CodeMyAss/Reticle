@@ -2,6 +2,7 @@ package org.spigot.reticle.API;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Scanner;
@@ -26,23 +27,30 @@ public class ConfigHandler {
 		this.plinfo = storage.pluginManager.getPluginInfo(plugin);
 		this.ConfigFile = "Plugins/" + plinfo.Name + "/config.txt";
 	}
-	
 
 	/**
 	 * Reads config stored in file
+	 * 
 	 * @return Returns object stored in file or null
 	 */
-	public Object ReadConfig() {
+	public Object ReadConfig(Plugin pl, Class<? extends Object> Class) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Object o = null;
 		Scanner scanner = null;
 		try {
 			scanner = new Scanner(getFile(), "UTF-8");
 			scanner.useDelimiter("\\A");
-			String xml = scanner.next();
+			String xml = scanner.next().replace(storage.LineSeparator, "\n");
 			XStream xstream = new XStream(new DomDriver());
+			PluginInfo pinfo = storage.pluginManager.getPluginInfo(pl);
+			Class<?> c=pinfo.getLoader().loadClass(Class.getName());
+			xstream.setClassLoader(pinfo.getLoader());
+			xstream.alias(c.getSimpleName(), c);
 			o = xstream.fromXML(xml);
+			scanner.close();
+			return o;
 		} catch (FileNotFoundException e) {
 			System.err.println("Failed to read config file");
+		} catch (Exception e) {
 		}
 		if (scanner != null) {
 			scanner.close();
@@ -52,7 +60,9 @@ public class ConfigHandler {
 
 	/**
 	 * Writes config object to file
-	 * @param ConfigObject The object to be written
+	 * 
+	 * @param ConfigObject
+	 *            The object to be written
 	 */
 	public void WriteConfig(Object ConfigObject) {
 		XStream xstream = new XStream(new DomDriver());
@@ -67,7 +77,8 @@ public class ConfigHandler {
 			try {
 				writer = new PrintWriter(file, "UTF-8");
 				xml = xstream.toXML(ConfigObject);
-				writer.println(xml);
+				writer.println(xml.replace("\n", storage.LineSeparator));
+				writer.close();
 			} catch (FileNotFoundException | UnsupportedEncodingException e) {
 				System.err.println("Failed to write to config file");
 			}
@@ -105,7 +116,11 @@ public class ConfigHandler {
 				return true;
 			}
 		}
-		return (f.mkdirs());
+		try {
+			return (f.createNewFile());
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	private boolean mde(String dirname) {
@@ -117,4 +132,5 @@ public class ConfigHandler {
 		}
 		return (f.mkdirs());
 	}
+
 }

@@ -616,9 +616,10 @@ public class connector extends Thread {
 				// We got tablist update (yay)
 				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf, reader);
 				PlayerListEvent plevent = playerlistitem.Read();
-				if (serverPlayerList(plevent, Tablist, Tablist_nicks)) {
+				if (servePlayerList(plevent, Tablist, Tablist_nicks)) {
 					this.refreshTablist();
 				}
+				e=plevent;
 			break;
 
 			case DisplayScoreBoardPacket.ID:
@@ -656,7 +657,7 @@ public class connector extends Thread {
 		}
 	}
 
-	private boolean serverPlayerList(PlayerListEvent event, List<String> tablist, HashMap<String, String> tablistnick) {
+	private boolean servePlayerList(PlayerListEvent event, List<String> tablist, HashMap<String, String> tablistnick) {
 		if (reader.ProtocolVersion >= 47) {
 			boolean ret = false;
 			for (int i = 0, o = event.UUIDS.size(); i < o; i++) {

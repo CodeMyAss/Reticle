@@ -13,10 +13,14 @@ public class PluginInfo {
 	public final String Version;
 	private boolean isEnabled = false;
 	private Plugin instance;
-	private Class<?> Class;
+	private final Class<?> Class;
 	public final String Name;
-	private URLClassLoader loader;
+	private final URLClassLoader loader;
 
+	public ClassLoader getLoader() {
+		return loader;
+	}
+	
 	protected PluginInfo(URLClassLoader clazzL, String author, File fileEntry, String version, String name, Class<?> Class) {
 		this.Author = author;
 		this.FileName = fileEntry;
