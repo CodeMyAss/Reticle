@@ -54,13 +54,6 @@ public class mcbotapp {
 		JMenu mnNewMenu = new JMenu("Main");
 		menuBar.add(mnNewMenu);
 
-		JMenuItem mntmNewMenuItem = new JMenuItem("Options");
-		mntmNewMenuItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				storage.displayoptionswin();
-			}
-		});
-
 		JMenuItem mntmConnectAll = new JMenuItem("Connect all");
 		mntmConnectAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -76,6 +69,22 @@ public class mcbotapp {
 			}
 		});
 		mnNewMenu.add(mntmDisconnectAll);
+
+		JMenuItem mntmReconnectAll = new JMenuItem("Reconnect all");
+		mntmReconnectAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				storage.reconnectall();
+			}
+		});
+		mnNewMenu.add(mntmReconnectAll);
+
+		JMenuItem mntmNewMenuItem = new JMenuItem("Options");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				storage.displayoptionswin();
+			}
+		});
+
 		mnNewMenu.add(mntmNewMenuItem);
 
 		JMenuItem mntmNewMenuItem_8 = new JMenuItem("Add bot");
@@ -134,12 +143,30 @@ public class mcbotapp {
 		});
 		mnNewMenu_1.add(mntmNewMenuItem_3);
 
+		JMenuItem mntmNewMenuItem_10 = new JMenuItem("Reconnect");
+		mntmNewMenuItem_10.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				mcbot bot = storage.getcurrentselectedbot();
+				bot.softReconnect();
+			}
+		});
+		mnNewMenu_1.add(mntmNewMenuItem_10);
+
 		JMenuItem mntmNewMenuItem_4 = new JMenuItem("Settings");
 		mntmNewMenuItem_4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				storage.opensettingswindow();
 			}
 		});
+		
+		JMenuItem mntmCopyServerInfo = new JMenuItem("Copy Server info");
+		mntmCopyServerInfo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String str=storage.getcurrentselectedbot().serverip+":"+storage.getcurrentselectedbot().serverport;
+				storage.setClipboard(str);
+			}
+		});
+		mnNewMenu_1.add(mntmCopyServerInfo);
 		mnNewMenu_1.add(mntmNewMenuItem_4);
 
 		JMenu mnNewMenu_2 = new JMenu("Help");
@@ -186,6 +213,9 @@ public class mcbotapp {
 		storage.getInstance().menu_con = mntmNewMenuItem_2;
 		storage.getInstance().menu_dis = mntmNewMenuItem_3;
 		storage.getInstance().menu_set = mntmNewMenuItem_4;
+		storage.getInstance().menu_rec = mntmNewMenuItem_10;
+		storage.getInstance().menu_info = mntmCopyServerInfo;
+		
 
 		storage.loadsettings();
 		mcbot main = new mcbot(new botsettings("Main"), true, false, true, false, Color.BLUE, Color.WHITE);

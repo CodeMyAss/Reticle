@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import javax.swing.JTextField;
 
 public class optionswin extends JDialog {
@@ -31,6 +32,7 @@ public class optionswin extends JDialog {
 	private JCheckBox checkBox;
 	private JCheckBox chckbxNewCheckBox_2;
 	private JTextField txtUnknown;
+	private JCheckBox checkBox_20;
 
 	public optionswin() {
 		addWindowListener(new WindowAdapter() {
@@ -45,7 +47,7 @@ public class optionswin extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new MigLayout("", "[][]", "[][][][][]"));
+		contentPanel.setLayout(new MigLayout("", "[][]", "[][][][][][]"));
 
 		JLabel lblNewLabel = new JLabel("Check for updates automatically after start:");
 		contentPanel.add(lblNewLabel, "cell 0 0,alignx right");
@@ -66,13 +68,14 @@ public class optionswin extends JDialog {
 		checkBox = new JCheckBox("");
 		contentPanel.add(checkBox, "cell 1 2");
 
-		
+
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
 		JButton okButton = new JButton("OK");
 		okButton.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent arg0) {
 				HashMap<String, String> set = new HashMap<String, String>();
 				set.put("autoupdate", chckbxNewCheckBox.isSelected() + "");
@@ -80,6 +83,7 @@ public class optionswin extends JDialog {
 				set.put("loadplugins", checkBox.isSelected() + "");
 				set.put("support",chckbxNewCheckBox_2.isSelected()+"");
 				set.put("supportnick", txtUnknown.getText());
+				set.put("speciallogger", checkBox_20.isSelected()+"");
 				storage.setglobalsettings(set);
 				storage.savesettings();
 				storage.closeoptionswin();
@@ -109,12 +113,19 @@ public class optionswin extends JDialog {
 		chckbxNewCheckBox_2.setSelected(storage.getSupportEnabled());
 		contentPanel.add(chckbxNewCheckBox_2, "cell 1 3");
 		
+		JLabel lblNewLabel_4 = new JLabel("Logger enabled for special tabs:");
+		contentPanel.add(lblNewLabel_4, "cell 0 4,alignx right");
+		
+		checkBox_20 = new JCheckBox("");
+		checkBox_20.setSelected(storage.getSpecialLoggerEnabled());
+		contentPanel.add(checkBox_20, "cell 1 4");
+		
 		JLabel lblSupportServerName = new JLabel("Support server name:");
-		contentPanel.add(lblSupportServerName, "flowx,cell 0 4");
+		contentPanel.add(lblSupportServerName, "flowx,cell 0 5");
 		
 		txtUnknown = new JTextField();
 		txtUnknown.setText(storage.getSupportNick());
-		contentPanel.add(txtUnknown, "cell 0 4");
+		contentPanel.add(txtUnknown, "cell 0 5");
 		txtUnknown.setColumns(10);
 	}
 }

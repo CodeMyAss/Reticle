@@ -3,6 +3,9 @@ package org.spigot.reticle;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Frame;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,7 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
+
 import javax.sql.rowset.serial.SerialException;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -36,7 +41,7 @@ import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
-	public static final String version = "1.04.4 beta";
+	public static final String version = "1.04.5 beta";
 
 	/**
 	 * Default text to be displayed for authentication
@@ -119,6 +124,8 @@ public class storage {
 	protected JMenuItem menu_con;
 	protected JMenuItem menu_dis;
 	protected JMenuItem menu_set;
+	protected JMenuItem menu_rec;
+	protected JMenuItem menu_info;
 
 	/**
 	 * About window handler
@@ -191,6 +198,16 @@ public class storage {
 	private static String getconsoletext() {
 		mcbot bot = storage.getInstance().mainer;
 		return bot.getmsg(5000);
+	}
+	
+	/**
+	 * Sets system clipboard (Ctrl+c/Ctrl+v)
+	 * @param Text - Text to be put into clipboard
+	 */
+	public static void setClipboard(String Text) {
+		StringSelection stringSelection = new StringSelection(Text);
+		Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clpbrd.setContents(stringSelection, null);
 	}
 
 	/**
@@ -300,6 +317,20 @@ public class storage {
 	}
 
 	/**
+	 * @return True if special tabs are logged, false if otherwise
+	 */
+	public static boolean getSpecialLoggerEnabled() {
+		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
+		if (setting.containsKey("speciallogger")) {
+			Boolean bool = Boolean.parseBoolean(setting.get("speciallogger"));
+			if (bool != null) {
+				return bool;
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * Returns whether or not automatic plugins loading is enabled
 	 * 
 	 * @return true if automatical plugin loading is enabled false if otherwise
@@ -378,11 +409,18 @@ public class storage {
 	/**
 	 * Invoked when options are changed
 	 * 
-	 * @param map
-	 *            - New options
+	 * @param map New options
 	 */
 	public static void setglobalsettings(HashMap<String, String> map) {
 		storage.getInstance().settin.globalsettings = map;
+		List<mcbot> specialbots = storage.getSpecialBots();
+		for(mcbot bot:specialbots) {
+			bot.updateChatLogger();
+		}
+	}
+	
+	private static List<mcbot> getSpecialBots() {
+		return storage.getInstance().settin.specialbots;
 	}
 
 	/**
@@ -477,19 +515,24 @@ public class storage {
 		storage.getInstance().menu_con.setEnabled(false);
 		storage.getInstance().menu_dis.setEnabled(true);
 		storage.getInstance().menu_set.setEnabled(true);
-
+		storage.getInstance().menu_rec.setEnabled(true);
+		storage.getInstance().menu_info.setEnabled(true);
 	}
 
 	private static void setdisconnected() {
 		storage.getInstance().menu_con.setEnabled(true);
 		storage.getInstance().menu_dis.setEnabled(false);
 		storage.getInstance().menu_set.setEnabled(true);
+		storage.getInstance().menu_rec.setEnabled(false);
+		storage.getInstance().menu_info.setEnabled(true);
 	}
 
 	private static void setdisabled() {
 		storage.getInstance().menu_con.setEnabled(false);
 		storage.getInstance().menu_dis.setEnabled(false);
 		storage.getInstance().menu_set.setEnabled(false);
+		storage.getInstance().menu_rec.setEnabled(false);
+		storage.getInstance().menu_info.setEnabled(false);
 	}
 
 	/**
@@ -597,7 +640,7 @@ public class storage {
 		helper.addEntry("help", "Contains all registered commands", new String[] {});
 		helper.addEntry("pl", "Displays all currently loaded plugins", new String[] {});
 		helper.addEntry("plugins", "same as pl", new String[] {});
-		helper.addEntry("plugin", "same as pl", new String[] { "<load|unload|info>", "<plugin filename|plugin name>" });
+		helper.addEntry("plugin", "same as pl", new String[] { "<load|unload|info|enabledall|disableall>", "<plugin filename|plugin name>" });
 	}
 
 	@Deprecated
@@ -878,6 +921,14 @@ public class storage {
 		for (String botname : bots.keySet()) {
 			mcbot bot = bots.get(botname);
 			bot.disconnect();
+		}
+	}
+	
+	protected static void reconnectall() {
+		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
+		for (String botname : bots.keySet()) {
+			mcbot bot = bots.get(botname);
+			bot.softReconnect();
 		}
 	}
 

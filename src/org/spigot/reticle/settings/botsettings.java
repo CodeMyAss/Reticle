@@ -1,6 +1,9 @@
 package org.spigot.reticle.settings;
 
+import java.awt.Font;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -26,24 +29,26 @@ public class botsettings {
 	public String[] ignored = new String[0];
 	public boolean isMain = false;
 	public int protocolversion = 4;
-	public String mpassword="";
-	public ComboBoxModel<String> musernames=new DefaultComboBoxModel<String>(new String[] { storage.default_online_nick });
-	public boolean mojangusername=false;
-	public boolean savemojangpass=false;
-	public boolean saveaccess=true;
-	public String mcurrentusername="";
+	public String mpassword = "";
+	public ComboBoxModel<String> musernames = new DefaultComboBoxModel<String>(new String[] { storage.default_online_nick });
+	public boolean mojangusername = false;
+	public boolean savemojangpass = false;
+	public boolean saveaccess = true;
+	public String mcurrentusername = "";
 	public String maccesstoken;
 	public String mplayertoken;
-	public HashMap<String,String> mojangusernamelist=new HashMap<String,String>();
+	public HashMap<String, String> mojangusernamelist = new HashMap<String, String>();
 	public String mojangloginusername;
 	public String mojangloginusernameid;
-	public int messagedelay=0;
-	public boolean chatlog=true;
-	public int maxlines=500;
+	public int messagedelay = 0;
+	public boolean chatlog = true;
+	public int maxlines = 500;
+	public Font font = new Font("Arial", Font.PLAIN, 12);
+	public List<String> plugins = new ArrayList<String>();
 
 	/**
-	 * Returns ID
-	 * Not safe to use
+	 * Returns ID Not safe to use
+	 * 
 	 * @param username
 	 * @return
 	 */
@@ -57,6 +62,7 @@ public class botsettings {
 
 	/**
 	 * Returns tab name
+	 * 
 	 * @return
 	 */
 	public String getTabName() {
@@ -69,6 +75,7 @@ public class botsettings {
 
 	/**
 	 * Returns true if it is the only bot of this name
+	 * 
 	 * @return
 	 */
 	public boolean isExclusive() {
@@ -87,6 +94,7 @@ public class botsettings {
 
 	/**
 	 * Not safe to use
+	 * 
 	 * @param hasthis
 	 * @return
 	 */
@@ -111,18 +119,15 @@ public class botsettings {
 		}
 		return true;
 	}
-
-	protected void registerbot() {
-		storage.getInstance().settin.settings.put(getTabName(), this);
-	}
-
-	protected void unregisterbot() {
-		storage.getInstance().settin.settings.remove(getTabName());
-	}
-
-	protected void renamebot(String newname) {
-		unregisterbot();
-		registerbot();
-	}
-
+	
+	/*
+	 * protected void registerbot() { if(isMain) {
+	 * storage.getInstance().settin.specialbots.add(getTabName()); }
+	 * storage.getInstance().settin.settings.put(getTabName(), this); }
+	 * 
+	 * protected void unregisterbot() { if(isMain) {
+	 * storage.getInstance().settin.specialbots.remove(getTabName()); }
+	 * storage.getInstance().settin.settings.remove(getTabName()); } protected
+	 * void renamebot(String newname) { unregisterbot(); registerbot(); }
+	 */
 }

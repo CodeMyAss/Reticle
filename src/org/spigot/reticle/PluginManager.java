@@ -7,8 +7,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import org.spigot.reticle.API.Plugin;
@@ -21,9 +23,19 @@ public class PluginManager {
 	protected PluginManager() {
 
 	}
-	
+
+	public List<String> getAllPluginNames() {
+		Object[] pl = this.getPluginInfos().toArray();
+		List<String> res = new ArrayList<String>();
+		for (Object plinfo : pl) {
+			res.add(((PluginInfo) plinfo).Name);
+		}
+		return res;
+	}
+
 	/**
-	 * @param Plugin The plugin
+	 * @param Plugin
+	 *            The plugin
 	 * @return PluginInfo for selected plugin
 	 */
 	public PluginInfo getPluginInfo(Plugin Plugin) {
@@ -59,12 +71,11 @@ public class PluginManager {
 		}
 		return null;
 	}
-	
-	
+
 	protected void unloadAllPlugins() {
-		Object[] Pluginss =  Plugins.keySet().toArray();
-		for(Object pl:Pluginss) {
-			unloadPlugin((Plugin)pl);
+		Object[] Pluginss = Plugins.keySet().toArray();
+		for (Object pl : Pluginss) {
+			unloadPlugin((Plugin) pl);
 		}
 	}
 
@@ -224,22 +235,27 @@ public class PluginManager {
 	 * Invoked when event is being dispatched to listeners
 	 * 
 	 * @param e
+	 *            Event to be dispatcher
+	 * @param list
+	 *            List of enabled plugins
 	 */
-	public void invokeEvent(Event e) {
+	public void invokeEvent(Event e, List<String> list) {
 		Class<?> cls = e.getClass();
 		if (ClassIsHandled(cls)) {
 			for (Plugin plugin : methods_by_plugins.get(cls).keySet()) {
-				Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
-				for (Method method : methods) {
-					try {
-						Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
-						method.invoke(instance, e);
-					} catch (IllegalAccessException e1) {
-						e1.printStackTrace();
-					} catch (IllegalArgumentException e1) {
-						e1.printStackTrace();
-					} catch (InvocationTargetException e1) {
-						e1.printStackTrace();
+				if (list.contains(Plugins.get(plugin).Name)) {
+					Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
+					for (Method method : methods) {
+						try {
+							Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
+							method.invoke(instance, e);
+						} catch (IllegalAccessException e1) {
+							e1.printStackTrace();
+						} catch (IllegalArgumentException e1) {
+							e1.printStackTrace();
+						} catch (InvocationTargetException e1) {
+							e1.printStackTrace();
+						}
 					}
 				}
 			}

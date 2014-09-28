@@ -1,6 +1,9 @@
 package org.spigot.reticle.settings;
 
+import java.awt.Font;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.sql.rowset.serial.SerialException;
 
@@ -10,9 +13,10 @@ public class struct_settings {
 	public HashMap<String, botsettings> settings;
 	public HashMap<String, mcbot> bots = new HashMap<String, mcbot>();
 	public HashMap<String, String> globalsettings = new HashMap<String, String>();
-
+	public List<mcbot> specialbots = new ArrayList<mcbot>();
 	/**
 	 * Returns string representation of settings
+	 * 
 	 * @return
 	 */
 	public String saveToString() {
@@ -20,8 +24,9 @@ public class struct_settings {
 	}
 
 	/**
-	 * Returns string representation of settings
-	 * If sensitive is true, final string will not include personal data
+	 * Returns string representation of settings If sensitive is true, final
+	 * string will not include personal data
+	 * 
 	 * @param sensitive
 	 * @return
 	 */
@@ -87,12 +92,19 @@ public class struct_settings {
 					sb.append("\t\t\t" + com + "\r\n");
 				}
 			}
+			sb.append("\t\tText font: " + set.font.getFamily() + "\r\n");
+			sb.append("\t\tText size: " + set.font.getSize() + "\r\n");
+			sb.append("\t\tEnabled plugins:\r\n");
+			for (String com : set.plugins) {
+				sb.append("\t\t\t" + com + "\r\n");
+			}
 		}
 		return sb.toString();
 	}
 
 	/**
 	 * Parse settings from string representation
+	 * 
 	 * @param stringSettings
 	 * @throws SerialException
 	 */
@@ -105,10 +117,14 @@ public class struct_settings {
 		boolean saved = false;
 		int pos = 0;
 
+		String fontFamily = "Arial";
+		int fontSize = 12;
+
 		StringBuilder sb1 = new StringBuilder();
 		StringBuilder sb2 = new StringBuilder();
 		StringBuilder sb3 = new StringBuilder();
 		StringBuilder sb4 = new StringBuilder();
+		List<String> sb5=new ArrayList<String>();
 
 		for (String line : lines) {
 			if (line.equals("") || line.equals("\r\n") || line.startsWith("#") || line.equals("\n")) {
@@ -130,6 +146,9 @@ public class struct_settings {
 				} else if (pos == 4) {
 					// We are getting list of messages to ignore
 					sb4.append("\r\n" + line.substring(3));
+				} else if (pos == 5) {
+					// We are getting list of enabled plugins
+					sb5.add(line.substring(3));
 				}
 			} else if (line.startsWith("\t\t")) {
 				saved = false;
@@ -154,6 +173,9 @@ public class struct_settings {
 					break;
 					case "Ignored messages":
 						pos = 4;
+					break;
+					case "Enabled plugins":
+						pos = 5;
 					break;
 					case "Servername":
 						if (param.toLowerCase().equals("reticle")) {
@@ -235,6 +257,12 @@ public class struct_settings {
 					case "Max lines":
 						bot.maxlines = Integer.parseInt(param);
 					break;
+					case "Text font":
+						fontFamily = param;
+					break;
+					case "Text size":
+						fontSize = Integer.parseInt(param);
+					break;
 				}
 
 			} else if (line.startsWith("\t")) {
@@ -254,19 +282,27 @@ public class struct_settings {
 					if (sb4.toString().length() > 2) {
 						bot.ignored = sb4.toString().substring(2).split("\r\n");
 					}
+					bot.font = MmaterializeFont(fontFamily, fontSize);
+					bot.plugins=sb5;
+					fontFamily = "Arial";
+					fontSize = 12;
 					settings.put(bot.getTabName(), bot);
 					bot = new botsettings(null);
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
 					sb3 = new StringBuilder();
 					sb4 = new StringBuilder();
+					sb5=new ArrayList<String>();
 				} else {
 					// We are first bot ever
 					bot = new botsettings(null);
+					fontFamily = "Arial";
+					fontSize = 12;
 					sb1 = new StringBuilder();
 					sb2 = new StringBuilder();
 					sb3 = new StringBuilder();
 					sb4 = new StringBuilder();
+					sb5=new ArrayList<String>();
 				}
 			} else {
 				// Global options
@@ -279,6 +315,7 @@ public class struct_settings {
 		}
 		// Last bot to be saved
 		if (!saved && bot != null) {
+			bot.font = MmaterializeFont(fontFamily, fontSize);
 			if (sb1.toString().length() > 2) {
 				bot.autologincmd = sb1.toString().substring(2).split("\r\n");
 			}
@@ -291,7 +328,12 @@ public class struct_settings {
 			if (sb4.toString().length() > 2) {
 				bot.ignored = sb4.toString().substring(2).split("\r\n");
 			}
+			bot.plugins=sb5;
 			settings.put(bot.getTabName(), bot);
 		}
+	}
+
+	private Font MmaterializeFont(String fontname, int Size) {
+		return new Font(fontname, Font.PLAIN, Size);
 	}
 }

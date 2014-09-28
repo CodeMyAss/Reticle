@@ -1,6 +1,8 @@
 package org.spigot.reticle.settings;
 
+import java.awt.Font;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -55,7 +57,7 @@ public class set_obj_struct {
 	}
 
 	/**
-	 * 
+	 * Invoked when "Respore settings" button is pressed
 	 * @param botSettings
 	 */
 	protected void setsettings(botsettings botSettings) {
@@ -117,7 +119,7 @@ public class set_obj_struct {
 		return 4;
 	}
 
-	protected botsettings getsettings(String accesstoken, String playertoken, HashMap<String, String> mojangusernamelist, String mcurrentusername, String mojangloginusernameid) {
+	protected botsettings getsettings(String accesstoken, String playertoken, HashMap<String, String> mojangusernamelist, String mcurrentusername, String mojangloginusernameid, Font fonnt, List<String> pluginlist) {
 		botsettings struct = new botsettings(null);
 		struct.servername = this.txtservername.getText();
 		struct.serverip = this.textserverip.getText();
@@ -162,6 +164,8 @@ public class set_obj_struct {
 		struct.messagedelay=Integer.parseInt(this.messagedelay.getText());
 		struct.chatlog=this.chatlog.isSelected();
 		struct.maxlines=Integer.parseInt(this.textmaxlines.getText());
+		struct.font=fonnt;
+		struct.plugins=pluginlist;
 		return struct;
 	}
 

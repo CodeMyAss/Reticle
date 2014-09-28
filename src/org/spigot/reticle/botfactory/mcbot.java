@@ -1,6 +1,7 @@
 package org.spigot.reticle.botfactory;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -85,6 +86,27 @@ public class mcbot {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Soft reconnect (Does not affect reconnect mechanism)
+	 */
+	public void softReconnect() {
+		if (this.isConnected()) {
+			this.connector.interruptCommunication();
+		} else if (connector != null) {
+			boolean reconnect = connector.reconnect;
+			this.disconnect();
+			this.connect(reconnect);
+		}
+	}
+
+	/**
+	 * Hard reconnect (Reset reconnect mechanism)
+	 */
+	public void hardReconnect() {
+		this.disconnect();
+		this.connect();
 	}
 
 	/**
@@ -303,11 +325,18 @@ public class mcbot {
 		this.tablistsize[0] = 1;
 		this.tablistsize[1] = 20;
 		updateChatLogger();
+		if (ismain) {
+			storage.getInstance().settin.specialbots.add(this);
+		}
 		initwin();
 	}
 
 	protected boolean isChatLoggerEnabled() {
-		return this.rawbot.chatlog;
+		if (this.ismain) {
+			return storage.getSpecialLoggerEnabled();
+		} else {
+			return this.rawbot.chatlog;
+		}
 	}
 
 	protected boolean isChatFilterEnabled() {
@@ -328,11 +357,19 @@ public class mcbot {
 		}
 	}
 
-	protected void updateChatLogger() {
+	/**
+	 * Updates state of logger. Invoked when state is changed
+	 */
+	public void updateChatLogger() {
 		if (ChatLogger != null) {
 			try {
 				ChatLogger.Close();
 			} catch (IOException e) {
+			}
+		}
+		if (this.isSpecialTab()) {
+			if (!storage.getSpecialLoggerEnabled()) {
+				return;
 			}
 		}
 		if (this.isChatLoggerEnabled()) {
@@ -606,9 +643,9 @@ public class mcbot {
 			default:
 				storage.conlog("Command not recognized. Use §o§6help§r for list of all commands");
 			break;
-			
+
 			case "help":
-				storage.conlog("§nReticle help§r\n" +storage.helper.getHelpString());
+				storage.conlog("§nReticle help§r\n" + storage.helper.getHelpString());
 			break;
 
 			case "pl":
@@ -618,7 +655,7 @@ public class mcbot {
 				for (PluginInfo pl : infos) {
 					sb.append(", " + pl.Name);
 				}
-				if(infos.size()==0) {
+				if (infos.size() == 0) {
 					sb.append("  ");
 				}
 				storage.conlog("Loaded plugins (" + infos.size() + "): " + sb.toString().substring(2));
@@ -652,14 +689,52 @@ public class mcbot {
 						if (pl == null) {
 							storage.conlog("This plugin is not loaded");
 						} else {
-							PluginInfo plinfo=storage.pluginManager.getPluginInfo(pl);
-							storage.conlog("§oPlugin info\nName: §6"+plinfo.Name+"\n§fAuthor: §6"+plinfo.Author+"§f\nVersion: §6"+plinfo.Version);
+							PluginInfo plinfo = storage.pluginManager.getPluginInfo(pl);
+							storage.conlog("§oPlugin info\nName: §6" + plinfo.Name + "\n§fAuthor: §6" + plinfo.Author + "§f\nVersion: §6" + plinfo.Version);
+						}
+					} else if (params[1].equalsIgnoreCase("enabledall")) {
+						String plname = params[2];
+						Plugin pl = storage.pluginManager.getPluginByName(plname);
+						if (pl == null) {
+							storage.conlog("This plugin is not loaded");
+						} else {
+							PluginInfo plinfo = storage.pluginManager.getPluginInfo(pl);
+							HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
+							for (mcbot bott : bots.values()) {
+								bott.enablePluginHere(plinfo);
+							}
+							storage.conlog("Plugin §6" + plinfo.Name + "§r§f has been enabled on all servers");
+						}
+					} else if (params[1].equalsIgnoreCase("disableall")) {
+						String plname = params[2];
+						Plugin pl = storage.pluginManager.getPluginByName(plname);
+						if (pl == null) {
+							storage.conlog("This plugin is not loaded");
+						} else {
+							PluginInfo plinfo = storage.pluginManager.getPluginInfo(pl);
+							HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
+							for (mcbot bott : bots.values()) {
+								bott.disablePluginHere(plinfo);
+							}
+							storage.conlog("Plugin §6" + plinfo.Name + "§r§f has been disabled on all servers");
 						}
 					}
 				} else {
 					storage.conlog("Usage: /plugin <load|unload> <pluginname>\nTo list all loaded plugins use /plugins");
 				}
 			break;
+		}
+	}
+
+	private void disablePluginHere(PluginInfo pl) {
+		if (this.rawbot.plugins.contains(pl.Name)) {
+			this.rawbot.plugins.remove(pl.Name);
+		}
+	}
+
+	private void enablePluginHere(PluginInfo pl) {
+		if (!this.rawbot.plugins.contains(pl.Name)) {
+			this.rawbot.plugins.add(pl.Name);
 		}
 	}
 
@@ -716,6 +791,10 @@ public class mcbot {
 	 * Connects the bot
 	 */
 	public void connect() {
+		connect(false);
+	}
+
+	public void connect(boolean autoreconnect) {
 		if (this.gettabname().endsWith(("@Reticle"))) {
 			specialconnect();
 			return;
@@ -726,6 +805,7 @@ public class mcbot {
 					this.serverip = this.rawbot.serverip;
 					this.serverport = this.rawbot.serverport;
 					this.connector = new connector(this);
+					connector.reconnect = autoreconnect;
 					connector.start();
 				} else {
 					this.logmsg("§4§lAlready connected");
@@ -1048,9 +1128,22 @@ public class mcbot {
 			this.rawbot.mplayertoken = BotSettings.mplayertoken;
 			this.rawbot.mcurrentusername = BotSettings.mcurrentusername;
 			this.rawbot.mojangloginusernameid = BotSettings.mojangloginusernameid;
-			updateChatLogger();
-			updateChatFilter();
+			this.rawbot.font = BotSettings.font;
+			this.rawbot.plugins = BotSettings.plugins;
 		}
+		updateChatLogger();
+		updateChatFilter();
+		updateChatFont();
+		updatePlugins();
+	}
+
+	private void updatePlugins() {
+
+	}
+
+	private void updateChatFont() {
+		this.chatlog.setFont(this.rawbot.font);
+		this.tabler.setFont(this.rawbot.font);
 	}
 
 	/**
@@ -1127,6 +1220,7 @@ public class mcbot {
 				this.ChatLogger.Log(storage.stripcolors(Message.substring(1)));
 			} catch (IOException e) {
 				e.printStackTrace();
+			} catch (NullPointerException e) {
 			}
 		}
 	}
@@ -1147,5 +1241,13 @@ public class mcbot {
 		if (this.connector != null) {
 			this.connector.tabpressed(area, text);
 		}
+	}
+
+	public Font getFont() {
+		return rawbot.font;
+	}
+
+	public List<String> getAllowedPlugins() {
+		return rawbot.plugins;
 	}
 }

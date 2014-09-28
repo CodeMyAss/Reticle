@@ -64,6 +64,8 @@ public class connector extends Thread {
 	private HashMap<String, String> playerTeams = new HashMap<String, String>();
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 
+	private long connecttime;
+
 	private TabCompleteHandler tabcomp = new TabCompleteHandler();
 
 	private int maxpacketid = 0x40; // Default limit
@@ -83,6 +85,14 @@ public class connector extends Thread {
 	public connector(mcbot bot) throws UnknownHostException, IOException {
 		this.bot = bot;
 		this.protocolversion = bot.getprotocolversion();
+	}
+
+	/**
+	 * 
+	 * @return Returns timestamp of moment when connection is created
+	 */
+	public long getConnectTime() {
+		return connecttime;
 	}
 
 	/**
@@ -229,6 +239,14 @@ public class connector extends Thread {
 		bot.connector = null;
 	}
 
+	/**
+	 * Interrupts communication so next packet is not processed and connection
+	 * is closed
+	 */
+	public void interruptCommunication() {
+		communicationavailable = false;
+	}
+
 	private void mainloop() {
 		// Main loop
 		try {
@@ -256,6 +274,8 @@ public class connector extends Thread {
 			// First, we must send HandShake and hope for good response
 			new HandShakePacket(reader).Write(bot.serverip, bot.serverport);
 			new LoginStartPacket(reader).Write(bot.username);
+
+			connecttime = System.currentTimeMillis() / 1000;
 
 			// Init routine
 			communicationavailable = true;
@@ -631,7 +651,7 @@ public class connector extends Thread {
 			break;
 		}
 		if (e != null) {
-			storage.pluginManager.invokeEvent(e);
+			storage.pluginManager.invokeEvent(e, bot.getAllowedPlugins());
 		}
 	}
 

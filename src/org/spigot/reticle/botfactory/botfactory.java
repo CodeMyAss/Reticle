@@ -4,9 +4,6 @@ import java.awt.AWTKeyStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -106,11 +103,15 @@ public class botfactory {
 
 		JLabel messagecount = new JLabel();
 		messagecount.setText("1");
-
+		/*
+		 * txtPrefix.setFont(bot.getFont()); txtSuffix.setFont(bot.getFont());
+		 * txtCommands.setFont(bot.getFont());
+		 * messagecount.setFont(bot.getFont());
+		 */
 		JButton btnNewButton = new JButton("Send");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText(),false)) {
+				if (bot.sendtoserver(txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText(), false)) {
 					txtCommands.setText("");
 				}
 			}
@@ -138,7 +139,7 @@ public class botfactory {
 					}
 				}
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					if (bot.sendtoserver((txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText()),false)) {
+					if (bot.sendtoserver((txtPrefix.getText() + txtCommands.getText() + txtSuffix.getText()), false)) {
 						txtCommands.setText("");
 						bot.setMessageCount(0, true);
 					}
@@ -166,6 +167,8 @@ public class botfactory {
 			AbstractDocument doc = (AbstractDocument) txtpnText.getStyledDocument();
 			doc.setDocumentFilter(new MaxLenFilter(txtpnText, bot.getChatFilterLength()));
 		}
+		
+		txtpnText.setFont(bot.getFont());
 
 		if (bot.tablistdisplayed) {
 			Color color = UIManager.getColor("Table.gridColor");
@@ -190,6 +193,7 @@ public class botfactory {
 			JTable table = new JTable();
 			table.setModel(new DefaultTableModel(new Object[0][0], new Object[0]));
 			table.setBackground(bot.backgroundcolor);
+			table.setFont(bot.getFont());
 			table.setForeground(bot.foregroundcolor);
 			table.setEnabled(false);
 			tableinfo.setEnabled(false);
@@ -225,10 +229,7 @@ class contextmenu extends JPopupMenu {
 					txt.setSelectionStart(0);
 					txt.setSelectionEnd(txt.getText().length());
 				} else if (event.getActionCommand().equals("Copy")) {
-					String text = txt.getSelectedText();
-					StringSelection stringSelection = new StringSelection(text);
-					Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
-					clpbrd.setContents(stringSelection, null);
+					storage.setClipboard(txt.getSelectedText());
 				} else if (event.getActionCommand().equals("Clear")) {
 					txt.setText("");
 				} else if (event.getActionCommand().equals("Add to ignore list")) {

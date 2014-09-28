@@ -3,10 +3,12 @@ package org.spigot.reticle.settings;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Frame;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 
@@ -19,23 +21,32 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JTextArea;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 
 import org.spigot.reticle.storage;
 import org.spigot.reticle.sockets.Authenticator;
 import org.spigot.reticle.sockets.Authenticator.accounts;
 import org.spigot.reticle.sockets.Authenticator.profile;
 
+import say.swing.JFontChooser;
+
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPasswordField;
+import javax.swing.JList;
 
 public class settings extends JFrame {
 
@@ -75,10 +86,16 @@ public class settings extends JFrame {
 	private String mojangloginusernameid;
 	private JTextField textmessagedelay;
 	private JTextField textmaxlines;
+	private JTextField textfont;
+	private JTextField textField;
 
+	private Font font;
+	private List<JCheckBox> boxes = new ArrayList<JCheckBox>();
+	
+	
 	/**
-	 * Init settings window
-	 * Not safe for anyone to mess with this method
+	 * Init settings window Not safe for anyone to mess with this method
+	 * 
 	 * @param set
 	 */
 	public settings(final botsettings set) {
@@ -88,6 +105,7 @@ public class settings extends JFrame {
 		this.mojangusernamelist = set.mojangusernamelist;
 		this.mcurrentusername = set.mcurrentusername;
 		this.BOT = set;
+		this.font = set.font;
 		EventQueue.invokeLater(new Runnable() {
 
 			private JCheckBox checkspas;
@@ -131,7 +149,8 @@ public class settings extends JFrame {
 						// New settings from user
 						botsettings bs;
 						try {
-						bs = storage.getInstance().setobj.getsettings(accesstoken, playertoken, mojangusernamelist, mcurrentusername, mojangloginusernameid);
+							//TODO: Save
+							bs = storage.getInstance().setobj.getsettings(accesstoken, playertoken, mojangusernamelist, mcurrentusername, mojangloginusernameid, font, getEnabledPlugins(boxes));
 						} catch (NumberFormatException e) {
 							storage.alert("Settings error", "One or more numeric fields\ncontains one or more\nillegal characters!");
 							return;
@@ -221,11 +240,37 @@ public class settings extends JFrame {
 				panel_1.add(mojangusername, "cell 2 4,growx");
 
 				JPanel panel_2 = new JPanel();
-				tabbedPane.addTab("Scripting", null, panel_2, null);
-				panel_2.setLayout(new MigLayout("", "[][][]", "[][][]"));
+				tabbedPane.addTab("Plugins", null, panel_2, null);
+				panel_2.setLayout(new MigLayout("", "[grow][][]", "[][grow][]"));
 
-				JLabel lblUnderHeavyDevelopment = new JLabel("Under heavy development");
-				panel_2.add(lblUnderHeavyDevelopment, "cell 2 2");
+				JLabel lblEnabledPlugins = new JLabel("Enabled plugins:");
+				panel_2.add(lblEnabledPlugins, "flowx,cell 0 0");
+
+				final JButton tb = new JButton();
+				tb.setText("TEST");
+
+				CheckBoxList list = new CheckBoxList();
+
+				List<PluginSelectionItem> plugins = new ArrayList<PluginSelectionItem>();
+				for(String pl:set.plugins) {
+					plugins.add(new PluginSelectionItem(pl,true));
+				}
+				List<String> plugs  = storage.pluginManager.getAllPluginNames();
+				for (PluginSelectionItem item : plugins) {
+					if(plugs.contains(item.getName())) {
+						plugs.remove(item.getName());
+					}
+					boxes.add(item.getBox());
+				}
+				for(String pl:plugs) {
+					boxes.add(new PluginSelectionItem(pl,false).getBox());
+				}
+				list.setListData(boxes.toArray());
+				panel_2.add(list, "cell 0 1,grow");
+				
+				JLabel lblthisOnlyAffects = new JLabel("(This only affects event dispatching)");
+				lblthisOnlyAffects.setEnabled(false);
+				panel_2.add(lblthisOnlyAffects, "cell 0 0");
 
 				panel_3 = new JPanel();
 				tabbedPane.addTab("Behavior", null, panel_3, null);
@@ -254,17 +299,17 @@ public class settings extends JFrame {
 
 				checkafkcom = new JCheckBox("");
 				panel_3.add(checkafkcom, "cell 2 3");
-				
+
 				JLabel lblMaxLinesTo = new JLabel("Max lines to be displayed (-1 to disable):");
 				panel_3.add(lblMaxLinesTo, "cell 1 4,alignx trailing");
-				
+
 				textmaxlines = new JTextField();
 				panel_3.add(textmaxlines, "cell 2 4,growx");
 				textmaxlines.setColumns(10);
-				
+
 				JLabel lblEnableChatLogger = new JLabel("Enable Chat Logger:");
 				panel_3.add(lblEnableChatLogger, "cell 1 5,alignx right");
-				
+
 				JCheckBox checkBox_1 = new JCheckBox("");
 				panel_3.add(checkBox_1, "cell 2 5");
 
@@ -340,7 +385,6 @@ public class settings extends JFrame {
 				panel_1.add(lblProtocolVersion, "cell 1 5,alignx trailing");
 
 				protocolversion = new JComboBox<String>();
-				// protocolversion.setEnabled(false);
 				protocolversion.setModel(new DefaultComboBoxModel<String>(new String[] { "4 (1.7.1/2/3/4/5)", "5(1.7.6/7/8/9/10)", "47(1.8)" }));
 				panel_1.add(protocolversion, "cell 2 5,growx");
 
@@ -421,7 +465,51 @@ public class settings extends JFrame {
 				JLabel lblNewLabel_10 = new JLabel(" because it is stored in settings file as text");
 				lblNewLabel_10.setEnabled(false);
 				panel_1.add(lblNewLabel_10, "cell 1 13 2 1,alignx center");
+
+				JPanel panel_4 = new JPanel();
+				tabbedPane.addTab("Appearance", null, panel_4, null);
+				panel_4.setLayout(new MigLayout("", "[][][grow]", "[][][][]"));
+
+				JLabel lblFont = new JLabel("Text Font:");
+				panel_4.add(lblFont, "cell 1 1,alignx trailing");
+
+				textfont = new JTextField();
+				textfont.setEditable(false);
+				panel_4.add(textfont, "cell 2 1,alignx left");
+				textfont.setColumns(10);
+				textfont.setText(set.font.getFamily());
+				JLabel lblTextSize = new JLabel("Text size:");
+				panel_4.add(lblTextSize, "cell 1 2,alignx trailing");
+
+				textField = new JTextField();
+				textField.setEditable(false);
+				panel_4.add(textField, "cell 2 2,alignx left");
+				textField.setColumns(10);
+				textField.setText(set.font.getSize() + "");
+				JButton btnChange = new JButton("Change");
+				btnChange.addActionListener(new ActionListener() {
+
+					public void actionPerformed(ActionEvent arg0) {
+						JFontChooser fontChooser = new JFontChooser();
+						fontChooser.setSelectedFont(font);
+						int result = fontChooser.showDialog((Component) arg0.getSource());
+						if (result == JFontChooser.OK_OPTION) {
+							Font fonter = fontChooser.getSelectedFont();
+							font = new Font(fonter.getFamily(), Font.PLAIN, fonter.getSize());
+							textField.setText(font.getSize() + "");
+							textfont.setText(font.getFamily()+ "");
+						}
+					}
+				});
+				panel_4.add(btnChange, "cell 1 3");
+
+				JLabel lblRestartApplicationTo = new JLabel("Restart application to change font");
+				lblRestartApplicationTo.setEnabled(false);
+				panel_4.add(lblRestartApplicationTo, "cell 2 3");
+
 				setVisible(true);
+
+				set.font = font;
 
 				set_obj_struct sobj = storage.getsettingsobj();
 				sobj.protocolversion = protocolversion;
@@ -449,10 +537,61 @@ public class settings extends JFrame {
 				sobj.saveaccess = checksacc;
 				sobj.textmusername = textmusername;
 				sobj.messagedelay = textmessagedelay;
-				sobj.chatlog=checkBox_1;
-				sobj.textmaxlines=textmaxlines;
+				sobj.chatlog = checkBox_1;
+				sobj.textmaxlines = textmaxlines;
+				//sobj.font = font;
+				//sobj.plugins=getEnabledPlugins(boxes);
 				storage.getInstance().setobj.setsettings(set);
 			}
 		});
+	}
+
+	private List<String> getEnabledPlugins(List<JCheckBox> boxes) {
+		List<String> enabled=new ArrayList<String>();
+		for(JCheckBox box:boxes) {
+			if(box.isSelected()) {
+				enabled.add(box.getText());
+			}
+		}
+		return enabled;
+	}
+	
+}
+
+
+class CheckBoxList extends JList<Object> {
+	private static final long serialVersionUID = 1L;
+	protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+
+	public CheckBoxList() {
+		setCellRenderer(new CellRenderer());
+
+		addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				int index = locationToIndex(e.getPoint());
+
+				if (index != -1) {
+					JCheckBox checkbox = (JCheckBox) getModel().getElementAt(index);
+					checkbox.setSelected(!checkbox.isSelected());
+					repaint();
+				}
+			}
+		});
+
+		setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	}
+
+	protected class CellRenderer implements ListCellRenderer<Object> {
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			JCheckBox checkbox = (JCheckBox) value;
+			checkbox.setBackground(isSelected ? getSelectionBackground() : getBackground());
+			checkbox.setForeground(isSelected ? getSelectionForeground() : getForeground());
+			checkbox.setEnabled(isEnabled());
+			checkbox.setFont(getFont());
+			checkbox.setFocusPainted(false);
+			checkbox.setBorderPainted(true);
+			checkbox.setBorder(isSelected ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
+			return checkbox;
+		}
 	}
 }
