@@ -3,12 +3,12 @@ package org.spigot.reticle.events;
 import org.spigot.reticle.botfactory.mcbot;
 
 public class PlayerPositionAndLookEvent extends Event {
-	private double x;
-	private double y;
-	private double z;
-	private float yaw;
-	private float pitch;
-	private byte flags;
+	private final double x;
+	private final double y;
+	private final double z;
+	private final float yaw;
+	private final float pitch;
+	private final byte flags;
 
 	public PlayerPositionAndLookEvent(mcbot bot,double x, double y, double z, float yaw, float pitch, byte flags) {
 		super(bot);

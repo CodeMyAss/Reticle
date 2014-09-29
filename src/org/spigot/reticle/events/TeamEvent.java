@@ -5,15 +5,15 @@ import java.util.List;
 import org.spigot.reticle.botfactory.mcbot;
 
 public class TeamEvent extends Event {
-private String team;
-private byte mode;
-private String prefix;
-private String suffix;
-private String teamdname;
-private String nametag;
-private byte ffire;
-private byte color;
-private List<String> players;
+private final String team;
+private final byte mode;
+private final String prefix;
+private final String suffix;
+private final String teamdname;
+private final String nametag;
+private final byte ffire;
+private final byte color;
+private final List<String> players;
 	
 	
 	

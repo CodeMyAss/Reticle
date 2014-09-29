@@ -104,7 +104,7 @@ public class PlayerListEvent extends Event {
 		List<String> res = new ArrayList<String>();
 		if (name == null) {
 			for (int i = 0, o = Nicks.size(); i < o; i++) {
-				if (Onlines.get(i)) {
+				if (Onlines.get(i) && !Changed.get(i)) {
 					res.add(Nicks.get(i));
 				}
 			}
