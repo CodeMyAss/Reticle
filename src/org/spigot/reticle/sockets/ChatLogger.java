@@ -7,10 +7,12 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.spigot.reticle.storage;
+
 public class ChatLogger {
 	private FileOutputStream out;
 	private SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-	private File dir = new File("logs");
+	private File dir = new File(storage.CurrentDir+"logs");
 	private String currentformat;
 	private String botname;
 
@@ -25,12 +27,12 @@ public class ChatLogger {
 		if (!dir.exists() || !dir.isDirectory()) {
 			dir.mkdir();
 		}
-		File mdir = new File("logs/" + botName);
+		File mdir = new File(storage.CurrentDir+"logs/" + botName);
 		if (!mdir.exists() || !mdir.isDirectory()) {
 			mdir.mkdir();
 		}
 		currentformat = "logs/" + botName + "/" + format.format(new Date()) + ".txt";
-		out = new FileOutputStream(new File(currentformat),true);
+		out = new FileOutputStream(new File(storage.CurrentDir+currentformat),true);
 	}
 
 	/**
@@ -46,7 +48,7 @@ public class ChatLogger {
 		if (!currentformat.equals(filename)) {
 			currentformat = filename;
 			out.close();
-			out = new FileOutputStream(new File(currentformat),true);
+			out = new FileOutputStream(new File(storage.CurrentDir+currentformat),true);
 		}
 	}
 

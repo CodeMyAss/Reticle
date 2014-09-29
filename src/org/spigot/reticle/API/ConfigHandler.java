@@ -87,7 +87,7 @@ public class ConfigHandler {
 
 	private File getFile() {
 		if (init()) {
-			return new File(ConfigFile);
+			return new File(storage.CurrentDir+ConfigFile);
 		} else {
 			return null;
 		}
@@ -110,7 +110,7 @@ public class ConfigHandler {
 	}
 
 	private boolean mfe(String filename) {
-		File f = new File(filename);
+		File f = new File(storage.CurrentDir+filename);
 		if (f.exists()) {
 			if (f.isFile()) {
 				return true;
@@ -124,7 +124,7 @@ public class ConfigHandler {
 	}
 
 	private boolean mde(String dirname) {
-		File f = new File(dirname);
+		File f = new File(storage.CurrentDir+dirname);
 		if (f.exists()) {
 			if (f.isDirectory()) {
 				return true;

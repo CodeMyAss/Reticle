@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.sql.rowset.serial.SerialException;
 
+import org.spigot.reticle.storage;
 import org.spigot.reticle.botfactory.mcbot;
 
 public class struct_settings {
@@ -34,69 +35,69 @@ public class struct_settings {
 		StringBuilder sb = new StringBuilder();
 		for (String key : globalsettings.keySet()) {
 			String val = globalsettings.get(key);
-			sb.append(key + ": " + val + "\r\n");
+			sb.append(key + ": " + val + storage.DirectoryDelim);
 		}
 		for (String key : settings.keySet()) {
-			sb.append("\t" + key + "\r\n");
+			sb.append("\t" + key + storage.DirectoryDelim);
 			botsettings set = settings.get(key);
-			sb.append("\t\tServername: " + set.servername + "\r\n");
-			sb.append("\t\tServer ip: " + set.serverip + "\r\n");
-			sb.append("\t\tServer port: " + set.serverport + "\r\n");
-			sb.append("\t\tAutoconnect: " + set.autoconnect + "\r\n");
-			sb.append("\t\tNick: " + set.nick + "\r\n");
-			sb.append("\t\tChat logger: " + set.chatlog + "\r\n");
-			sb.append("\t\tMojang Nick: " + set.mcurrentusername + "\r\n");
-			sb.append("\t\tUse Mojang Authentication: " + set.mojangusername + "\r\n");
-			sb.append("\t\tUse Mojang Login Username: " + set.mojangloginusername + "\r\n");
-			sb.append("\t\tUsername ID: " + set.mojangloginusernameid + "\r\n");
-			sb.append("\t\tSave Mojang Password: " + set.savemojangpass + "\r\n");
+			sb.append("\t\tServername: " + set.servername + storage.DirectoryDelim);
+			sb.append("\t\tServer ip: " + set.serverip + storage.DirectoryDelim);
+			sb.append("\t\tServer port: " + set.serverport + storage.DirectoryDelim);
+			sb.append("\t\tAutoconnect: " + set.autoconnect + storage.DirectoryDelim);
+			sb.append("\t\tNick: " + set.nick + storage.DirectoryDelim);
+			sb.append("\t\tChat logger: " + set.chatlog + storage.DirectoryDelim);
+			sb.append("\t\tMojang Nick: " + set.mcurrentusername + storage.DirectoryDelim);
+			sb.append("\t\tUse Mojang Authentication: " + set.mojangusername + storage.DirectoryDelim);
+			sb.append("\t\tUse Mojang Login Username: " + set.mojangloginusername + storage.DirectoryDelim);
+			sb.append("\t\tUsername ID: " + set.mojangloginusernameid + storage.DirectoryDelim);
+			sb.append("\t\tSave Mojang Password: " + set.savemojangpass + storage.DirectoryDelim);
 			if (!sensitive && set.savemojangpass) {
-				sb.append("\t\tMojang Password: " + set.mpassword + "\r\n");
+				sb.append("\t\tMojang Password: " + set.mpassword + storage.DirectoryDelim);
 			}
-			sb.append("\t\tSave Mojang Access Token: " + set.saveaccess + "\r\n");
+			sb.append("\t\tSave Mojang Access Token: " + set.saveaccess + storage.DirectoryDelim);
 			if (!sensitive && set.saveaccess && set.maccesstoken != null && set.mplayertoken != null) {
-				sb.append("\t\tMojang Access Token: " + set.maccesstoken + "\r\n");
-				sb.append("\t\tMojang Client Token: " + set.mplayertoken + "\r\n");
+				sb.append("\t\tMojang Access Token: " + set.maccesstoken + storage.DirectoryDelim);
+				sb.append("\t\tMojang Client Token: " + set.mplayertoken + storage.DirectoryDelim);
 			}
-			sb.append("\t\tProtocol version: " + set.protocolversion + "\r\n");
-			sb.append("\t\tAutologin: " + set.autologin + "\r\n");
-			sb.append("\t\tAutologout: " + set.autologout + "\r\n");
-			sb.append("\t\tAutoreconnect: " + set.autoreconnect + "\r\n");
-			sb.append("\t\tMessage delay: " + set.messagedelay + "\r\n");
-			sb.append("\t\tAutoreconnect delay: " + set.autoreconnectdelay + "\r\n");
-			sb.append("\t\tAutoanti-afk: " + set.autoantiafk + "\r\n");
-			sb.append("\t\tAutoanti-afk period: " + set.afkperiod + "\r\n");
-			sb.append("\t\tAutonotify: " + set.activenotify + "\r\n");
-			sb.append("\t\tMax lines: " + set.maxlines + "\r\n");
-			sb.append("\t\tAutologin commands:\r\n");
+			sb.append("\t\tProtocol version: " + set.protocolversion + storage.DirectoryDelim);
+			sb.append("\t\tAutologin: " + set.autologin + storage.DirectoryDelim);
+			sb.append("\t\tAutologout: " + set.autologout + storage.DirectoryDelim);
+			sb.append("\t\tAutoreconnect: " + set.autoreconnect + storage.DirectoryDelim);
+			sb.append("\t\tMessage delay: " + set.messagedelay + storage.DirectoryDelim);
+			sb.append("\t\tAutoreconnect delay: " + set.autoreconnectdelay + storage.DirectoryDelim);
+			sb.append("\t\tAutoanti-afk: " + set.autoantiafk + storage.DirectoryDelim);
+			sb.append("\t\tAutoanti-afk period: " + set.afkperiod + storage.DirectoryDelim);
+			sb.append("\t\tAutonotify: " + set.activenotify + storage.DirectoryDelim);
+			sb.append("\t\tMax lines: " + set.maxlines + storage.DirectoryDelim);
+			sb.append("\t\tAutologin commands:"+storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.autologincmd) {
-					sb.append("\t\t\t" + com + "\r\n");
+					sb.append("\t\t\t" + com + storage.DirectoryDelim);
 				}
 			}
-			sb.append("\t\tAutologout commands:\r\n");
+			sb.append("\t\tAutologout commands:"+storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.autologoutcmd) {
-					sb.append("\t\t\t" + com + "\r\n");
+					sb.append("\t\t\t" + com + storage.DirectoryDelim);
 				}
 			}
-			sb.append("\t\tAutoantiafk commands:\r\n");
+			sb.append("\t\tAutoantiafk commands:"+storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.autoantiafkcmd) {
-					sb.append("\t\t\t" + com + "\r\n");
+					sb.append("\t\t\t" + com + storage.DirectoryDelim);
 				}
 			}
-			sb.append("\t\tIgnored messages:\r\n");
+			sb.append("\t\tIgnored messages:"+storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.ignored) {
-					sb.append("\t\t\t" + com + "\r\n");
+					sb.append("\t\t\t" + com + storage.DirectoryDelim);
 				}
 			}
-			sb.append("\t\tText font: " + set.font.getFamily() + "\r\n");
-			sb.append("\t\tText size: " + set.font.getSize() + "\r\n");
-			sb.append("\t\tEnabled plugins:\r\n");
+			sb.append("\t\tText font: " + set.font.getFamily() + storage.DirectoryDelim);
+			sb.append("\t\tText size: " + set.font.getSize() + storage.DirectoryDelim);
+			sb.append("\t\tEnabled plugins:"+storage.DirectoryDelim);
 			for (String com : set.plugins) {
-				sb.append("\t\t\t" + com + "\r\n");
+				sb.append("\t\t\t" + com + storage.DirectoryDelim);
 			}
 		}
 		return sb.toString();
@@ -109,7 +110,7 @@ public class struct_settings {
 	 * @throws SerialException
 	 */
 	public void loadFromString(String stringSettings) throws SerialException {
-		String[] lines = stringSettings.split("\r\n");
+		String[] lines = stringSettings.split(storage.DirectoryDelim);
 		if (settings == null) {
 			settings = new HashMap<String, botsettings>();
 		}
@@ -127,7 +128,7 @@ public class struct_settings {
 		List<String> sb5=new ArrayList<String>();
 
 		for (String line : lines) {
-			if (line.equals("") || line.equals("\r\n") || line.startsWith("#") || line.equals("\n")) {
+			if (line.equals("") || line.equals(storage.DirectoryDelim) || line.startsWith("#") || line.equals("\n")) {
 				continue;
 			}
 
@@ -136,16 +137,16 @@ public class struct_settings {
 				// Login/Logout/Antiafk commands
 				if (pos == 1) {
 					// We are getting list of login commands
-					sb1.append("\r\n" + line.substring(3));
+					sb1.append(storage.DirectoryDelim + line.substring(3));
 				} else if (pos == 2) {
 					// We are getting list of logout commands
-					sb2.append("\r\n" + line.substring(3));
+					sb2.append(storage.DirectoryDelim + line.substring(3));
 				} else if (pos == 3) {
 					// We are getting list of anti-afk commands
-					sb3.append("\r\n" + line.substring(3));
+					sb3.append(storage.DirectoryDelim + line.substring(3));
 				} else if (pos == 4) {
 					// We are getting list of messages to ignore
-					sb4.append("\r\n" + line.substring(3));
+					sb4.append(storage.DirectoryDelim + line.substring(3));
 				} else if (pos == 5) {
 					// We are getting list of enabled plugins
 					sb5.add(line.substring(3));
@@ -271,16 +272,16 @@ public class struct_settings {
 				if (bot != null) {
 					// Previous bot exists, not saved yet
 					if (sb1.toString().length() > 2) {
-						bot.autologincmd = sb1.toString().substring(2).split("\r\n");
+						bot.autologincmd = sb1.toString().substring(2).split(storage.DirectoryDelim);
 					}
 					if (sb2.toString().length() > 2) {
-						bot.autologoutcmd = sb2.toString().substring(2).split("\r\n");
+						bot.autologoutcmd = sb2.toString().substring(2).split(storage.DirectoryDelim);
 					}
 					if (sb3.toString().length() > 2) {
-						bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
+						bot.autoantiafkcmd = sb3.toString().substring(2).split(storage.DirectoryDelim);
 					}
 					if (sb4.toString().length() > 2) {
-						bot.ignored = sb4.toString().substring(2).split("\r\n");
+						bot.ignored = sb4.toString().substring(2).split(storage.DirectoryDelim);
 					}
 					bot.font = MmaterializeFont(fontFamily, fontSize);
 					bot.plugins=sb5;
@@ -317,16 +318,16 @@ public class struct_settings {
 		if (!saved && bot != null) {
 			bot.font = MmaterializeFont(fontFamily, fontSize);
 			if (sb1.toString().length() > 2) {
-				bot.autologincmd = sb1.toString().substring(2).split("\r\n");
+				bot.autologincmd = sb1.toString().substring(2).split(storage.DirectoryDelim);
 			}
 			if (sb2.toString().length() > 2) {
-				bot.autologoutcmd = sb2.toString().substring(2).split("\r\n");
+				bot.autologoutcmd = sb2.toString().substring(2).split(storage.DirectoryDelim);
 			}
 			if (sb3.toString().length() > 2) {
-				bot.autoantiafkcmd = sb3.toString().substring(2).split("\r\n");
+				bot.autoantiafkcmd = sb3.toString().substring(2).split(storage.DirectoryDelim);
 			}
 			if (sb4.toString().length() > 2) {
-				bot.ignored = sb4.toString().substring(2).split("\r\n");
+				bot.ignored = sb4.toString().substring(2).split(storage.DirectoryDelim);
 			}
 			bot.plugins=sb5;
 			settings.put(bot.getTabName(), bot);

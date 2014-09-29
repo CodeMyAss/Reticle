@@ -124,9 +124,9 @@ public class PluginManager {
 	}
 
 	public boolean loadPlugin(String filename) {
-		PluginInfo pl = tryLoadPlugin(new File("plugins/" + filename));
+		PluginInfo pl = tryLoadPlugin(new File(storage.CurrentDir + "plugins/" + filename));
 		if (pl == null) {
-			pl = tryLoadPlugin(new File("plugins/" + filename + ".jar"));
+			pl = tryLoadPlugin(new File(storage.CurrentDir+"plugins/" + filename + ".jar"));
 		}
 		if (pl == null) {
 			return false;
@@ -178,7 +178,7 @@ public class PluginManager {
 
 	protected void loadAllPlugins() {
 		String pluginsdir = "plugins";
-		File pldir = new File(pluginsdir);
+		File pldir = new File(storage.CurrentDir+pluginsdir);
 		if (!pldir.exists() || !pldir.isDirectory()) {
 			if (!pldir.mkdirs()) {
 				storage.conlog("§4Fatal error while loading plugins");

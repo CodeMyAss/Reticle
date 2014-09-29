@@ -6,6 +6,7 @@ import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -77,7 +78,6 @@ public class storage {
 	/**
 	 * Default settings file
 	 */
-	private final static String settingfile = "settings.ini";
 
 	/**
 	 * Mojang authenticazion server URL
@@ -164,6 +164,25 @@ public class storage {
 	public JFrame mainframe;
 
 	private final static Class<?> thisClass = resources.class;
+
+	private final static File CurrentDirectory = new File(System.getProperty("user.dir"));
+	
+	
+	/**
+	 * Indicates current working directory
+	 */	
+	public final static String CurrentDir = curentdir(CurrentDirectory.getAbsolutePath());
+	
+	public final static String DirectoryDelim = System.lineSeparator();
+	
+	private static String curentdir(String s) {
+		if(!s.endsWith("/") && !s.endsWith("\\")) {
+			return s+"/";
+		} else {
+			return s;
+		}
+	}
+	
 	public static final Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.png"));
 	public static final Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.png"));
 	public static final Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.png"));
@@ -172,6 +191,7 @@ public class storage {
 	public static final String icon_loader_path = thisClass.getResource("logo.png").getFile();
 	public static final ImageIcon winicon = new ImageIcon(thisClass.getResource("mainicon.png"));
 
+	private final static String settingfile = CurrentDir+"settings.ini";
 	/**
 	 * Support channel
 	 */
