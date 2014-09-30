@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
+import org.spigot.reticle.events.ConnectionResetEvent;
+
 
 
 public class ConnectionResetPacket extends AbstractPacket {
@@ -17,7 +19,7 @@ public class ConnectionResetPacket extends AbstractPacket {
 		this.reader=reader;
 	}
 	
-	public String Read() throws IOException, SerialException {
-		return reader.readString();
+	public ConnectionResetEvent Read() throws IOException, SerialException {
+		return new ConnectionResetEvent(reader.bot,reader.readString());
 	}
 }

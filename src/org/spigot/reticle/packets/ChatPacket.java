@@ -24,9 +24,9 @@ public class ChatPacket extends AbstractPacket {
 		String msg=reader.readString();
 		if(reader.ProtocolVersion>=47) {
 			byte pos=reader.readByte();
-			return new ChatEvent(reader.bot,msg,pos);
+			return new ChatEvent(reader.bot,msg,pos,false);
 		}
-		return new ChatEvent(reader.bot,msg);
+		return new ChatEvent(reader.bot,msg,false);
 	}
 
 	public void Write(String message) throws IOException {

@@ -18,6 +18,7 @@ public class PlayerListEvent extends Event {
 	private final HashMap<String, String> removedbyuuid;
 	private final List<String> removedbyname;
 	private final List<String> newbyname;
+	private List<String> tablist;
 
 	public HashMap<String, String> getChangedItemsByUUID() {
 		return this.changedbyuuid;
@@ -61,7 +62,9 @@ public class PlayerListEvent extends Event {
 			for (int i = 0, o = Nicks.size(); i < o; i++) {
 				if (Onlines.get(i)) {
 					if (size > i) {
-						res.put(UUIDS.get(i), Nicks.get(i));
+						if (!tablist.contains(UUIDS.get(i))) {
+							res.put(UUIDS.get(i), Nicks.get(i));
+						}
 					}
 				}
 			}
@@ -76,7 +79,9 @@ public class PlayerListEvent extends Event {
 			for (int i = 0, o = Nicks.size(); i < o; i++) {
 				if (!Onlines.get(i)) {
 					if (size > i) {
-						res.put(UUIDS.get(i), Nicks.get(i));
+						if (tablist.contains(UUIDS.get(i))) {
+							res.put(UUIDS.get(i), Nicks.get(i));
+						}
 					}
 				}
 			}
@@ -89,12 +94,16 @@ public class PlayerListEvent extends Event {
 		if (name == null) {
 			for (int i = 0, o = Nicks.size(); i < o; i++) {
 				if (!Onlines.get(i)) {
-					res.add(Nicks.get(i));
+					if (tablist.contains(Nicks.get(i))) {
+						res.add(Nicks.get(i));
+					}
 				}
 			}
 		} else {
 			if (!online) {
-				res.add(name);
+				if (tablist.contains(name)) {
+					res.add(name);
+				}
 			}
 		}
 		return res;
@@ -105,28 +114,33 @@ public class PlayerListEvent extends Event {
 		if (name == null) {
 			for (int i = 0, o = Nicks.size(); i < o; i++) {
 				if (Onlines.get(i) && !Changed.get(i)) {
-					res.add(Nicks.get(i));
+					if (!tablist.contains(Nicks.get(i))) {
+						res.add(Nicks.get(i));
+					}
 				}
 			}
 		} else {
 			if (online) {
-				res.add(name);
+				if (!tablist.contains(name)) {
+					res.add(name);
+				}
 			}
 		}
 		return res;
 	}
 
-	public PlayerListEvent(mcbot bot, String xname, boolean xonline, List<String> XUUIDS, List<String> xNicks, List<Boolean> xOnlines, List<Boolean> xChanged) {
+	public PlayerListEvent(mcbot bot, String xname, boolean xonline, List<String> XUUIDS, List<String> xNicks, List<Boolean> xOnlines, List<Boolean> xChanged, List<String> xtablist, HashMap<String, String> xtablist_nicks) {
 		super(bot);
 		this.name = xname;
 		this.online = xonline;
-		if(XUUIDS==null) {
-			XUUIDS=new ArrayList<String>();
+		if (XUUIDS == null) {
+			XUUIDS = new ArrayList<String>();
 		}
 		this.UUIDS = XUUIDS;
 		this.Nicks = xNicks;
 		this.Onlines = xOnlines;
 		this.Changed = xChanged;
+		this.tablist = xtablist;
 		this.newbyuuid = gen_getNewItemsByUUID();
 		this.changedbyuuid = gen_getChangedItemsByUUID();
 		this.removedbyuuid = gen_getRemovedItemsByUUID();

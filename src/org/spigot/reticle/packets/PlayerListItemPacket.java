@@ -3,6 +3,7 @@ package org.spigot.reticle.packets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.sql.rowset.serial.SerialException;
@@ -21,7 +22,7 @@ public class PlayerListItemPacket extends AbstractPacket {
 
 	}
 
-	public PlayerListEvent Read() throws IOException, SerialException {
+	public PlayerListEvent Read(List<String> tablist, HashMap<String, String> tablist_nicks) throws IOException, SerialException {
 		String name = null;
 		boolean online = false;
 		List<String> UUIDS = null;
@@ -99,7 +100,7 @@ public class PlayerListItemPacket extends AbstractPacket {
 			// Ping
 			reader.readShort();
 		}
-		return new PlayerListEvent(reader.bot, name, online, UUIDS, Nicks, Onlines, Changed);
+		return new PlayerListEvent(reader.bot, name, online, UUIDS, Nicks, Onlines, Changed,tablist,tablist_nicks);
 	}
 
 	/*

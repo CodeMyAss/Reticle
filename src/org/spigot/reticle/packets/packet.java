@@ -50,26 +50,26 @@ public class packet {
 	}
 
 	public packet(mcbot bot) {
-		this.bot=bot;
+		this.bot = bot;
 	}
 
 	public boolean isEncrypted() {
 		return this.encrypted;
 	}
 
-	public packet(mcbot bot,InputStream inputStream, OutputStream outputs) {
-		this.bot=bot;
+	public packet(mcbot bot, InputStream inputStream, OutputStream outputs) {
+		this.bot = bot;
 		this.sockinput = inputStream;
 		this.sockoutput = outputs;
 	}
 
-	public packet(mcbot bot,InputStream inputStream) {
+	public packet(mcbot bot, InputStream inputStream) {
 		this.sockinput = inputStream;
-		this.bot=bot;
+		this.bot = bot;
 	}
 
-	public packet(mcbot bot,int len, ByteBuffer input) throws IOException {
-		this.bot=bot;
+	public packet(mcbot bot, int len, ByteBuffer input) throws IOException {
+		this.bot = bot;
 		this.input = input;
 		int vcount = getVarntCount(len);
 		this.output = ByteBuffer.allocate(len + vcount);
@@ -157,7 +157,7 @@ public class packet {
 		this.input.get(b, 0, len);
 		return b;
 	}
-	
+
 	public byte[] readLegacyArray() throws SerialException, IOException {
 		return readBytes(readVarInt());
 	}
@@ -165,7 +165,7 @@ public class packet {
 	public byte[] readInnerLegacyArray() throws SerialException, IOException {
 		return readInnerBytes(readInnerVarInt());
 	}
-	
+
 	public void writeBytes(byte[] b) {
 		this.output.put(b);
 	}
@@ -458,4 +458,7 @@ public class packet {
 		return i;
 	}
 
+	public void setOutputStream(byte[] seq) throws IOException {
+		output = ByteBuffer.wrap(seq);
+	}
 }

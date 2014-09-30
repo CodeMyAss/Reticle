@@ -30,6 +30,8 @@ import org.spigot.reticle.storage;
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.events.ChatEvent;
+import org.spigot.reticle.events.ConnectionResetEvent;
+import org.spigot.reticle.events.EntityStatusEvent;
 import org.spigot.reticle.events.Event;
 import org.spigot.reticle.events.JoinGameEvent;
 import org.spigot.reticle.events.PlayerListEvent;
@@ -438,6 +440,11 @@ public class connector extends Thread {
 				}
 			} else {
 				if (this.sock != null) {
+					ChatEvent e = new ChatEvent(bot, Message, true);
+					storage.pluginManager.invokeEvent(e, bot.getAllowedPlugins());
+					if (e.isCancelled()) {
+						return true;
+					}
 					if (Message.length() >= 100) {
 						String[] msgs = splitter(Message, 100);
 						for (String m : msgs) {
@@ -480,8 +487,8 @@ public class connector extends Thread {
 	private void processpreloginpacket(int pid, int len, ByteBuffer buf) throws Exception {
 		switch (pid) {
 			case ConnectionResetPacket.ID2: {
-				String reason = new ConnectionResetPacket(buf, reader).Read();
-				sendmsg("§4Server closed connection. Reason:\n" + reason);
+				ConnectionResetEvent dcevent = new ConnectionResetPacket(buf, reader).Read();
+				sendmsg("§4Server closed connection. Reason:\n" + dcevent.getReason());
 				communicationavailable = false;
 			}
 			break;
@@ -531,7 +538,8 @@ public class connector extends Thread {
 			break;
 
 			case EntityStatusPacket.ID:
-				new EntityStatusPacket(reader, buf).Read();
+				EntityStatusEvent essv = new EntityStatusPacket(reader, buf).Read();
+				e = essv;
 			break;
 
 			case TimeUpdatePacket.ID:
@@ -600,24 +608,20 @@ public class connector extends Thread {
 			break;
 
 			case SpawnPositionPacket.ID:
-				// Spawn position
 				new SpawnPositionPacket(buf, reader).Read();
 			break;
 
 			case RespawnPacket.ID:
-				// Respawn
 				new RespawnPacket(buf, reader).Read();
 			break;
 
-			//TODO: Check functionality
 			case PlayerListItemPacket.ID:
-				// We got tablist update (yay)
 				PlayerListItemPacket playerlistitem = new PlayerListItemPacket(buf, reader);
-				PlayerListEvent plevent = playerlistitem.Read();
+				PlayerListEvent plevent = playerlistitem.Read(Tablist, Tablist_nicks);
 				if (servePlayerList(plevent, Tablist, Tablist_nicks)) {
 					this.refreshTablist();
 				}
-				e=plevent;
+				e = plevent;
 			break;
 
 			case DisplayScoreBoardPacket.ID:
@@ -645,9 +649,8 @@ public class connector extends Thread {
 			break;
 
 			case ConnectionResetPacket.ID:
-				// Server closed connection
-				String reason = parsechat(new ConnectionResetPacket(buf, reader).Read());
-				sendmsg("§4Server closed connection. (" + reason + ")");
+				ConnectionResetEvent dcevent = new ConnectionResetPacket(buf, reader).Read();
+				sendmsg("§4Server closed connection. (" + dcevent.getReason() + ")");
 			break;
 		}
 		if (e != null) {

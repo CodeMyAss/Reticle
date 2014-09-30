@@ -42,19 +42,18 @@ import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
-	public static final String version = "1.04.5 beta";
+	public static final String version = "1.04.7 beta";
 
 	/**
 	 * Default text to be displayed for authentication
 	 */
 	public static final String default_online_nick = "Authenticate first";
 
-	
 	/**
 	 * Many uses
 	 */
 	public static final String LineSeparator = System.lineSeparator();
-	
+
 	/**
 	 * Thread for dealing with chat messages
 	 */
@@ -166,23 +165,22 @@ public class storage {
 	private final static Class<?> thisClass = resources.class;
 
 	private final static File CurrentDirectory = new File(System.getProperty("user.dir"));
-	
-	
+
 	/**
 	 * Indicates current working directory
-	 */	
+	 */
 	public final static String CurrentDir = curentdir(CurrentDirectory.getAbsolutePath());
-	
+
 	public final static String DirectoryDelim = System.lineSeparator();
-	
+
 	private static String curentdir(String s) {
-		if(!s.endsWith("/") && !s.endsWith("\\")) {
-			return s+"/";
+		if (!s.endsWith("/") && !s.endsWith("\\")) {
+			return s + "/";
 		} else {
 			return s;
 		}
 	}
-	
+
 	public static final Icon icon_off = new ImageIcon(thisClass.getResource("icon_off.png"));
 	public static final Icon icon_on = new ImageIcon(thisClass.getResource("icon_on.png"));
 	public static final Icon icon_dis = new ImageIcon(thisClass.getResource("icon_dis.png"));
@@ -191,7 +189,7 @@ public class storage {
 	public static final String icon_loader_path = thisClass.getResource("logo.png").getFile();
 	public static final ImageIcon winicon = new ImageIcon(thisClass.getResource("mainicon.png"));
 
-	private final static String settingfile = CurrentDir+"settings.ini";
+	private final static String settingfile = CurrentDir + "settings.ini";
 	/**
 	 * Support channel
 	 */
@@ -225,10 +223,12 @@ public class storage {
 		mcbot bot = storage.getInstance().mainer;
 		return bot.getmsg(5000);
 	}
-	
+
 	/**
 	 * Sets system clipboard (Ctrl+c/Ctrl+v)
-	 * @param Text - Text to be put into clipboard
+	 * 
+	 * @param Text
+	 *            - Text to be put into clipboard
 	 */
 	public static void setClipboard(String Text) {
 		StringSelection stringSelection = new StringSelection(Text);
@@ -355,7 +355,7 @@ public class storage {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Returns whether or not automatic plugins loading is enabled
 	 * 
@@ -435,16 +435,17 @@ public class storage {
 	/**
 	 * Invoked when options are changed
 	 * 
-	 * @param map New options
+	 * @param map
+	 *            New options
 	 */
 	public static void setglobalsettings(HashMap<String, String> map) {
 		storage.getInstance().settin.globalsettings = map;
 		List<mcbot> specialbots = storage.getSpecialBots();
-		for(mcbot bot:specialbots) {
+		for (mcbot bot : specialbots) {
 			bot.updateChatLogger();
 		}
 	}
-	
+
 	private static List<mcbot> getSpecialBots() {
 		return storage.getInstance().settin.specialbots;
 	}
@@ -627,7 +628,8 @@ public class storage {
 	/**
 	 * Returns String stripped of formating
 	 * 
-	 * @param String String to be stripped
+	 * @param String
+	 *            String to be stripped
 	 * @return Returns Stripped string
 	 */
 	public static String stripcolors(String String) {
@@ -655,10 +657,14 @@ public class storage {
 				botsettings set = tabs.get(key);
 				mcbot bot = new mcbot(set);
 				bot.ismain = false;
-				if (set.autoconnect) {
+				bots.put(key, bot);
+			}
+			for (String key : tabs.keySet()) {
+				botsettings set = tabs.get(key);
+				mcbot bot = bots.get(key);
+				if(set.autoconnect) {
 					bot.connect();
 				}
-				bots.put(key, bot);
 			}
 		}
 	}
@@ -827,7 +833,8 @@ public class storage {
 	/**
 	 * Returns HTML formated Message
 	 * 
-	 * @param Message Message to be parsed
+	 * @param Message
+	 *            Message to be parsed
 	 * @return Returns parsed message
 	 */
 	public static String parsecolorashtml(String Message) {
@@ -889,9 +896,28 @@ public class storage {
 	}
 
 	/**
+	 * Strips html formated strings, such as used in Player List
+	 * 
+	 * @param str
+	 *            Contains HTML to be parsed
+	 * @return Returns stripped string or original string
+	 */
+	public static String striphtml(String str) {
+		return str.replaceAll("<[^>]*>", "");
+		/*
+		 * if(!str.contains("<")) { return str; } StringBuilder sb=new
+		 * StringBuilder(); int len=str.length(); int i=0; while(i<len && i>=0)
+		 * { if(str.indexOf("<",i)<0) { sb.append(str.substring(i)); break; }
+		 * sb.append(str.substring(i,str.indexOf("<",i))); i=str.indexOf(">",i);
+		 * } return sb.toString();
+		 */
+	}
+
+	/**
 	 * Reports exception
 	 * 
- 	 * @param e The exception to be reported
+	 * @param e
+	 *            The exception to be reported
 	 * @return Returns True if successful, False if otherwise
 	 */
 	public static boolean reportthis(Exception e) {
@@ -922,7 +948,8 @@ public class storage {
 	/**
 	 * Returns bot tab index based by name
 	 * 
-	 * @param BotTabName Bot identification
+	 * @param BotTabName
+	 *            Bot identification
 	 * @return Returns index of bot
 	 */
 	public static int gettabbyname(String BotTabName) {
@@ -950,7 +977,7 @@ public class storage {
 			bot.disconnect();
 		}
 	}
-	
+
 	protected static void reconnectall() {
 		HashMap<String, mcbot> bots = storage.getInstance().settin.bots;
 		for (String botname : bots.keySet()) {

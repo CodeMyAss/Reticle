@@ -24,6 +24,10 @@ public class PluginManager {
 
 	}
 
+	/**
+	 * Returns list of names of all plugins
+	 * @return Returns list of names of all plugins
+	 */
 	public List<String> getAllPluginNames() {
 		Object[] pl = this.getPluginInfos().toArray();
 		List<String> res = new ArrayList<String>();
@@ -72,6 +76,9 @@ public class PluginManager {
 		return null;
 	}
 
+	/**
+	 * Right before bot app is closed
+	 */
 	protected void unloadAllPlugins() {
 		Object[] Pluginss = Plugins.keySet().toArray();
 		for (Object pl : Pluginss) {
@@ -82,10 +89,11 @@ public class PluginManager {
 	/**
 	 * Unloads plugin
 	 * 
-	 * @param Plugin
+	 * @param Plugin Plugin to be unloaded
 	 */
 	public void unloadPlugin(Plugin Plugin) {
 		if (this.pluginExists(Plugin)) {
+			Plugin.onDisable();
 			Plugin.onUnload();
 			this.RemoveAllMethodsForPlugin(Plugin);
 			PluginInfo plinfo = Plugins.get(Plugin);

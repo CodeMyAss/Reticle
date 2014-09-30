@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.swing.Icon;
@@ -31,8 +32,11 @@ import javax.swing.text.StyledDocument;
 
 import org.spigot.reticle.PluginInfo;
 import org.spigot.reticle.storage;
+import org.spigot.reticle.API.ContextMenuItem;
 import org.spigot.reticle.API.Plugin;
+import org.spigot.reticle.events.ChatLogContextMenuEvent;
 import org.spigot.reticle.events.ConsoleCommandEvent;
+import org.spigot.reticle.events.PlayerListContextMenuEvent;
 import org.spigot.reticle.settings.botsettings;
 import org.spigot.reticle.settings.team_struct;
 import org.spigot.reticle.sockets.Authenticator;
@@ -508,7 +512,7 @@ public class mcbot {
 	}
 
 	/**
-	 * @return  Returns seconds between sending afk commands
+	 * @return Returns seconds between sending afk commands
 	 */
 	public int getantiafkperiod() {
 		return this.rawbot.afkperiod;
@@ -594,6 +598,15 @@ public class mcbot {
 	}
 
 	/**
+	 * Returns server name as defined in config
+	 * 
+	 * @return Returns server name as defined in config
+	 */
+	public String getServerName() {
+		return this.rawbot.servername;
+	}
+
+	/**
 	 * @return Returns true if bot is connected and ready
 	 */
 	public boolean isConnected() {
@@ -620,13 +633,13 @@ public class mcbot {
 
 	// TODO: Manage main commands
 	private void manageMainCommand(String command) {
-		ConsoleCommandEvent event = new ConsoleCommandEvent(this,command);
+		ConsoleCommandEvent event = new ConsoleCommandEvent(this, command);
 		String cmd = event.getCommandName().toLowerCase();
-		String[] params=event.getParams();
+		String[] params = event.getParams();
 		switch (cmd) {
 			default:
 				storage.pluginManager.invokeEvent(event, true);
-				if(!event.isCancelled()) {
+				if (!event.isCancelled()) {
 					storage.conlog("Command not recognized. Use §o§6help§r for list of all commands");
 				}
 			break;
@@ -679,7 +692,7 @@ public class mcbot {
 							PluginInfo plinfo = storage.pluginManager.getPluginInfo(pl);
 							storage.conlog("§oPlugin info\nName: §6" + plinfo.Name + "\n§fAuthor: §6" + plinfo.Author + "§f\nVersion: §6" + plinfo.Version);
 						}
-					} else if (params[0].equalsIgnoreCase("enabledall")) {
+					} else if (params[0].equalsIgnoreCase("enableall")) {
 						String plname = params[1];
 						Plugin pl = storage.pluginManager.getPluginByName(plname);
 						if (pl == null) {
@@ -690,6 +703,7 @@ public class mcbot {
 							for (mcbot bott : bots.values()) {
 								bott.enablePluginHere(plinfo);
 							}
+							storage.savesettings();
 							storage.conlog("Plugin §6" + plinfo.Name + "§r§f has been enabled on all servers");
 						}
 					} else if (params[0].equalsIgnoreCase("disableall")) {
@@ -703,6 +717,7 @@ public class mcbot {
 							for (mcbot bott : bots.values()) {
 								bott.disablePluginHere(plinfo);
 							}
+							storage.savesettings();
 							storage.conlog("Plugin §6" + plinfo.Name + "§r§f has been disabled on all servers");
 						}
 					}
@@ -757,7 +772,8 @@ public class mcbot {
 	 * Sends text to server (note that to send command, you must send text
 	 * prefixed with '/')
 	 * 
-	 * @param Message Message to be send to server
+	 * @param Message
+	 *            Message to be send to server
 	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean sendtoserver(String Message) {
@@ -838,7 +854,8 @@ public class mcbot {
 	/**
 	 * Returns text from chat box
 	 * 
-	 * @param len Length of message to return
+	 * @param len
+	 *            Length of message to return
 	 * @return Returns message from chat box
 	 */
 	public String getmsg(int len) {
@@ -1236,5 +1253,51 @@ public class mcbot {
 
 	public List<String> getAllowedPlugins() {
 		return rawbot.plugins;
+	}
+
+	protected LinkedHashMap<String, ContextMenuItem> contextattable(String text) {
+		LinkedHashMap<String, ContextMenuItem> items = new LinkedHashMap<String, ContextMenuItem>();
+		PlayerListContextMenuEvent e = new PlayerListContextMenuEvent(this, items, text);
+		storage.pluginManager.invokeEvent(e, rawbot.plugins);
+		return items;
+	}
+
+	protected LinkedHashMap<String, ContextMenuItem> contextchatlog(String text) {
+		LinkedHashMap<String, ContextMenuItem> items = new LinkedHashMap<String, ContextMenuItem>();
+		ChatLogContextMenuEvent e = new ChatLogContextMenuEvent(this, items, text);
+		e.addEntry(this, "Select all", "handlechatlogselection");
+		e.addEntry(this, "Copy", "handlechatlogselection");
+		e.addEntry(this, "Clear", "handlechatlogselection");
+		if (ismain) {
+			if (this.isMainTab()) {
+				e.addEntry(this, "Report", "handlechatlogselection");
+			}
+		} else {
+			e.addEntry(this, "Add to ignore list", "handlechatlogselection");
+		}
+		storage.pluginManager.invokeEvent(e, rawbot.plugins);
+		return items;
+	}
+
+	
+	/**
+	 * Invoked when text selection is made
+	 */
+	public void handlechatlogselection(String command, String selection) {
+		if (command.equals("Select all")) {
+			this.chatlog.requestFocus();
+			this.chatlog.requestFocus();
+			this.chatlog.setSelectionStart(0);
+			this.chatlog.setSelectionEnd(this.chatlog.getText().length());
+		} else if (command.equals("Copy")) {
+			storage.setClipboard(selection);
+		} else if (command.equals("Clear")) {
+			this.chatlog.setText("");
+		} else if (command.equals("Add to ignore list")) {
+			storage.addtoignoreforcurrentbot(selection);
+		} else if (command.equals("Report")) {
+			storage.sendissue();
+			storage.conlog("Reporting");
+		}
 	}
 }

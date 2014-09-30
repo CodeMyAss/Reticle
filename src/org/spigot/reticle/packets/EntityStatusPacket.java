@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 
 import javax.sql.rowset.serial.SerialException;
 
+import org.spigot.reticle.events.EntityStatusEvent;
+
 public class EntityStatusPacket extends AbstractPacket {
 	public static final int ID = 0x1A;
 	private packet reader;
@@ -14,10 +16,9 @@ public class EntityStatusPacket extends AbstractPacket {
 		this.reader.input = buf;
 	}
 
-	public byte Read() throws SerialException, IOException {
-		// Entity id
-		reader.readInt();
+	public EntityStatusEvent Read() throws SerialException, IOException {
+		int id=reader.readInt();
 		byte status = reader.readByte();
-		return status;
+		return new EntityStatusEvent(reader.bot,status,id);
 	}
 }

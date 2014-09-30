@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -37,6 +38,7 @@ import javax.swing.text.DocumentFilter;
 import net.miginfocom.swing.MigLayout;
 
 import org.spigot.reticle.storage;
+import org.spigot.reticle.API.ContextMenuItem;
 
 public class botfactory {
 
@@ -117,8 +119,7 @@ public class botfactory {
 			}
 		});
 
-		PopClickListener listener = new PopClickListener();
-		listener.main = bot.allowreport;
+		chatlogpopup listener = new chatlogpopup(bot);
 		txtpnText.addMouseListener(listener);
 
 		KeyAdapter scom = new KeyAdapter() {
@@ -167,7 +168,7 @@ public class botfactory {
 			AbstractDocument doc = (AbstractDocument) txtpnText.getStyledDocument();
 			doc.setDocumentFilter(new MaxLenFilter(txtpnText, bot.getChatFilterLength()));
 		}
-		
+
 		txtpnText.setFont(bot.getFont());
 
 		if (bot.tablistdisplayed) {
@@ -207,6 +208,26 @@ public class botfactory {
 			bot.setconfig(txtpnText, table, panel_1, autostroll, messagecount, tableinfo, txtCommands);
 			splitPane.setDividerLocation(0.9);
 			splitPane.setResizeWeight(0.7);
+			// Tablist popup menu
+
+			tablepopup adapter = new tablepopup(bot);
+
+			table.addMouseListener(adapter);
+			/*
+			 * JPopupMenu popupMenu = new JPopupMenu(); JMenuItem deleteItem =
+			 * new JMenuItem("Delete"); deleteItem.addActionListener(new
+			 * ActionListener() {
+			 * 
+			 * @Override public void actionPerformed(ActionEvent e) { Component
+			 * c = (Component) e.getSource(); JPopupMenu popup = (JPopupMenu)
+			 * c.getParent(); JTable table = (JTable) popup.getInvoker();
+			 * MouseListener[] list = table.getMouseListeners(); tablepopup
+			 * adaap = null; for (MouseListener tmp : list) { if (tmp instanceof
+			 * tablepopup) { adaap = (tablepopup) tmp; } } String text =
+			 * (String) table.getValueAt(adaap.row, adaap.column);
+			 * bot.contextattable(text); } }); popupMenu.add(deleteItem);
+			 * table.setComponentPopupMenu(popupMenu);
+			 */
 		} else {
 			panel.add(panel_1, "cell 0 0,grow");
 			panel_1.add(txtCommands, "flowx,cell 0 1,growx");
@@ -216,48 +237,66 @@ public class botfactory {
 	}
 }
 
-class contextmenu extends JPopupMenu {
+class tablepopup extends MouseAdapter {
+	public int row, column;
+	public final mcbot bot;
+
+	public tablepopup(mcbot bot) {
+		this.bot = bot;
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		JTable source = (JTable) e.getSource();
+		row = source.rowAtPoint(e.getPoint());
+		column = source.columnAtPoint(e.getPoint());
+		if (e.isPopupTrigger()) {
+			pop(e);
+		}
+	}
+
+	public void mousePressed(MouseEvent e) {
+		JTable source = (JTable) e.getSource();
+		row = source.rowAtPoint(e.getPoint());
+		column = source.columnAtPoint(e.getPoint());
+		if (e.isPopupTrigger()) {
+			pop(e);
+		}
+	}
+
+	public void pop(MouseEvent e) {
+		JTable txt = (JTable) e.getSource();
+		String ts = storage.striphtml(txt.getValueAt(row, column).toString());
+		ts = ts.replaceAll("\n", "");
+		tablecontextmenu menu = new tablecontextmenu((JTable) e.getComponent(), bot, ts);
+		menu.show(e.getComponent(), e.getX(), e.getY());
+	}
+}
+
+class tablecontextmenu extends JPopupMenu {
 	private static final long serialVersionUID = 1L;
 	JMenuItem anItem;
+	private HashMap<String, ContextMenuItem> methods = new HashMap<String, ContextMenuItem>();
 
-	protected contextmenu(final JTextPane txt, boolean main) {
-
+	protected tablecontextmenu(final JTable txt, mcbot bot, final String str) {
 		ActionListener menuListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				if (event.getActionCommand().equals("Select all")) {
-					txt.requestFocus();
-					txt.setSelectionStart(0);
-					txt.setSelectionEnd(txt.getText().length());
-				} else if (event.getActionCommand().equals("Copy")) {
-					storage.setClipboard(txt.getSelectedText());
-				} else if (event.getActionCommand().equals("Clear")) {
-					txt.setText("");
-				} else if (event.getActionCommand().equals("Add to ignore list")) {
-					String text = txt.getSelectedText();
-					storage.addtoignoreforcurrentbot(text);
-				} else if (event.getActionCommand().equals("Report")) {
-					storage.sendissue();
-					storage.conlog("Reporting");
+				String selection = event.getActionCommand();
+				if (methods.containsKey(selection)) {
+					ContextMenuItem m = methods.get(selection);
+					if (m.m != null) {
+						try {
+							m.m.invoke(m.o, selection, str);
+						} catch (Exception e) {
+						}
+					}
 				}
 			}
 		};
-		JMenuItem item1 = new JMenuItem("Select all");
-		JMenuItem item2 = new JMenuItem("Copy");
-		JMenuItem item3 = new JMenuItem("Clear");
-		item1.addActionListener(menuListener);
-		item2.addActionListener(menuListener);
-		item3.addActionListener(menuListener);
-		add(item1);
-		add(item2);
-		add(item3);
-		if (main) {
-			JMenuItem item4 = new JMenuItem("Report");
-			item4.addActionListener(menuListener);
-			add(item4);
-		} else {
-			JMenuItem item4 = new JMenuItem("Add to ignore list");
-			item4.addActionListener(menuListener);
-			add(item4);
+		methods = bot.contextattable(str);
+		for (String m : methods.keySet()) {
+			JMenuItem item = new JMenuItem(m);
+			item.addActionListener(menuListener);
+			add(item);
 		}
 	}
 }
@@ -284,23 +323,63 @@ class MaxLenFilter extends DocumentFilter {
 	}
 }
 
-class PopClickListener extends MouseAdapter {
-	protected boolean main;
+class chatlogpopup extends MouseAdapter {
+	public String selection;
+	public final mcbot bot;
 
-	public void mousePressed(MouseEvent e) {
-		if (e.isPopupTrigger()) {
-			doPop(e);
-		}
+	public chatlogpopup(mcbot bot) {
+		this.bot = bot;
 	}
 
 	public void mouseReleased(MouseEvent e) {
+		JTextPane source = (JTextPane) e.getSource();
+		selection=source.getSelectedText();
 		if (e.isPopupTrigger()) {
-			doPop(e);
+			pop(e);
 		}
 	}
 
-	private void doPop(MouseEvent e) {
-		contextmenu menu = new contextmenu((JTextPane) e.getComponent(), main);
+	public void mousePressed(MouseEvent e) {
+		JTextPane source = (JTextPane) e.getSource();
+		selection=source.getSelectedText();
+		if (e.isPopupTrigger()) {
+			pop(e);
+		}
+	}
+
+	public void pop(MouseEvent e) {
+		chatlogcontextmenu menu = new chatlogcontextmenu((JTextPane) e.getComponent(), bot, selection);
 		menu.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+}
+
+class chatlogcontextmenu extends JPopupMenu {
+	private static final long serialVersionUID = 1L;
+	JMenuItem anItem;
+	private HashMap<String, ContextMenuItem> methods = new HashMap<String, ContextMenuItem>();
+
+	protected chatlogcontextmenu(final JTextPane txt, mcbot bot, final String str) {
+		ActionListener menuListener = new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				String selection = event.getActionCommand();
+				String str = txt.getSelectedText();
+				if (methods.containsKey(selection)) {
+					ContextMenuItem m = methods.get(selection);
+					if (m.m != null) {
+						try {
+							m.m.invoke(m.o, selection, str);
+						} catch (Exception e) {
+						}
+					}
+				}
+			}
+		};
+		methods = bot.contextchatlog(str);
+		for (String m : methods.keySet()) {
+			JMenuItem item = new JMenuItem(m);
+			item.addActionListener(menuListener);
+			add(item);
+		}
 	}
 }

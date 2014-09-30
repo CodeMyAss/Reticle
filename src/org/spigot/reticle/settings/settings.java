@@ -507,7 +507,9 @@ public class settings extends JFrame {
 				lblRestartApplicationTo.setEnabled(false);
 				panel_4.add(lblRestartApplicationTo, "cell 2 3");
 
+				pack();
 				setVisible(true);
+				
 
 				set.font = font;
 
