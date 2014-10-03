@@ -91,8 +91,9 @@ public class settings extends JFrame {
 
 	private Font font;
 	private List<JCheckBox> boxes = new ArrayList<JCheckBox>();
-	
-	
+	private JTextField textproxyip;
+	private JTextField textproxyport;
+
 	/**
 	 * Init settings window Not safe for anyone to mess with this method
 	 * 
@@ -149,7 +150,7 @@ public class settings extends JFrame {
 						// New settings from user
 						botsettings bs;
 						try {
-							//TODO: Save
+							// TODO: Save
 							bs = storage.getInstance().setobj.getsettings(accesstoken, playertoken, mojangusernamelist, mcurrentusername, mojangloginusernameid, font, getEnabledPlugins(boxes));
 						} catch (NumberFormatException e) {
 							storage.alert("Settings error", "One or more numeric fields\ncontains one or more\nillegal characters!");
@@ -194,7 +195,7 @@ public class settings extends JFrame {
 
 				JPanel panel_1 = new JPanel();
 				tabbedPane.addTab("Server", null, panel_1, null);
-				panel_1.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][][][]"));
+				panel_1.setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][][][][][][][][]"));
 
 				JLabel lblNewLabel_5 = new JLabel("Server name:");
 				panel_1.add(lblNewLabel_5, "cell 1 0,alignx trailing");
@@ -252,22 +253,22 @@ public class settings extends JFrame {
 				CheckBoxList list = new CheckBoxList();
 
 				List<PluginSelectionItem> plugins = new ArrayList<PluginSelectionItem>();
-				for(String pl:set.plugins) {
-					plugins.add(new PluginSelectionItem(pl,true));
+				for (String pl : set.plugins) {
+					plugins.add(new PluginSelectionItem(pl, true));
 				}
-				List<String> plugs  = storage.pluginManager.getAllPluginNames();
+				List<String> plugs = storage.pluginManager.getAllPluginNames();
 				for (PluginSelectionItem item : plugins) {
-					if(plugs.contains(item.getName())) {
+					if (plugs.contains(item.getName())) {
 						plugs.remove(item.getName());
 					}
 					boxes.add(item.getBox());
 				}
-				for(String pl:plugs) {
-					boxes.add(new PluginSelectionItem(pl,false).getBox());
+				for (String pl : plugs) {
+					boxes.add(new PluginSelectionItem(pl, false).getBox());
 				}
 				list.setListData(boxes.toArray());
 				panel_2.add(list, "cell 0 1,grow");
-				
+
 				JLabel lblthisOnlyAffects = new JLabel("(This only affects event dispatching)");
 				lblthisOnlyAffects.setEnabled(false);
 				panel_2.add(lblthisOnlyAffects, "cell 0 0");
@@ -497,7 +498,7 @@ public class settings extends JFrame {
 							Font fonter = fontChooser.getSelectedFont();
 							font = new Font(fonter.getFamily(), Font.PLAIN, fonter.getSize());
 							textField.setText(font.getSize() + "");
-							textfont.setText(font.getFamily()+ "");
+							textfont.setText(font.getFamily() + "");
 						}
 					}
 				});
@@ -507,9 +508,31 @@ public class settings extends JFrame {
 				lblRestartApplicationTo.setEnabled(false);
 				panel_4.add(lblRestartApplicationTo, "cell 2 3");
 
+				JLabel lblUserProxy = new JLabel("Use proxy:");
+				panel_1.add(lblUserProxy, "cell 1 15,alignx right");
+
+				JCheckBox checkproxy = new JCheckBox("");
+				checkproxy.setSelected(set.useproxy);
+				panel_1.add(checkproxy, "cell 2 15");
+
+				JLabel lblProxyAddress = new JLabel("Proxy Address:");
+				panel_1.add(lblProxyAddress, "cell 1 16,alignx trailing");
+
+				textproxyip = new JTextField();
+				textproxyip.setText(set.proxyip);
+				panel_1.add(textproxyip, "cell 2 16,growx");
+				textproxyip.setColumns(10);
+
+				JLabel lblProxyPort = new JLabel("Proxy Port:");
+				panel_1.add(lblProxyPort, "cell 1 17,alignx trailing");
+
+				textproxyport = new JTextField();
+				textproxyport.setText(set.proxyport+"");
+				panel_1.add(textproxyport, "cell 2 17,growx");
+				textproxyport.setColumns(10);
+
 				pack();
 				setVisible(true);
-				
 
 				set.font = font;
 
@@ -541,25 +564,25 @@ public class settings extends JFrame {
 				sobj.messagedelay = textmessagedelay;
 				sobj.chatlog = checkBox_1;
 				sobj.textmaxlines = textmaxlines;
-				//sobj.font = font;
-				//sobj.plugins=getEnabledPlugins(boxes);
+				sobj.checkproxy = checkproxy;
+				sobj.proxyip = textproxyip;
+				sobj.proxyport = textproxyport;
 				storage.getInstance().setobj.setsettings(set);
 			}
 		});
 	}
 
 	private List<String> getEnabledPlugins(List<JCheckBox> boxes) {
-		List<String> enabled=new ArrayList<String>();
-		for(JCheckBox box:boxes) {
-			if(box.isSelected()) {
+		List<String> enabled = new ArrayList<String>();
+		for (JCheckBox box : boxes) {
+			if (box.isSelected()) {
 				enabled.add(box.getText());
 			}
 		}
 		return enabled;
 	}
-	
-}
 
+}
 
 class CheckBoxList extends JList<Object> {
 	private static final long serialVersionUID = 1L;

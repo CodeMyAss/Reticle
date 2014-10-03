@@ -49,6 +49,9 @@ public class set_obj_struct {
 	protected JTextField messagedelay;
 	protected JCheckBox chatlog;
 	protected JTextField textmaxlines;
+	protected JCheckBox checkproxy;
+	protected JTextField proxyip;
+	protected JTextField proxyport;
 
 	protected void setglobals(JCheckBox b1, JCheckBox b2, JCheckBox b3) {
 		this.autoupdate = b1;
@@ -95,6 +98,9 @@ public class set_obj_struct {
 		this.messagedelay.setText(botSettings.messagedelay+"");
 		this.chatlog.setSelected(botSettings.chatlog);
 		this.textmaxlines.setText(botSettings.maxlines+"");
+		this.checkproxy.setSelected(botSettings.useproxy);
+		this.proxyip.setText(botSettings.proxyip);
+		this.proxyport.setText(botSettings.proxyport+"");
 	}
 
 	private int protocolversiontoindex(int ver) {
@@ -166,6 +172,9 @@ public class set_obj_struct {
 		struct.maxlines=Integer.parseInt(this.textmaxlines.getText());
 		struct.font=fonnt;
 		struct.plugins=pluginlist;
+		struct.useproxy=this.checkproxy.isSelected();
+		struct.proxyip=this.proxyip.getText();
+		struct.proxyport=Integer.parseInt(this.proxyport.getText());
 		return struct;
 	}
 

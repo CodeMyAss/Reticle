@@ -15,6 +15,12 @@ public class ServerInfo {
 	private final int mode=1;
 	private final int protocolversion;
 	
+	public ServerInfo(String ip, int port) {
+		this.serverip=ip;
+		this.serverport=port;
+		this.protocolversion=4;
+	}
+	
 	@Deprecated
 	public ServerInfo(String ip, int port, int protocolversion) {
 		this.serverip=ip;

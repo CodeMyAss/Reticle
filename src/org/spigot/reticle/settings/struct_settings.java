@@ -15,6 +15,7 @@ public class struct_settings {
 	public HashMap<String, mcbot> bots = new HashMap<String, mcbot>();
 	public HashMap<String, String> globalsettings = new HashMap<String, String>();
 	public List<mcbot> specialbots = new ArrayList<mcbot>();
+
 	/**
 	 * Returns string representation of settings
 	 * 
@@ -28,7 +29,9 @@ public class struct_settings {
 	 * Returns string representation of settings If sensitive is true, final
 	 * string will not include personal data
 	 * 
-	 * @param sensitive True if string can contain sensitive data (Including passwords)
+	 * @param sensitive
+	 *            True if string can contain sensitive data (Including
+	 *            passwords)
 	 * @return Returns string representation of settings
 	 */
 	public String saveToString(boolean sensitive) {
@@ -69,25 +72,25 @@ public class struct_settings {
 			sb.append("\t\tAutoanti-afk period: " + set.afkperiod + storage.DirectoryDelim);
 			sb.append("\t\tAutonotify: " + set.activenotify + storage.DirectoryDelim);
 			sb.append("\t\tMax lines: " + set.maxlines + storage.DirectoryDelim);
-			sb.append("\t\tAutologin commands:"+storage.DirectoryDelim);
+			sb.append("\t\tAutologin commands:" + storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.autologincmd) {
 					sb.append("\t\t\t" + com + storage.DirectoryDelim);
 				}
 			}
-			sb.append("\t\tAutologout commands:"+storage.DirectoryDelim);
+			sb.append("\t\tAutologout commands:" + storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.autologoutcmd) {
 					sb.append("\t\t\t" + com + storage.DirectoryDelim);
 				}
 			}
-			sb.append("\t\tAutoantiafk commands:"+storage.DirectoryDelim);
+			sb.append("\t\tAutoantiafk commands:" + storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.autoantiafkcmd) {
 					sb.append("\t\t\t" + com + storage.DirectoryDelim);
 				}
 			}
-			sb.append("\t\tIgnored messages:"+storage.DirectoryDelim);
+			sb.append("\t\tIgnored messages:" + storage.DirectoryDelim);
 			if (!sensitive) {
 				for (String com : set.ignored) {
 					sb.append("\t\t\t" + com + storage.DirectoryDelim);
@@ -95,10 +98,13 @@ public class struct_settings {
 			}
 			sb.append("\t\tText font: " + set.font.getFamily() + storage.DirectoryDelim);
 			sb.append("\t\tText size: " + set.font.getSize() + storage.DirectoryDelim);
-			sb.append("\t\tEnabled plugins:"+storage.DirectoryDelim);
+			sb.append("\t\tEnabled plugins:" + storage.DirectoryDelim);
 			for (String com : set.plugins) {
 				sb.append("\t\t\t" + com + storage.DirectoryDelim);
 			}
+			sb.append("\t\tUse proxy: " + set.useproxy + storage.DirectoryDelim);
+			sb.append("\t\tProxy ip: " + set.proxyip + storage.DirectoryDelim);
+			sb.append("\t\tProxy port: " + set.proxyport + storage.DirectoryDelim);
 		}
 		return sb.toString();
 	}
@@ -125,7 +131,7 @@ public class struct_settings {
 		StringBuilder sb2 = new StringBuilder();
 		StringBuilder sb3 = new StringBuilder();
 		StringBuilder sb4 = new StringBuilder();
-		List<String> sb5=new ArrayList<String>();
+		List<String> sb5 = new ArrayList<String>();
 
 		for (String line : lines) {
 			if (line.equals("") || line.equals(storage.DirectoryDelim) || line.startsWith("#") || line.equals("\n")) {
@@ -264,6 +270,15 @@ public class struct_settings {
 					case "Text size":
 						fontSize = Integer.parseInt(param);
 					break;
+					case "Use proxy":
+						bot.useproxy = Boolean.parseBoolean(param);
+					break;
+					case "Proxy ip":
+						bot.proxyip = param;
+					break;
+					case "Proxy port":
+						bot.proxyport = Integer.parseInt(param);
+					break;
 				}
 
 			} else if (line.startsWith("\t")) {
@@ -284,7 +299,7 @@ public class struct_settings {
 						bot.ignored = sb4.toString().substring(2).split(storage.DirectoryDelim);
 					}
 					bot.font = MmaterializeFont(fontFamily, fontSize);
-					bot.plugins=sb5;
+					bot.plugins = sb5;
 					fontFamily = "Arial";
 					fontSize = 12;
 					settings.put(bot.getTabName(), bot);
@@ -293,7 +308,7 @@ public class struct_settings {
 					sb2 = new StringBuilder();
 					sb3 = new StringBuilder();
 					sb4 = new StringBuilder();
-					sb5=new ArrayList<String>();
+					sb5 = new ArrayList<String>();
 				} else {
 					// We are first bot ever
 					bot = new botsettings(null);
@@ -303,7 +318,7 @@ public class struct_settings {
 					sb2 = new StringBuilder();
 					sb3 = new StringBuilder();
 					sb4 = new StringBuilder();
-					sb5=new ArrayList<String>();
+					sb5 = new ArrayList<String>();
 				}
 			} else {
 				// Global options
@@ -329,7 +344,7 @@ public class struct_settings {
 			if (sb4.toString().length() > 2) {
 				bot.ignored = sb4.toString().substring(2).split(storage.DirectoryDelim);
 			}
-			bot.plugins=sb5;
+			bot.plugins = sb5;
 			settings.put(bot.getTabName(), bot);
 		}
 	}

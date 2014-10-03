@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.HashMap;
 
+import javax.swing.DefaultSingleSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -49,18 +50,24 @@ public class botfactory {
 		JPanel panel = new JPanel();
 		panel.setBackground(bot.backgroundcolor);
 		panel.setForeground(bot.foregroundcolor);
-		JTabbedPane tabbedPane = storage.getInstance().tabbedPane;
+		final JTabbedPane tabbedPane = storage.getInstance().tabbedPane;
+
+		tabselector sel = new tabselector();
+
+		botpopup botpop = new botpopup(bot, sel);
+		tabbedPane.addMouseListener(botpop);
+
+		tabselectorlistener resel = new tabselectorlistener(sel);
+		tabbedPane.setModel(resel);
 
 		tabbedPane.addTab(bot.gettabname(), storage.icon_dis, panel, bot.gettabname());
 
 		panel.setLayout(new MigLayout("", "[615px,grow]", "[340px,grow]"));
 
 		JPanel panel_1 = new JPanel();
-		// panel.add(panel_1, "cell 0 0,grow");
 		panel_1.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
 
 		JPanel panel_2 = new JPanel();
-		// panel.add(panel_1, "cell 0 0,grow");
 		panel_2.setLayout(new MigLayout("", "[grow]", "[grow][]0"));
 
 		panel_1.setBackground(bot.backgroundcolor);
@@ -333,7 +340,7 @@ class chatlogpopup extends MouseAdapter {
 
 	public void mouseReleased(MouseEvent e) {
 		JTextPane source = (JTextPane) e.getSource();
-		selection=source.getSelectedText();
+		selection = source.getSelectedText();
 		if (e.isPopupTrigger()) {
 			pop(e);
 		}
@@ -341,7 +348,7 @@ class chatlogpopup extends MouseAdapter {
 
 	public void mousePressed(MouseEvent e) {
 		JTextPane source = (JTextPane) e.getSource();
-		selection=source.getSelectedText();
+		selection = source.getSelectedText();
 		if (e.isPopupTrigger()) {
 			pop(e);
 		}
@@ -381,5 +388,140 @@ class chatlogcontextmenu extends JPopupMenu {
 			item.addActionListener(menuListener);
 			add(item);
 		}
+	}
+}
+
+class botpopup extends MouseAdapter {
+	public String selection;
+	public final mcbot bot;
+	private tabselector sel;
+
+	public botpopup(mcbot bot, tabselector sel) {
+		this.bot = bot;
+		this.sel = sel;
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		JTabbedPane source = (JTabbedPane) e.getSource();
+		sel.setRead(true);
+		sel.Change(!e.isPopupTrigger());
+		if (e.isPopupTrigger()) {
+			sel.Change(false);
+			pop(e);
+		} else {
+			sel.Change(true);
+		}
+		source.setSelectedIndex(source.indexAtLocation(e.getX(), e.getY()));
+	}
+
+	public void mousePressed(MouseEvent e) {
+		JTabbedPane source = (JTabbedPane) e.getSource();
+		sel.Change(!e.isPopupTrigger());
+		sel.setRead(true);
+		if (e.isPopupTrigger()) {
+			sel.Change(false);
+			pop(e);
+		} else {
+			sel.Change(false);
+		}
+		source.setSelectedIndex(source.indexAtLocation(e.getX(), e.getY()));
+	}
+
+	public void pop(MouseEvent e) {
+		JTabbedPane source = (JTabbedPane) e.getSource();
+		selection = source.getTitleAt(source.indexAtLocation(e.getX(), e.getY()));
+		botcontextmenu menu = new botcontextmenu(bot, selection);
+		menu.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+}
+
+class botcontextmenu extends JPopupMenu {
+	private static final long serialVersionUID = 1L;
+	JMenuItem anItem;
+	private HashMap<String, ContextMenuItem> methods = new HashMap<String, ContextMenuItem>();
+
+	protected botcontextmenu(mcbot bot, final String str) {
+		ActionListener menuListener = new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				String selection = event.getActionCommand();
+				if (methods.containsKey(selection)) {
+					ContextMenuItem m = methods.get(selection);
+					if (m.m != null) {
+						try {
+							m.m.invoke(m.o, selection, str);
+						} catch (Exception e) {
+						}
+					}
+				}
+			}
+		};
+		methods = bot.botcontextmenu(str);
+		for (String m : methods.keySet()) {
+			JMenuItem item = new JMenuItem(m);
+			item.addActionListener(menuListener);
+			add(item);
+		}
+
+	}
+}
+
+class tabselectorlistener extends DefaultSingleSelectionModel {
+
+	private static final long serialVersionUID = 1L;
+	private tabselector sel;
+	private int index = 0;
+
+	public tabselectorlistener(tabselector sel) {
+		this.sel = sel;
+	}
+	
+	@Override
+	public void setSelectedIndex(int pindex) {
+		if (pindex != -1) {
+			if (sel.isReady()) {
+				boolean can = sel.canChange();
+				if (can) {
+					super.setSelectedIndex(pindex);
+					index = pindex;
+				} else {
+					super.setSelectedIndex(index);
+				}
+			} else {
+				super.setSelectedIndex(pindex);
+			}
+		}
+	}
+}
+
+class tabselector {
+	private boolean canchange = true;
+	private boolean ready = false;
+
+	protected tabselector() {
+	}
+
+	protected void Change(boolean can) {
+		canchange = can;
+	}
+
+	protected boolean isReady() {
+		if (ready) {
+			ready = false;
+			return true;
+		}
+		return ready;
+	}
+
+	protected void setRead(boolean ready) {
+		this.ready = ready;
+	}
+
+	protected boolean canChange() {
+		if (canchange) {
+			canchange = false;
+			return true;
+		}
+		return canchange;
 	}
 }

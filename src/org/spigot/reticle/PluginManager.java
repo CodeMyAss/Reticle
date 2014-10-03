@@ -270,7 +270,6 @@ public class PluginManager {
 						Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
 						method.invoke(instance, e);
 					} catch (Exception e1) {
-						e1.printStackTrace();
 					}
 				}
 			}

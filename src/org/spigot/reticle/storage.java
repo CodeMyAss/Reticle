@@ -210,6 +210,21 @@ public class storage {
 	}
 
 	/**
+	 * Returns bot by given tab name
+	 * 
+	 * @param tabName
+	 *            Tab name
+	 * @return Returns bot by given tab name
+	 */
+	public static mcbot getBotbyTabName(String tabName) {
+		if (storage.getInstance().settin.bots.containsKey(tabName)) {
+			return storage.getInstance().settin.bots.get(tabName);
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * When invoke, option window is closed
 	 */
 	public synchronized static void closeoptionswin() {
@@ -588,7 +603,11 @@ public class storage {
 	}
 
 	private static int getselectedtabindex() {
-		return storage.getInstance().tabbedPane.getSelectedIndex();
+		int i=storage.getInstance().tabbedPane.getSelectedIndex();
+		if(i==-1) {
+			i=0;
+		}
+		return i;
 	}
 
 	protected static String getselectedtabtitle() {
@@ -659,10 +678,11 @@ public class storage {
 				bot.ismain = false;
 				bots.put(key, bot);
 			}
+			storage.gettabbedpane().setSelectedIndex(0);
 			for (String key : tabs.keySet()) {
 				botsettings set = tabs.get(key);
 				mcbot bot = bots.get(key);
-				if(set.autoconnect) {
+				if (set.autoconnect) {
 					bot.connect();
 				}
 			}

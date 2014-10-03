@@ -29,6 +29,7 @@ public class loader extends JFrame implements Runnable {
 		frame = new JFrame();
 		frame.setUndecorated(true);
 		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setTitle("Reticle loader");
 		ImagePanel panel = new ImagePanel(storage.icon_loader.getImage());
 		frame.getContentPane().add(panel, BorderLayout.CENTER);

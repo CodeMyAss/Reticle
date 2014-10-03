@@ -3,6 +3,7 @@ package org.spigot.reticle.sockets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -269,7 +270,21 @@ public class connector extends Thread {
 			encryptiondecided = false;
 			sock = null;
 			bot.seticon(ICONSTATE.CONNECTING);
-			sock = new Socket(bot.serverip, bot.serverport);
+
+			//TODO: proxy
+			if (bot.useProxy()) {
+				Proxy proxy=bot.getProxyAddress();
+				if(proxy!=null) {
+					sock = new Socket(proxy);
+					sock.connect(bot.getServerAddress());
+				} else {
+					bot.logmsg("§4Invalid proxy");
+					this.reconnect=false;
+					return;
+				}
+			} else {
+				sock = new Socket(bot.serverip, bot.serverport);
+			}
 			reader = new packet(bot, sock.getInputStream(), sock.getOutputStream());
 			reader.ProtocolVersion = protocolversion;
 			definepackets(reader);

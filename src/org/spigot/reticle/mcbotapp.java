@@ -23,6 +23,7 @@ import java.io.PrintStream;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -205,9 +206,8 @@ public class mcbotapp {
 		frmReticle.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
 		frmReticle.setIconImage(storage.winicon.getImage());
-
 		// TODO: Stream redirection
-		// redirectSystemStreams();
+		redirectSystemStreams();
 
 		storage.getInstance().tabbedPane = tabbedPane;
 		storage.getInstance().menu_con = mntmNewMenuItem_2;

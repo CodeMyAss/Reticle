@@ -14,6 +14,14 @@ import org.spigot.reticle.sockets.Reporter;
  */
 public class MAIN {
 	public static void main(String[] args) throws MalformedURLException, Exception {
+		/*
+		 * ServerQuery query = new ServerQuery("GameTeam.cz",25565);
+		 * QueryResponse resp = query.Execute();
+		 * System.out.println("Resp: "+resp.players.length); ServerInfo query2 =
+		 * new ServerInfo("GameTeam.cz",25565); StatusResponse res =
+		 * query2.Execute(); System.out.println("Resp2: "+res.players.sample);
+		 * System.exit(0);
+		 */
 		loader runner;
 		Thread loader = new Thread(runner = new loader());
 		loader.start();
@@ -63,6 +71,8 @@ public class MAIN {
 				}
 			}
 			System.exit(1);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

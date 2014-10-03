@@ -45,6 +45,9 @@ public class botsettings {
 	public int maxlines = 500;
 	public Font font = new Font("Arial", Font.PLAIN, 12);
 	public List<String> plugins = new ArrayList<String>();
+	public boolean useproxy = false;
+	public String proxyip = "";
+	public int proxyport = 0;
 
 	/**
 	 * Returns ID Not safe to use

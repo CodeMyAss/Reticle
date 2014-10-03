@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import org.spigot.reticle.PluginInfo;
 import org.spigot.reticle.storage;
 import org.spigot.reticle.API.ContextMenuItem;
 import org.spigot.reticle.API.Plugin;
+import org.spigot.reticle.events.BotContextMenuEvent;
 import org.spigot.reticle.events.ChatLogContextMenuEvent;
 import org.spigot.reticle.events.ConsoleCommandEvent;
 import org.spigot.reticle.events.PlayerListContextMenuEvent;
@@ -82,6 +85,29 @@ public class mcbot {
 	 */
 	public boolean messagesDelayed() {
 		return this.rawbot.messagedelay != 0;
+	}
+
+	/**
+	 * @return Returns True if proxy is used
+	 */
+	public boolean useProxy() {
+		return this.rawbot.useproxy;
+	}
+
+	/**
+	 * @return Returns Address of server
+	 * @throws UnknownHostException
+	 */
+	public InetSocketAddress getServerAddress() throws UnknownHostException {
+		return new InetSocketAddress(this.serverip, this.rawbot.serverport);
+	}
+
+	/**
+	 * @return Returns address of proxy
+	 * @throws UnknownHostException
+	 */
+	public Proxy getProxyAddress() throws UnknownHostException {
+		return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(this.rawbot.proxyip, this.rawbot.proxyport));
 	}
 
 	private boolean StringArrayContains(String str, String[] arr) {
@@ -1279,7 +1305,6 @@ public class mcbot {
 		return items;
 	}
 
-	
 	/**
 	 * Invoked when text selection is made
 	 */
@@ -1298,6 +1323,29 @@ public class mcbot {
 		} else if (command.equals("Report")) {
 			storage.sendissue();
 			storage.conlog("Reporting");
+		}
+	}
+
+	public HashMap<String, ContextMenuItem> botcontextmenu(String bottabname) {
+		LinkedHashMap<String, ContextMenuItem> items = new LinkedHashMap<String, ContextMenuItem>();
+		BotContextMenuEvent e = new BotContextMenuEvent(this, items, bottabname);
+		e.addEntry(this, "Connect", "handlebotelection");
+		e.addEntry(this, "Disconnect", "handlebotelection");
+		e.addEntry(this, "Reconnect", "handlebotelection");
+		storage.pluginManager.invokeEvent(e, rawbot.plugins);
+		return items;
+	}
+
+	public void handlebotelection(String action, String bottabname) {
+		mcbot bot = storage.getBotbyTabName(bottabname);
+		if (bot != null) {
+			if (action.equals("Connect")) {
+				bot.connect();
+			} else if (action.equals("Disconnect")) {
+				bot.disconnect();
+			} else if (action.equals("Reconnect")) {
+				bot.softReconnect();
+			}
 		}
 	}
 }
