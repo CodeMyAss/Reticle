@@ -41,6 +41,7 @@ import net.miginfocom.swing.MigLayout;
 import org.spigot.reticle.storage;
 import org.spigot.reticle.API.ContextMenuItem;
 import org.spigot.reticle.botfactory.selector.tabselector;
+import org.spigot.reticle.events.ContextReceiveEvent;
 
 public class botfactory {
 
@@ -53,7 +54,7 @@ public class botfactory {
 		panel.setForeground(bot.foregroundcolor);
 		final JTabbedPane tabbedPane = storage.getInstance().tabbedPane;
 
-		tabselector sel = storage.sel.sel; 
+		tabselector sel = storage.sel.sel;
 
 		botpopup botpop = new botpopup(bot, sel);
 		tabbedPane.addMouseListener(botpop);
@@ -62,7 +63,7 @@ public class botfactory {
 		tabbedPane.setModel(resel);
 
 		tabbedPane.addTab(bot.gettabname(), storage.icon_dis, panel, bot.gettabname());
-		//storage.reFreshTabs();
+		// storage.reFreshTabs();
 		tabbedPane.setSelectedIndex(sel.index);
 
 		panel.setLayout(new MigLayout("", "[615px,grow]", "[340px,grow]"));
@@ -287,7 +288,7 @@ class tablecontextmenu extends JPopupMenu {
 	JMenuItem anItem;
 	private HashMap<String, ContextMenuItem> methods = new HashMap<String, ContextMenuItem>();
 
-	protected tablecontextmenu(final JTable txt, mcbot bot, final String str) {
+	protected tablecontextmenu(final JTable txt, final mcbot bot, final String str) {
 		ActionListener menuListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				String selection = event.getActionCommand();
@@ -295,7 +296,8 @@ class tablecontextmenu extends JPopupMenu {
 					ContextMenuItem m = methods.get(selection);
 					if (m.m != null) {
 						try {
-							m.m.invoke(m.o, selection, str);
+							ContextReceiveEvent e = new ContextReceiveEvent(bot,selection,str);
+							m.m.invoke(m.o, e);
 						} catch (Exception e) {
 						}
 					}
@@ -369,7 +371,7 @@ class chatlogcontextmenu extends JPopupMenu {
 	JMenuItem anItem;
 	private HashMap<String, ContextMenuItem> methods = new HashMap<String, ContextMenuItem>();
 
-	protected chatlogcontextmenu(final JTextPane txt, mcbot bot, final String str) {
+	protected chatlogcontextmenu(final JTextPane txt, final mcbot bot, final String str) {
 		ActionListener menuListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				String selection = event.getActionCommand();
@@ -378,7 +380,8 @@ class chatlogcontextmenu extends JPopupMenu {
 					ContextMenuItem m = methods.get(selection);
 					if (m.m != null) {
 						try {
-							m.m.invoke(m.o, selection, str);
+							ContextReceiveEvent e = new ContextReceiveEvent(bot,selection,str);
+							m.m.invoke(m.o, e);
 						} catch (Exception e) {
 						}
 					}
@@ -449,7 +452,7 @@ class botcontextmenu extends JPopupMenu {
 	JMenuItem anItem;
 	private HashMap<String, ContextMenuItem> methods = new HashMap<String, ContextMenuItem>();
 
-	protected botcontextmenu(mcbot bot, final String str) {
+	protected botcontextmenu(final mcbot bot, final String str) {
 		ActionListener menuListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				String selection = event.getActionCommand();
@@ -457,7 +460,8 @@ class botcontextmenu extends JPopupMenu {
 					ContextMenuItem m = methods.get(selection);
 					if (m.m != null) {
 						try {
-							m.m.invoke(m.o, selection, str);
+							ContextReceiveEvent e = new ContextReceiveEvent(bot,selection,str);
+							m.m.invoke(m.o, e);
 						} catch (Exception e) {
 						}
 					}
@@ -494,8 +498,8 @@ class tabselectorlistener extends DefaultSingleSelectionModel {
 						super.setSelectedIndex(pindex);
 						sel.index = pindex;
 					} else {
-						if(sel.index >= sel.getTabCount()) {
-							sel.index=pindex;
+						if (sel.index >= sel.getTabCount()) {
+							sel.index = pindex;
 						}
 						super.setSelectedIndex(sel.index);
 					}
@@ -503,9 +507,10 @@ class tabselectorlistener extends DefaultSingleSelectionModel {
 					super.setSelectedIndex(pindex);
 				}
 			} else {
-				super.setSelectedIndex(0);
+				if (!(sel.index > 0 && sel.index < sel.getTabCount())) {
+					super.setSelectedIndex(0);
+				}
 			}
 		}
 	}
 }
-

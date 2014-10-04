@@ -39,6 +39,7 @@ import org.spigot.reticle.API.Plugin;
 import org.spigot.reticle.events.BotContextMenuEvent;
 import org.spigot.reticle.events.ChatLogContextMenuEvent;
 import org.spigot.reticle.events.ConsoleCommandEvent;
+import org.spigot.reticle.events.ContextReceiveEvent;
 import org.spigot.reticle.events.PlayerListContextMenuEvent;
 import org.spigot.reticle.settings.botsettings;
 import org.spigot.reticle.settings.team_struct;
@@ -1308,7 +1309,9 @@ public class mcbot {
 	/**
 	 * Invoked when text selection is made
 	 */
-	public void handlechatlogselection(String command, String selection) {
+	public void handlechatlogselection(ContextReceiveEvent e) {
+		String command=e.getCommandName();
+		String selection=e.getText();
 		if (command.equals("Select all")) {
 			this.chatlog.requestFocus();
 			this.chatlog.requestFocus();
@@ -1349,7 +1352,9 @@ public class mcbot {
 		return items;
 	}
 
-	public void handlebotelection(String action, String bottabname) {
+	public void handlebotelection(ContextReceiveEvent e) {
+		String action=e.getCommandName();
+		String bottabname=e.getText();
 		mcbot bot = storage.getBotbyTabName(bottabname);
 		if (bot != null) {
 			if (!bot.isSpecialTab()) {

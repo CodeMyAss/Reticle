@@ -43,7 +43,7 @@ import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
 public class storage {
-	public static final String version = "1.04.7 beta";
+	public static final String version = "1.04.8 beta";
 
 	/**
 	 * Selector object. Used for internap purposes
@@ -640,11 +640,11 @@ public class storage {
 		JOptionPane.showMessageDialog(comp, Message, Title, JOptionPane.ERROR_MESSAGE);
 	}
 
-	protected static void addbot() {
+	public static mcbot addbot() {
 		botsettings bot = new botsettings("Untitled");
 		if (!bot.isExclusive()) {
 			storage.alert("Error", "Cannot add new bot. There might be one not configured yet.");
-			return;
+			return null;
 		} else {
 			mcbot mbot = new mcbot(bot);
 			mbot.ismain = false;
@@ -652,6 +652,7 @@ public class storage {
 			storage.getInstance().settin.bots.put(mbot.gettabname(), mbot);
 			mbot.seticon(ICONSTATE.DISCONNECTED);
 			savesettings();
+			return mbot;
 		}
 	}
 
