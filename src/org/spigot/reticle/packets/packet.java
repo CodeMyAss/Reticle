@@ -90,7 +90,7 @@ public class packet {
 		return res;
 	}
 
-	public byte[] readInnerBytes(int len) throws IOException {
+	public byte[] readInnerBytes(int len) throws SerialException, IOException {
 		byte[] b = new byte[len];
 		int read = 0;
 		do {
@@ -237,6 +237,7 @@ public class packet {
 	}
 
 	private final int readInnerVarInt() throws SerialException, IOException {
+
 		int out = 0;
 		int bytes = 0;
 		byte in;
@@ -366,7 +367,7 @@ public class packet {
 	}
 
 	protected long readLong() throws IOException, SerialException {
-		return (((long) readInt()) << 16) + ((long) readInt());
+		return (((long) readInt()) << 4 * 8) + ((long) readInt());
 	}
 
 	protected void writeLong(long l, OutputStream output) throws IOException {

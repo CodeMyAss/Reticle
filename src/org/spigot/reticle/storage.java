@@ -31,6 +31,7 @@ import javax.swing.JTabbedPane;
 
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
+import org.spigot.reticle.botfactory.selector;
 import org.spigot.reticle.resources.resources;
 import org.spigot.reticle.settings.aboutwin;
 import org.spigot.reticle.settings.botsettings;
@@ -44,6 +45,12 @@ import org.spigot.reticle.sockets.ChatThread;
 public class storage {
 	public static final String version = "1.04.7 beta";
 
+	/**
+	 * Selector object. Used for internap purposes
+	 * Not safe to use
+	 */
+	public static final selector sel = new selector();
+	
 	/**
 	 * Default text to be displayed for authentication
 	 */
@@ -73,10 +80,6 @@ public class storage {
 	 * Link to news service website
 	 */
 	public final static String news = "http://reticle.mc-atlantida.eu/news.php";
-
-	/**
-	 * Default settings file
-	 */
 
 	/**
 	 * Mojang authenticazion server URL
@@ -233,7 +236,7 @@ public class storage {
 			storage.getInstance().optwin = null;
 		}
 	}
-
+	
 	private static String getconsoletext() {
 		mcbot bot = storage.getInstance().mainer;
 		return bot.getmsg(5000);
@@ -591,21 +594,29 @@ public class storage {
 		return (storage.getInstance().winobj != null);
 	}
 
-	protected synchronized static void opensettingswindow() {
+	protected synchronized static void opensettingswindowforcurrentbot() {
+		botsettings set = getcurrenttabsettings();
+		opensettingswindow(set);
+	}
+
+	/**
+	 *  Opens bot settings window
+	 * @param BotSettings Botsettings to edit
+	 */
+	public synchronized static void opensettingswindow(botsettings BotSettings) {
 		if (settingwindowopened()) {
 			storage.getInstance().winobj.requestFocus();
 		} else {
-			botsettings set = getcurrenttabsettings();
-			if (set != null) {
-				storage.getInstance().winobj = new settings(set);
+			if (BotSettings != null) {
+				storage.getInstance().winobj = new settings(BotSettings);
 			}
 		}
 	}
 
 	private static int getselectedtabindex() {
-		int i=storage.getInstance().tabbedPane.getSelectedIndex();
-		if(i==-1) {
-			i=0;
+		int i = storage.getInstance().tabbedPane.getSelectedIndex();
+		if (i == -1) {
+			i = 0;
 		}
 		return i;
 	}

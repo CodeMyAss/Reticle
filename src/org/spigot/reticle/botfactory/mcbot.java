@@ -1326,25 +1326,42 @@ public class mcbot {
 		}
 	}
 
+	/**
+	 * Opens bot settings if no other settings window is present
+	 */
+	public void openSettingsWindow() {
+		storage.opensettingswindow(this.rawbot);
+	}
+
 	public HashMap<String, ContextMenuItem> botcontextmenu(String bottabname) {
 		LinkedHashMap<String, ContextMenuItem> items = new LinkedHashMap<String, ContextMenuItem>();
-		BotContextMenuEvent e = new BotContextMenuEvent(this, items, bottabname);
-		e.addEntry(this, "Connect", "handlebotelection");
-		e.addEntry(this, "Disconnect", "handlebotelection");
-		e.addEntry(this, "Reconnect", "handlebotelection");
-		storage.pluginManager.invokeEvent(e, rawbot.plugins);
+		mcbot bot = storage.getBotbyTabName(bottabname);
+		if (bot != null) {
+			if (!bot.isSpecialTab()) {
+				BotContextMenuEvent e = new BotContextMenuEvent(this, items, bottabname);
+				e.addEntry(this, "Connect", "handlebotelection");
+				e.addEntry(this, "Disconnect", "handlebotelection");
+				e.addEntry(this, "Reconnect", "handlebotelection");
+				e.addEntry(this, "Open settings", "handlebotelection");
+				storage.pluginManager.invokeEvent(e, rawbot.plugins);
+			}
+		}
 		return items;
 	}
 
 	public void handlebotelection(String action, String bottabname) {
 		mcbot bot = storage.getBotbyTabName(bottabname);
 		if (bot != null) {
-			if (action.equals("Connect")) {
-				bot.connect();
-			} else if (action.equals("Disconnect")) {
-				bot.disconnect();
-			} else if (action.equals("Reconnect")) {
-				bot.softReconnect();
+			if (!bot.isSpecialTab()) {
+				if (action.equals("Connect")) {
+					bot.connect();
+				} else if (action.equals("Disconnect")) {
+					bot.disconnect();
+				} else if (action.equals("Reconnect")) {
+					bot.softReconnect();
+				} else if (action.equals("Open settings")) {
+					bot.openSettingsWindow();
+				}
 			}
 		}
 	}

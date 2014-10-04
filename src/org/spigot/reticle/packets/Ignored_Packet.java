@@ -5,7 +5,7 @@ import java.io.IOException;
 public class Ignored_Packet extends AbstractPacket {
 	private int len;
 	private packet reader;
-	public Ignored_Packet(int len, int id, packet reader) throws IOException {
+	public Ignored_Packet(int len, packet reader) throws IOException {
 		this.len = len;
 		this.reader=reader;
 	}

@@ -32,7 +32,6 @@ import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.ConnectionResetEvent;
-import org.spigot.reticle.events.EntityStatusEvent;
 import org.spigot.reticle.events.Event;
 import org.spigot.reticle.events.JoinGameEvent;
 import org.spigot.reticle.events.PlayerListEvent;
@@ -155,7 +154,6 @@ public class connector extends Thread {
 
 	private void definepackets(packet packet) {
 		// Define served packets
-		// packet.ValidPackets.add(PluginMessagePacket.ID);
 		packet.ValidPackets.add(ChatPacket.ID);
 		packet.ValidPackets.add(KeepAlivePacket.ID);
 		packet.ValidPackets.add(JoinGamePacket.ID);
@@ -170,6 +168,7 @@ public class connector extends Thread {
 		packet.ValidPackets.add(PlayerPositionAndLookPacket.ID);
 		packet.ValidPackets.add(EntityStatusPacket.ID);
 		packet.ValidPackets.add(TabCompletePacket.ID);
+		packet.ValidPackets.add(SignUpdatePacket.ID);
 	}
 
 	protected int getantiafkperiod() {
@@ -271,15 +270,14 @@ public class connector extends Thread {
 			sock = null;
 			bot.seticon(ICONSTATE.CONNECTING);
 
-			//TODO: proxy
 			if (bot.useProxy()) {
-				Proxy proxy=bot.getProxyAddress();
-				if(proxy!=null) {
+				Proxy proxy = bot.getProxyAddress();
+				if (proxy != null) {
 					sock = new Socket(proxy);
 					sock.connect(bot.getServerAddress());
 				} else {
 					bot.logmsg("§4Invalid proxy");
-					this.reconnect=false;
+					this.reconnect = false;
 					return;
 				}
 			} else {
@@ -324,7 +322,6 @@ public class connector extends Thread {
 					pid = pack[1];
 				}
 				// TODO: Debug part
-				// System.out.println("PID: "+Integer.toHexString(pid)+" LEN: "+len);
 				if (pid > maxpacketid) {
 					sendmsg("Received packet id " + pid + " (Length: " + len + ",Compression: " + reader.compression + ", Encryption: " + reader.isEncrypted() + ")");
 					sendmsg("§4Malformed communication");
@@ -334,6 +331,7 @@ public class connector extends Thread {
 					bot.seticon(ICONSTATE.CONNECTED);
 				}
 				int len2 = len - reader.getVarntCount(pid);
+				//System.out.println("PID: " + Integer.toHexString(pid) + " LEN: " + len + " LEN2: " + len2);
 				if (reader.ValidPackets.contains(pid)) {
 					// We shall serve this one
 					if (reader.compression) {
@@ -359,7 +357,7 @@ public class connector extends Thread {
 						// Compressed packet already ignored
 					} else {
 						// We decided to ignore this one
-						new Ignored_Packet(len2, pid, reader).Read();
+						new Ignored_Packet(len2, reader).Read();
 					}
 				}
 			}
@@ -529,7 +527,7 @@ public class connector extends Thread {
 			break;
 
 			// TODO: Reparse legacy array
-			case EncryptionRequestPacket.ID: {
+			case EncryptionRequestPacket.ID:
 				// Maybe the server wants some encryption
 				EncryptionRequestPacket encr = new EncryptionRequestPacket(buf, reader);
 				try {
@@ -538,7 +536,6 @@ public class connector extends Thread {
 					setEncryption(encr.getSecret(), reader);
 				} catch (BufferUnderflowException e) {
 				}
-			}
 			break;
 
 		}
@@ -549,13 +546,16 @@ public class connector extends Thread {
 		switch (pid) {
 			default:
 				sendmsg("§4§l§nUnhandled packet " + pid);
-				new Ignored_Packet(len, pid, reader).Read();
+				new Ignored_Packet(len, reader).Read();
 			break;
 
 			case EntityStatusPacket.ID:
-				EntityStatusEvent essv = new EntityStatusPacket(reader, buf).Read();
-				e = essv;
+				e = new EntityStatusPacket(reader, buf).Read();
 			break;
+			
+			case SignUpdatePacket.ID:
+				e = new SignUpdatePacket(buf, reader).Read();
+				break;
 
 			case TimeUpdatePacket.ID:
 				new TimeUpdatePacket(buf, reader).Read();

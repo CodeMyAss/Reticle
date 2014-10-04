@@ -156,7 +156,7 @@ public class mcbotapp {
 		JMenuItem mntmNewMenuItem_4 = new JMenuItem("Settings");
 		mntmNewMenuItem_4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				storage.opensettingswindow();
+				storage.opensettingswindowforcurrentbot();
 			}
 		});
 		

@@ -40,6 +40,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.spigot.reticle.storage;
 import org.spigot.reticle.API.ContextMenuItem;
+import org.spigot.reticle.botfactory.selector.tabselector;
 
 public class botfactory {
 
@@ -52,7 +53,7 @@ public class botfactory {
 		panel.setForeground(bot.foregroundcolor);
 		final JTabbedPane tabbedPane = storage.getInstance().tabbedPane;
 
-		tabselector sel = new tabselector();
+		tabselector sel = storage.sel.sel; 
 
 		botpopup botpop = new botpopup(bot, sel);
 		tabbedPane.addMouseListener(botpop);
@@ -61,6 +62,8 @@ public class botfactory {
 		tabbedPane.setModel(resel);
 
 		tabbedPane.addTab(bot.gettabname(), storage.icon_dis, panel, bot.gettabname());
+		//storage.reFreshTabs();
+		tabbedPane.setSelectedIndex(sel.index);
 
 		panel.setLayout(new MigLayout("", "[615px,grow]", "[340px,grow]"));
 
@@ -403,8 +406,8 @@ class botpopup extends MouseAdapter {
 
 	public void mouseReleased(MouseEvent e) {
 		JTabbedPane source = (JTabbedPane) e.getSource();
-		sel.setRead(true);
 		sel.Change(!e.isPopupTrigger());
+		sel.setRead(true);
 		if (e.isPopupTrigger()) {
 			sel.Change(false);
 			pop(e);
@@ -412,6 +415,7 @@ class botpopup extends MouseAdapter {
 			sel.Change(true);
 		}
 		source.setSelectedIndex(source.indexAtLocation(e.getX(), e.getY()));
+		sel.setRead(false);
 	}
 
 	public void mousePressed(MouseEvent e) {
@@ -425,13 +429,17 @@ class botpopup extends MouseAdapter {
 			sel.Change(false);
 		}
 		source.setSelectedIndex(source.indexAtLocation(e.getX(), e.getY()));
+		sel.setRead(false);
 	}
 
 	public void pop(MouseEvent e) {
 		JTabbedPane source = (JTabbedPane) e.getSource();
-		selection = source.getTitleAt(source.indexAtLocation(e.getX(), e.getY()));
-		botcontextmenu menu = new botcontextmenu(bot, selection);
-		menu.show(e.getComponent(), e.getX(), e.getY());
+		int xo = source.indexAtLocation(e.getX(), e.getY());
+		if (xo != -1) {
+			selection = source.getTitleAt(xo);
+			botcontextmenu menu = new botcontextmenu(bot, selection);
+			menu.show(e.getComponent(), e.getX(), e.getY());
+		}
 	}
 
 }
@@ -470,58 +478,34 @@ class tabselectorlistener extends DefaultSingleSelectionModel {
 
 	private static final long serialVersionUID = 1L;
 	private tabselector sel;
-	private int index = 0;
 
 	public tabselectorlistener(tabselector sel) {
 		this.sel = sel;
 	}
-	
+
 	@Override
 	public void setSelectedIndex(int pindex) {
-		if (pindex != -1) {
-			if (sel.isReady()) {
-				boolean can = sel.canChange();
-				if (can) {
-					super.setSelectedIndex(pindex);
-					index = pindex;
+		sel.setPane();
+		if (pindex < sel.getTabCount()) {
+			if (pindex != -1) {
+				if (sel.isReady()) {
+					boolean can = sel.canChange();
+					if (can) {
+						super.setSelectedIndex(pindex);
+						sel.index = pindex;
+					} else {
+						if(sel.index >= sel.getTabCount()) {
+							sel.index=pindex;
+						}
+						super.setSelectedIndex(sel.index);
+					}
 				} else {
-					super.setSelectedIndex(index);
+					super.setSelectedIndex(pindex);
 				}
 			} else {
-				super.setSelectedIndex(pindex);
+				super.setSelectedIndex(0);
 			}
 		}
 	}
 }
 
-class tabselector {
-	private boolean canchange = true;
-	private boolean ready = false;
-
-	protected tabselector() {
-	}
-
-	protected void Change(boolean can) {
-		canchange = can;
-	}
-
-	protected boolean isReady() {
-		if (ready) {
-			ready = false;
-			return true;
-		}
-		return ready;
-	}
-
-	protected void setRead(boolean ready) {
-		this.ready = ready;
-	}
-
-	protected boolean canChange() {
-		if (canchange) {
-			canchange = false;
-			return true;
-		}
-		return canchange;
-	}
-}
