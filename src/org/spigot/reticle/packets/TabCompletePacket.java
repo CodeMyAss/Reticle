@@ -27,12 +27,12 @@ public class TabCompletePacket extends AbstractPacket {
 
 	public void Write(String name) throws IOException {
 		if (reader.ProtocolVersion >= 47) {
-			reader.setOutputStream(reader.getVarntCount(ID_OUT) + 1 + reader.getStringLength(name));
+			reader.setOutputStream(reader.getVarIntCount(ID_OUT) + 1 + reader.getStringLength(name));
 			reader.writeVarInt(ID_OUT);
 			reader.writeString(name);
 			reader.writeBoolean(false);
 		} else {
-			reader.setOutputStream(reader.getVarntCount(ID_OUT) + reader.getStringLength(name));
+			reader.setOutputStream(reader.getVarIntCount(ID_OUT) + reader.getStringLength(name));
 			reader.writeVarInt(ID_OUT);
 			reader.writeString(name);
 		}

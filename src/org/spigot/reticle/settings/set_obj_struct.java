@@ -52,6 +52,7 @@ public class set_obj_struct {
 	protected JCheckBox checkproxy;
 	protected JTextField proxyip;
 	protected JTextField proxyport;
+	protected JCheckBox bundle;
 
 	protected void setglobals(JCheckBox b1, JCheckBox b2, JCheckBox b3) {
 		this.autoupdate = b1;
@@ -101,6 +102,7 @@ public class set_obj_struct {
 		this.checkproxy.setSelected(botSettings.useproxy);
 		this.proxyip.setText(botSettings.proxyip);
 		this.proxyport.setText(botSettings.proxyport+"");
+		this.bundle.setSelected(botSettings.bundle);
 	}
 
 	private int protocolversiontoindex(int ver) {
@@ -175,6 +177,7 @@ public class set_obj_struct {
 		struct.useproxy=this.checkproxy.isSelected();
 		struct.proxyip=this.proxyip.getText();
 		struct.proxyport=Integer.parseInt(this.proxyport.getText());
+		struct.bundle=bundle.isSelected();
 		return struct;
 	}
 

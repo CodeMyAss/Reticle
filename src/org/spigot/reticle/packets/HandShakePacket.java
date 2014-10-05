@@ -17,7 +17,7 @@ public class HandShakePacket extends AbstractPacket {
 		int[] pack = reader.readNext();
 		int len = pack[0];
 		int id = pack[1];
-		int len2 = len - reader.getVarntCount(id);
+		int len2 = len - reader.getVarIntCount(id);
 		byte[] b = reader.readInnerBytes(len2);
 		ByteBuffer buf = ByteBuffer.wrap(b);
 		reader.input = buf;
@@ -40,10 +40,10 @@ public class HandShakePacket extends AbstractPacket {
 			reader.Send();
 		} else {
 			int vint = 0;
-			vint = vint + reader.getVarntCount(ID);
-			vint = vint + reader.getVarntCount(reader.ProtocolVersion);
+			vint = vint + reader.getVarIntCount(ID);
+			vint = vint + reader.getVarIntCount(reader.ProtocolVersion);
 			vint = vint + reader.getStringLength(ip);
-			vint = vint + reader.getVarntCount(2) + packet.SIZER.SHORT.size; // 2
+			vint = vint + reader.getVarIntCount(2) + packet.SIZER.SHORT.size; // 2
 																				// for
 																				// short
 																				// port

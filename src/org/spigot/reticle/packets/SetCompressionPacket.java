@@ -30,7 +30,7 @@ public class SetCompressionPacket extends AbstractPacket {
 	
 	public void Write(int tres) throws IOException {
 		//No compression wanted
-		reader.setOutputStream(reader.getVarntCount(-1)+reader.getVarntCount(ID_out));
+		reader.setOutputStream(reader.getVarIntCount(-1)+reader.getVarIntCount(ID_out));
 		reader.writeVarInt(ID_out);
 		reader.writeVarInt(reader.Threshold);
 		reader.Send();

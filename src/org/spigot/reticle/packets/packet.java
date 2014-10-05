@@ -40,6 +40,16 @@ public class packet {
 		}
 	}
 
+	/**
+	 * Very unsafe to use. Never use this!
+	 * 
+	 * @param buf
+	 *            ByteBuffer to set as input stream
+	 */
+	public void OverrideInput(ByteBuffer buf) {
+		this.input = buf;
+	}
+
 	public void setEncryptedStreams(InputStream cis, OutputStream cos) {
 		this.sockinput = cis;
 		this.sockoutput = cos;
@@ -71,7 +81,7 @@ public class packet {
 	public packet(mcbot bot, int len, ByteBuffer input) throws IOException {
 		this.bot = bot;
 		this.input = input;
-		int vcount = getVarntCount(len);
+		int vcount = getVarIntCount(len);
 		this.output = ByteBuffer.allocate(len + vcount);
 		this.output.order(ByteOrder.BIG_ENDIAN);
 		writeVarInt(len);
@@ -88,6 +98,22 @@ public class packet {
 		// Id of packet
 		res[1] = readInnerVarInt();
 		return res;
+	}
+
+	public packetStruct readNexter() throws IOException, SerialException, DataFormatException {
+		packetStruct struct;
+		if (this.compression) {
+			struct = readNextCompressed();
+		} else {
+			// Length of packet
+			int len = readInnerVarInt();
+			// Id of packet
+			int id = readInnerVarInt();
+			// Packet data
+			byte[] data = readInnerBytes(len - this.getVarIntCount(id));
+			struct = new packetStruct(len, id, data, this);
+		}
+		return struct;
 	}
 
 	public byte[] readInnerBytes(int len) throws SerialException, IOException {
@@ -107,35 +133,52 @@ public class packet {
 		return packet.readCompressedVarInt(packer, 0);
 	}
 
-	public byte[] readNextCompressed() throws SerialException, IOException, DataFormatException {
+	protected int getCompressedPacketLength(byte[] packer) throws SerialException, IOException {
+		return packet.readCompressedVarInt(packer, 0);
+	}
+
+	protected byte[] shiftArray(byte[] ar, int length) {
+		return Arrays.copyOfRange(ar, length, ar.length);
+	}
+
+	private packetStruct readNextCompressed() throws SerialException, IOException, DataFormatException {
+		packetStruct struct;
+		byte[] data;
+		int packetstructid;
+		int packetstructlen;
 		int plen = readInnerVarInt();
-		int len = readInnerVarInt();
-		int reslen = plen - getVarntCount(len);
-		if (len == 0) {
-			return this.readInnerBytes(reslen);
-		}
-		if (len < this.Threshold) {
+		if (plen < 0) {
 			System.err.println("Fatal compression error");
-		}
-		if (reslen < 0) {
 			return null;
 		}
-		byte[] out = this.readInnerBytes(reslen);
-		if (reslen > 10000) {
-			return null;
+		int len = readInnerVarInt();
+		byte[] newdata;
+		if (len == 0) {
+			packetstructid = this.readInnerVarInt();
+			int pidlen = this.getVarIntCount(packetstructid);
+			newdata = this.readInnerBytes(plen - 1 - pidlen);
+			packetstructlen = newdata.length + pidlen;
+		} else {
+			int purelength = getVarIntCount(len);
+			int reslen = plen - purelength;
+			byte[] out = this.readInnerBytes(reslen);
+			Inflater decompresser = new Inflater();
+			decompresser.setInput(out, 0, reslen);
+			byte[] result = new byte[len];
+			try {
+				decompresser.inflate(result);
+				decompresser.end();
+				data = result;
+			} catch (DataFormatException e) {
+				System.err.println("Compression error (" + len + ")");
+				return null;
+			}
+			packetstructid = getCompressedID(data);
+			packetstructlen = data.length;
+			newdata = Arrays.copyOfRange(data, getVarIntCount(packetstructid), packetstructlen);
 		}
-		Inflater decompresser = new Inflater();
-		decompresser.setInput(out, 0, reslen);
-		byte[] result = new byte[len];
-		try {
-			decompresser.inflate(result);
-			decompresser.end();
-			return result;
-		} catch (DataFormatException e) {
-			System.err.println("Compression error");
-			return null;
-		}
-		// return new byte[] {(byte)-1,(byte)0};
+		struct = new packetStruct(packetstructlen, packetstructid, newdata, this);
+		return struct;
 	}
 
 	public byte[] readArray() throws Exception {
@@ -154,7 +197,7 @@ public class packet {
 	 */
 	public byte[] readBytes(int len) throws IOException {
 		byte[] b = new byte[len];
-		this.input.get(b, 0, len);
+		this.input.get(b);
 		return b;
 	}
 
@@ -171,20 +214,15 @@ public class packet {
 	}
 
 	public int getStringLength(String s) throws IOException {
-		return s.getBytes("UTF-8").length + (getVarntCount(s.getBytes("UTF-8").length));
-	}
-
-	private byte[] reverseIt(byte[] ar1) {
-		return ar1;
-		/*
-		 * int len=ar1.length; byte[] ar2=new byte[len]; for(int i=0;i<len;i++)
-		 * { ar2[i]=ar1[len-i-1]; } return ar2;
-		 */
+		return s.getBytes("UTF-8").length + (getVarIntCount(s.getBytes("UTF-8").length));
 	}
 
 	public void Send() throws IOException {
+		if(output.position()!=output.limit()) {
+			System.err.println("Buffer underflow");
+			new Exception().printStackTrace();
+		}
 		output.position(0);
-
 		if (compression) {
 			// We should compress the packet
 			byte[] compresspacket = null;
@@ -192,20 +230,32 @@ public class packet {
 			int uncompressedlen = output.array().length;
 			if (uncompressedlen >= Threshold) {
 				// Compression required
-				compresspacket = compressPacket(reverseIt(output.array()));
+				compresspacket = compressPacket(output.array());
 			} else {
 				// Compression not required
 				compresspacket = output.array();
 				uncompressedlen = 0;
-
 			}
-			packtotallen = this.getVarntCount(uncompressedlen) + compresspacket.length;
+			packtotallen = this.getVarIntCount(uncompressedlen) + compresspacket.length;
 			sockoutput.write(this.getVarint(packtotallen));
 			sockoutput.write(this.getVarint(uncompressedlen));
 			sockoutput.write(compresspacket);
 		} else {
 			sockoutput.write(output.array());
 		}
+	}
+
+	static final String HEXES = "0123456789ABCDEF";
+
+	public String tohex(byte[] raw) {
+		if (raw == null) {
+			return null;
+		}
+		final StringBuilder hex = new StringBuilder(2 * raw.length);
+		for (final byte b : raw) {
+			hex.append(HEXES.charAt((b & 0xF0) >> 4)).append(HEXES.charAt((b & 0x0F))).append(" ");
+		}
+		return hex.toString();
 	}
 
 	private byte[] compressPacket(byte[] input) {
@@ -222,22 +272,17 @@ public class packet {
 			this.output = ByteBuffer.allocate(len);
 			this.output.position(0);
 		} else {
-			int vcount = getVarntCount(len);
+			int vcount = getVarIntCount(len);
 			this.output = ByteBuffer.allocate(len + vcount);
 			writeVarInt(len);
 		}
 	}
 
-	protected synchronized void readAndIgnore(int length) throws IOException {
-		if (length > 0) {
-			if (sockinput.skip(length) != length) {
-				System.err.println("Stream operation failed");
-			}
-		}
+	protected void readAndIgnore(int length) throws IOException, SerialException {
+		this.readInnerBytes(length);
 	}
 
 	private final int readInnerVarInt() throws SerialException, IOException {
-
 		int out = 0;
 		int bytes = 0;
 		byte in;
@@ -257,6 +302,32 @@ public class packet {
 			}
 		}
 		return out;
+
+		/*
+		 * int value = 0; int i = 0; int b; while (((b = this.sockinput.read())
+		 * & 0x80) != 0) { value |= (b & 0x7F) << i; i += 7; if (i > 35) { throw
+		 * new IllegalArgumentException("Variable length quantity is too long");
+		 * } } return value | (b << i);
+		 */
+	}
+
+	public static int readStaticVarInt(byte[] byter, int pos) throws IOException, SerialException {
+		int out = 0;
+		int bytes = 0;
+		byte in;
+		int i = pos - 1;
+		while (true) {
+			i++;
+			in = byter[i];
+			out |= (in & 0x7F) << (bytes++ * 7);
+			if (bytes > 5) {
+				throw new RuntimeException("VarInt too big");
+			}
+			if ((in & 0x80) != 0x80) {
+				break;
+			}
+		}
+		return out;
 	}
 
 	protected static int readCompressedVarInt(byte[] byter, int pos) throws IOException, SerialException {
@@ -267,7 +338,6 @@ public class packet {
 		while (true) {
 			i++;
 			in = byter[i];
-
 			out |= (in & 0x7F) << (bytes++ * 7);
 			if (bytes > 5) {
 				throw new RuntimeException("VarInt too big");
@@ -367,12 +437,11 @@ public class packet {
 	}
 
 	protected long readLong() throws IOException, SerialException {
-		return (((long) readInt()) << 4 * 8) + ((long) readInt());
+		return input.getLong();
 	}
 
-	protected void writeLong(long l, OutputStream output) throws IOException {
-		writeInt((int) l >> 4 * 8);
-		writeInt((int) l & 0xFFFFFFFF);
+	protected void writeLong(long l) throws IOException {
+		output.putLong(l);
 	}
 
 	protected boolean readBoolean() throws IOException, SerialException {
@@ -394,7 +463,6 @@ public class packet {
 
 	protected void writeFloat(float f) throws IOException {
 		output.putFloat(f);
-		// new DataOutputStream(output).writeFloat(f);
 	}
 
 	protected double readDouble() throws IOException {
@@ -403,7 +471,6 @@ public class packet {
 
 	protected void writeDouble(double d) throws IOException {
 		output.putDouble(d);
-		// new DataOutputStream(output).writeDouble(d);
 	}
 
 	protected byte[] getVarint(int value) {
@@ -411,7 +478,7 @@ public class packet {
 			return new byte[] { 0 };
 		}
 		int part;
-		byte[] res = new byte[getVarntCount(value)];
+		byte[] res = new byte[getVarIntCount(value)];
 		int i = -1;
 		while (true) {
 			i++;
@@ -447,7 +514,7 @@ public class packet {
 		}
 	}
 
-	public int getVarntCount(int value) {
+	public int getVarIntCount(int value) {
 		int i = 0;
 		while (true) {
 			value >>>= 7;
@@ -461,5 +528,11 @@ public class packet {
 
 	public void setOutputStream(byte[] seq) throws IOException {
 		output = ByteBuffer.wrap(seq);
+	}
+
+	public void Send(packetStruct packet) throws IOException {
+		this.output = ByteBuffer.wrap(packet.packet);
+		this.output.position(this.output.limit());
+		this.Send();
 	}
 }

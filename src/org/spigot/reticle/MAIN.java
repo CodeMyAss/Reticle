@@ -30,6 +30,7 @@ public class MAIN {
 			// Start ChatThread
 			storage.ChatThread.start();
 			mainwindow = new mcbotapp();
+			storage.playerStream.start();
 			runner.frame.dispose();
 			mainwindow.frmReticle.setVisible(true);
 			if (storage.getAutoupdate()) {

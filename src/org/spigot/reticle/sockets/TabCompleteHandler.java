@@ -27,11 +27,11 @@ public class TabCompleteHandler {
 	protected void setComponent(JTextField field) {
 		area = field;
 		if (isLocked || currentcomplete == null) {
-			int maxlen=field.getCaretPosition();
+			int maxlen = field.getCaretPosition();
 			current = 0;
 			currentcomplete = field.getText();
-			suffixmsg=currentcomplete.substring(maxlen);
-			currentcomplete=currentcomplete.substring(0,maxlen);
+			suffixmsg = currentcomplete.substring(maxlen);
+			currentcomplete = currentcomplete.substring(0, maxlen);
 			String[] text = currentcomplete.split(" ");
 			if (text.length == 1) {
 				origmsg = currentcomplete;
@@ -45,9 +45,12 @@ public class TabCompleteHandler {
 
 	private void setNext() {
 		if (current < names.length) {
-			String toset=names[current];
-			int len=toset.length()+currentcomplete.length();
-			area.setText(currentcomplete + toset+suffixmsg);
+			String toset = names[current];
+			if (toset == null || currentcomplete == null) {
+				return;
+			}
+			int len = toset.length() + currentcomplete.length();
+			area.setText(currentcomplete + toset + suffixmsg);
 			area.setCaretPosition(len);
 		}
 	}

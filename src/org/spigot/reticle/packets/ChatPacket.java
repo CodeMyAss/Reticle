@@ -30,7 +30,7 @@ public class ChatPacket extends AbstractPacket {
 	}
 
 	public void Write(String message) throws IOException {
-		reader.setOutputStream(reader.getStringLength(message) + reader.getVarntCount(ChatPacket.ID_out));
+		reader.setOutputStream(reader.getStringLength(message) + reader.getVarIntCount(ChatPacket.ID_out));
 		// Packet ID
 		reader.writeVarInt(ChatPacket.ID_out);
 		reader.writeString(message);

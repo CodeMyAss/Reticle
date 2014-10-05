@@ -84,7 +84,7 @@ public class POST {
 				param = sb.toString().substring(1);
 			}
 			URL obj;
-			if (method == "POST") {
+			if (method.equals("POST")) {
 				obj = new URL(url);
 				HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 				con.setRequestMethod("POST");

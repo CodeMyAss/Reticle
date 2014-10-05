@@ -39,11 +39,21 @@ public class EncryptionRequestPacket extends AbstractPacket {
 		// Server id
 		String serverid = reader.readString();
 		// Length of public key
-		int pkl = reader.readVarInt();
+		int pkl;
+		if (reader.ProtocolVersion >= 47) {
+			pkl = reader.readVarInt();
+		} else {
+			pkl = reader.readShort();
+		}
 		// Public key
 		byte[] publicKeyBytes = reader.readBytes(pkl);
 		// Length of verify token
-		int vtl = reader.readVarInt();
+		int vtl;
+		if (reader.ProtocolVersion >= 47) {
+			vtl = reader.readVarInt();
+		} else {
+			vtl = reader.readShort();
+		}
 		// Verify token
 		verify = reader.readBytes(vtl);
 		// Shared secret
@@ -64,7 +74,7 @@ public class EncryptionRequestPacket extends AbstractPacket {
 		if (bot.isOnlineMode()) {
 			if (id != null && access != null) {
 				Authenticator auth = Authenticator.forJoinPurpose(username, id, access);
-				if (auth.sendJoin()) {
+				if (auth.sendJoin(bot)) {
 					bot.connector.sendMessage("§2Logged to Mojang servers");
 				} else {
 					bot.connector.sendMessage("§4Failed to login to Mojang!");
@@ -73,18 +83,26 @@ public class EncryptionRequestPacket extends AbstractPacket {
 				bot.connector.sendMessage("§4Failed to load session data!");
 			}
 		}
-		int len1 = sharedSecret.length + reader.getVarntCount(sharedSecret.length);
-		int len2 = verify.length + reader.getVarntCount(verify.length);
-		int len3 = reader.getVarntCount(1);
+		int len1 = sharedSecret.length + reader.getVarIntCount(sharedSecret.length);
+		int len2 = verify.length + reader.getVarIntCount(verify.length);
+		int len3 = reader.getVarIntCount(1);
 		reader.setOutputStream(len1 + len2 + len3);
 		// Packet ID
 		reader.writeVarInt(1);
 		// shared secret length
-		reader.writeVarInt(sharedSecret.length);
+		if (reader.ProtocolVersion >= 47) {
+			reader.writeVarInt(sharedSecret.length);
+		} else {
+			reader.writeShort((short) sharedSecret.length);
+		}
 		// shared secret
 		reader.writeBytes(sharedSecret);
 		// shared verify length
-		reader.writeVarInt(verify.length);
+		if (reader.ProtocolVersion >= 47) {
+			reader.writeVarInt(verify.length);
+		} else {
+			reader.writeShort((short) verify.length);
+		}
 		// verify
 		reader.writeBytes(verify);
 		reader.Send();

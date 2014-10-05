@@ -12,7 +12,7 @@ public class ClientStatusPacket extends AbstractPacket {
 
 	public void Write(CLIENT_STATUS stat) throws IOException {
 		byte stid = stat.id;
-		reader.setOutputStream(reader.getVarntCount(ID_out)+1);
+		reader.setOutputStream(reader.getVarIntCount(ID_out)+1);
 		reader.writeVarInt(ID_out);
 		reader.writeByte(stid);
 		reader.Send();

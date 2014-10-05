@@ -507,6 +507,12 @@ public class settings extends JFrame {
 				JLabel lblRestartApplicationTo = new JLabel("Restart application to change font");
 				lblRestartApplicationTo.setEnabled(false);
 				panel_4.add(lblRestartApplicationTo, "cell 2 3");
+				
+				JLabel lblNewLabel_11 = new JLabel("Enable bundle feature:");
+				panel_1.add(lblNewLabel_11, "cell 1 14,alignx right");
+				
+				JCheckBox checkbundle = new JCheckBox("");
+				panel_1.add(checkbundle, "cell 2 14");
 
 				JLabel lblUserProxy = new JLabel("Use proxy:");
 				panel_1.add(lblUserProxy, "cell 1 15,alignx right");
@@ -567,6 +573,7 @@ public class settings extends JFrame {
 				sobj.checkproxy = checkproxy;
 				sobj.proxyip = textproxyip;
 				sobj.proxyport = textproxyport;
+				sobj.bundle=checkbundle;
 				storage.getInstance().setobj.setsettings(set);
 			}
 		});

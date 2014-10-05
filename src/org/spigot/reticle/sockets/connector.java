@@ -13,7 +13,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -30,13 +29,15 @@ import javax.swing.JTextField;
 import org.spigot.reticle.storage;
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
+import org.spigot.reticle.coresp.ChunkCollection;
+import org.spigot.reticle.coresp.ChunkDataInfo;
+import org.spigot.reticle.coresp.EntityCollection;
 import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.ConnectionResetEvent;
 import org.spigot.reticle.events.Event;
 import org.spigot.reticle.events.JoinGameEvent;
 import org.spigot.reticle.events.PlayerListEvent;
 import org.spigot.reticle.events.PlayerPositionAndLookEvent;
-import org.spigot.reticle.events.PluginMessageEvent;
 import org.spigot.reticle.events.TabCompleteEvent;
 import org.spigot.reticle.events.TeamEvent;
 import org.spigot.reticle.events.UpdateHealthEvent;
@@ -56,7 +57,7 @@ public class connector extends Thread {
 	private AntiAFK afkter;
 	private boolean haslogged = false;
 	private boolean encryptiondecided = false;
-	private boolean compressiondecided = false;
+	// private boolean compressiondecided = false;
 	private long lastmessagetime = 0;
 	private long lastmessagetimewithoutautomessage = 0;
 
@@ -68,6 +69,7 @@ public class connector extends Thread {
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 
 	private long connecttime;
+	protected org.spigot.reticle.coresp.MyEntity MyEntity;
 
 	private TabCompleteHandler tabcomp = new TabCompleteHandler();
 
@@ -77,6 +79,12 @@ public class connector extends Thread {
 	private InputStream cis;
 	private OutputStream cos;
 	private boolean communicationavailable = true;
+
+	private InputStream cin;
+	private OutputStream cout;
+
+	private EntityCollection entities;
+	private ChunkCollection chunks;
 
 	private float Health;
 	private int pos_x;
@@ -152,25 +160,6 @@ public class connector extends Thread {
 		}
 	}
 
-	private void definepackets(packet packet) {
-		// Define served packets
-		packet.ValidPackets.add(ChatPacket.ID);
-		packet.ValidPackets.add(KeepAlivePacket.ID);
-		packet.ValidPackets.add(JoinGamePacket.ID);
-		packet.ValidPackets.add(PlayerListItemPacket.ID);
-		packet.ValidPackets.add(RespawnPacket.ID);
-		packet.ValidPackets.add(TeamPacket.ID);
-		packet.ValidPackets.add(SpawnPositionPacket.ID);
-		packet.ValidPackets.add(ConnectionResetPacket.ID);
-		packet.ValidPackets.add(SetCompressionPacket.ID);
-		packet.ValidPackets.add(SetCompressionPacket.ID2);
-		packet.ValidPackets.add(UpdateHealthPacket.ID);
-		packet.ValidPackets.add(PlayerPositionAndLookPacket.ID);
-		packet.ValidPackets.add(EntityStatusPacket.ID);
-		packet.ValidPackets.add(TabCompletePacket.ID);
-		packet.ValidPackets.add(SignUpdatePacket.ID);
-	}
-
 	protected int getantiafkperiod() {
 		return this.bot.getantiafkperiod();
 	}
@@ -208,8 +197,12 @@ public class connector extends Thread {
 		Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
 		cipher.init(Cipher.DECRYPT_MODE, keystr, ivr);
 		cis = new CipherInputStream(sock.getInputStream(), cipher);
-		cos = new CipherOutputStream(sock.getOutputStream(), cipher);
+		Cipher cipher2 = Cipher.getInstance("AES/CFB8/NoPadding");
+		cipher2.init(Cipher.ENCRYPT_MODE, keystr, ivr);
+		cos = new CipherOutputStream(sock.getOutputStream(), cipher2);
 		reader.setEncryptedStreams(cis, cos);
+		cin = cis;
+		cout = cos;
 		reader.setEncrypted();
 		sendmsg("§2Encryption activated");
 	}
@@ -250,6 +243,10 @@ public class connector extends Thread {
 		communicationavailable = false;
 	}
 
+	protected void sendIfAvailable(packetStruct packet) throws IOException {
+		reader.Send(packet);
+	}
+
 	private void mainloop() {
 		// Main loop
 		try {
@@ -264,6 +261,9 @@ public class connector extends Thread {
 			Tablist_nicks = new HashMap<String, String>();
 			playerTeams = new HashMap<String, String>();
 			TeamsByNames = new HashMap<String, team_struct>();
+			entities = new EntityCollection();
+			chunks = new ChunkCollection();
+			MyEntity = new org.spigot.reticle.coresp.MyEntity();
 
 			haslogged = false;
 			encryptiondecided = false;
@@ -283,9 +283,11 @@ public class connector extends Thread {
 			} else {
 				sock = new Socket(bot.serverip, bot.serverport);
 			}
-			reader = new packet(bot, sock.getInputStream(), sock.getOutputStream());
+			cin = sock.getInputStream();
+			cout = sock.getOutputStream();
+			reader = new packet(bot, cin, cout);
 			reader.ProtocolVersion = protocolversion;
-			definepackets(reader);
+			// definepackets(reader);
 			storage.changemenuitems();
 			// First, we must send HandShake and hope for good response
 			new HandShakePacket(reader).Write(bot.serverip, bot.serverport);
@@ -297,31 +299,22 @@ public class connector extends Thread {
 			communicationavailable = true;
 			int pid;
 			int len = 0;
-			int[] pack = new int[2];
 			boolean connectedicon = true;
 			// Connection established, time to create AntiAFK
 			this.afkter = new AntiAFK(this);
 			this.afkter.start();
-			byte[] bytes = null;
 			// The loop
 			while (communicationavailable) {
-				if (reader.compression) {
-					bytes = reader.readNextCompressed();
-					if (bytes == null) {
-						continue;
-					}
-					pid = reader.getCompressedID(bytes);
-					len = reader.getCompressedLen(bytes);
-					bytes = Arrays.copyOfRange(bytes, reader.getVarntCount(pid), bytes.length);
-				} else {
-					pack = reader.readNext();
-					if (pack == null) {
-						continue;
-					}
-					len = pack[0];
-					pid = pack[1];
+				packetStruct packet = reader.readNexter();
+				if (packet == null) {
+					continue;
 				}
+				len = packet.packetLength;
+				pid = packet.packetID;
+				int datalen = packet.dataLength;
 				// TODO: Debug part
+				// System.out.println("PID: " + Integer.toHexString(pid) +
+				// " LEN: " + len);
 				if (pid > maxpacketid) {
 					sendmsg("Received packet id " + pid + " (Length: " + len + ",Compression: " + reader.compression + ", Encryption: " + reader.isEncrypted() + ")");
 					sendmsg("§4Malformed communication");
@@ -330,34 +323,15 @@ public class connector extends Thread {
 				if (connectedicon) {
 					bot.seticon(ICONSTATE.CONNECTED);
 				}
-				int len2 = len - reader.getVarntCount(pid);
-				//System.out.println("PID: " + Integer.toHexString(pid) + " LEN: " + len + " LEN2: " + len2);
-				if (reader.ValidPackets.contains(pid)) {
-					// We shall serve this one
-					if (reader.compression) {
-						ByteBuffer buf = ByteBuffer.wrap(bytes);
-						if (encryptiondecided) {
-							processpacket(pid, len2, buf);
-						} else {
-							processpreloginpacket(pid, len2, buf);
+				if (datalen > 0) {
+					ByteBuffer buf = ByteBuffer.wrap(packet.data);
+					if (encryptiondecided) {
+						if (bot.canBundle()) {
+							storage.playerStream.sendIfAvailable(packet);
 						}
+						processpacket(pid, datalen, buf, packet);
 					} else {
-						if (len2 > 0) {
-							byte[] b = reader.readInnerBytes(len2);
-							ByteBuffer buf = ByteBuffer.wrap(b);
-							if (encryptiondecided) {
-								processpacket(pid, len2, buf);
-							} else {
-								processpreloginpacket(pid, len2, buf);
-							}
-						}
-					}
-				} else {
-					if (reader.compression) {
-						// Compressed packet already ignored
-					} else {
-						// We decided to ignore this one
-						new Ignored_Packet(len2, reader).Read();
+						processpreloginpacket(pid, datalen, buf);
 					}
 				}
 			}
@@ -510,7 +484,7 @@ public class connector extends Thread {
 				SetCompressionPacket compack = new SetCompressionPacket(buf, reader);
 				compack.Read();
 				sendmsg("§2Compression activated");
-				compressiondecided = true;
+				reader.compression = true;
 			break;
 
 			case LoginSuccessPacket.ID:
@@ -520,13 +494,11 @@ public class connector extends Thread {
 				sendmsg("§2Received UUID: §n" + uuid);
 				sendmsg("§2Received Nick: §n" + username);
 				nowConnected();
+				MyEntity.Username = username;
+				MyEntity.UUID = uuid;
 				encryptiondecided = true;
-				if (!compressiondecided && reader.isEncrypted()) {
-					sendmsg("§4Server responded without compressioin enabled. This might be very buggy!");
-				}
 			break;
 
-			// TODO: Reparse legacy array
 			case EncryptionRequestPacket.ID:
 				// Maybe the server wants some encryption
 				EncryptionRequestPacket encr = new EncryptionRequestPacket(buf, reader);
@@ -541,21 +513,44 @@ public class connector extends Thread {
 		}
 	}
 
-	private void processpacket(int pid, int len, ByteBuffer buf) throws Exception {
+	private void processpacket(int pid, int len, ByteBuffer buf, packetStruct packet) throws Exception {
 		Event e = null;
 		switch (pid) {
-			default:
-				sendmsg("§4§l§nUnhandled packet " + pid);
-				new Ignored_Packet(len, reader).Read();
+		// default:
+		// sendmsg("§4§l§nUnhandled packet " + pid);
+		// new Ignored_Packet(len, reader).Read();
+		// break;
+		/*
+		 * case EntityStatusPacket.ID: e = new EntityStatusPacket(reader,
+		 * buf).Read(); break;
+		 */
+
+		// TODO: Chunk data
+			case ChunkDataPacket.ID:
+				if (bot.bundleEnabled()) {
+					ChunkDataInfo chunkdata = new ChunkDataPacket(buf, reader).Read();
+					if (chunkdata.update) {
+						chunks.add(chunkdata.x, chunkdata.z, packet);
+					} else {
+						chunks.remove(chunkdata.x, chunkdata.z);
+					}
+				}
 			break;
 
-			case EntityStatusPacket.ID:
-				e = new EntityStatusPacket(reader, buf).Read();
+			case MapChunkBulkPacket.ID:
+				if (bot.bundleEnabled()) {
+					ChunkDataInfo[] chunkdata = new MapChunkBulkPacket(buf, reader).Read();
+					if (chunkdata != null) {
+						for (ChunkDataInfo data : chunkdata) {
+							chunks.add(data.x, data.z, packet);
+						}
+					}
+				}
 			break;
-			
+
 			case SignUpdatePacket.ID:
 				e = new SignUpdatePacket(buf, reader).Read();
-				break;
+			break;
 
 			case TimeUpdatePacket.ID:
 				new TimeUpdatePacket(buf, reader).Read();
@@ -575,6 +570,11 @@ public class connector extends Thread {
 				this.pos_y = (int) ppal.getY();
 				this.pos_z = (int) ppal.getZ();
 				bot.updateposition(this.pos_x, this.pos_y, this.pos_z);
+				MyEntity.x = ppal.getX();
+				MyEntity.y = ppal.getY();
+				MyEntity.z = ppal.getZ();
+				MyEntity.pitch = ppal.getPitch();
+				MyEntity.yaw = ppal.getYaw();
 			break;
 
 			case TabCompletePacket.ID:
@@ -595,6 +595,12 @@ public class connector extends Thread {
 			case JoinGamePacket.ID:
 				// join game
 				JoinGameEvent joingameevent = new JoinGamePacket(buf, reader).Read();
+				MyEntity.Difficulty = joingameevent.getDifficulty();
+				MyEntity.Dimension = joingameevent.getDimension();
+				MyEntity.EntityId = joingameevent.getEntityId();
+				MyEntity.Gamemode = joingameevent.getGameMode();
+				MyEntity.levelType = joingameevent.getLevelType();
+				MyEntity.MaxPlayers = joingameevent.getMaxPlayers();
 				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
 					// 2 Columns 20 rows
 					settablesize(2, 20);
@@ -648,7 +654,7 @@ public class connector extends Thread {
 				new SetCompressionPacket(buf, reader).Read();
 				sendmsg("Compression activated");
 				// compack.Write();
-				compressiondecided = true;
+				reader.compression = true;
 			break;
 
 			case TeamPacket.ID:
@@ -657,16 +663,57 @@ public class connector extends Thread {
 			break;
 
 			case PluginMessagePacket.ID:
-				// Plugin message
-				PluginMessageEvent plmsge = new PluginMessagePacket(buf, reader).Read();
-				e = plmsge;
-				sendmsg("Channel: " + plmsge.getChannel() + " Message: " + plmsge.getMessageAsString());
+			// Plugin message
+			// PluginMessageEvent plmsge = new PluginMessagePacket(buf,
+			// reader).Read();
+			// e = plmsge;
+			// sendmsg("Channel: " + plmsge.getChannel() + " Message: " +
+			// plmsge.getMessageAsString());
+			break;
+
+			case 0x39:
+				MyEntity.AbilitiesPacket = packet;
 			break;
 
 			case ConnectionResetPacket.ID:
 				ConnectionResetEvent dcevent = new ConnectionResetPacket(buf, reader).Read();
 				sendmsg("§4Server closed connection. (" + dcevent.getReason() + ")");
 			break;
+
+			//TODO: Entities
+			case EntityPacket.ID - 8:
+			case EntityPacket.ID - 7:
+			case EntityPacket.ID - 6:
+			case EntityPacket.ID - 5:
+			case EntityPacket.ID - 4:
+			case EntityPacket.ID - 3:
+			case EntityPacket.ID - 2:
+			case EntityPacket.ID:
+			case EntityPacket.ID + 1:
+			case EntityPacket.ID + 2:
+			case EntityPacket.ID + 3:
+			case EntityPacket.ID + 4:
+			case EntityPacket.ID + 5:
+			case EntityPacket.ID + 6:
+			case EntityPacket.ID + 7:
+			case EntityPacket.ID + 8:
+			case EntityPacket.ID + 9:
+			case EntityPacket.ID + 10:
+				if (bot.bundleEnabled()) {
+					EntityPacket entip = new EntityPacket(buf, reader);
+					int entity = entip.Read();
+					entities.update(packet, entity);
+				}
+			break;
+
+			case DestroyEntitiesPacket.ID:
+				if (bot.bundleEnabled()) {
+					DestroyEntitiesPacket entidp = new DestroyEntitiesPacket(buf, reader);
+					int[] entitylist = entidp.Read();
+					entities.remove(packet, entitylist);
+				}
+			break;
+
 		}
 		if (e != null) {
 			storage.pluginManager.invokeEvent(e, bot.getAllowedPlugins());
@@ -773,6 +820,14 @@ public class connector extends Thread {
 		// dim[1] = y;
 		// bot.tablistsize = dim;
 		bot.setTabSize(y, x);
+	}
+
+	protected EntityCollection getEntities() {
+		return entities;
+	}
+
+	protected ChunkCollection getChunks() {
+		return chunks;
 	}
 
 	private void handleteam(TeamEvent teamevent) {

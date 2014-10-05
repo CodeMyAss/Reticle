@@ -12,7 +12,7 @@ public class LoginStartPacket extends AbstractPacket {
 	
 	
 	public void Write(String username) throws IOException {
-		reader.setOutputStream(reader.getStringLength(username)+reader.getVarntCount(LoginStartPacket.ID));
+		reader.setOutputStream(reader.getStringLength(username)+reader.getVarIntCount(LoginStartPacket.ID));
 		//Packet id
 		reader.writeVarInt(LoginStartPacket.ID);
 		//Username

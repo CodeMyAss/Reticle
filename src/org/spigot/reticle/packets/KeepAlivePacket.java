@@ -29,11 +29,11 @@ public class KeepAlivePacket extends AbstractPacket {
 		// Packet id
 		reader.writeVarInt(KeepAlivePacket.ID);
 		if (reader.ProtocolVersion >= 47) {
-			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + (reader.getVarntCount(code)));
+			reader.setOutputStream(reader.getVarIntCount(KeepAlivePacket.ID) + (reader.getVarIntCount(code)));
 			reader.writeVarInt(ID);
 			reader.writeVarInt(code);
 		} else {
-			reader.setOutputStream(reader.getVarntCount(KeepAlivePacket.ID) + 4);
+			reader.setOutputStream(reader.getVarIntCount(KeepAlivePacket.ID) + 4);
 			reader.writeVarInt(ID);
 			reader.writeInt(code);
 		}

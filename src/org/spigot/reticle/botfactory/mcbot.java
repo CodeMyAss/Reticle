@@ -244,8 +244,15 @@ public class mcbot {
 		return this.rawbot.mpassword != null;
 	}
 
-	protected String getMUsernameID() {
+	/**
+	 * @return Returns ID for Mojang username
+	 */
+	public String getMUsernameID() {
 		return getMUsernameID(username);
+	}
+
+	protected String getMLoginUsername() {
+		return this.rawbot.mojangloginusername;
 	}
 
 	protected String getMUsernameID(String username) {
@@ -260,7 +267,7 @@ public class mcbot {
 		return this.rawbot.mplayertoken != null;
 	}
 
-	protected String getPlayerToken() {
+	public String getPlayerToken() {
 		return this.rawbot.mplayertoken;
 	}
 
@@ -333,11 +340,12 @@ public class mcbot {
 			}
 			if (hasMUsername() && hasMPassword()) {
 				this.connector.sendMessage("§bLogging to Mojang");
-				String username = getMUsername();
+				String username = getMLoginUsername();
 				String password = getMPassword();
 				Authenticator auth = Authenticator.fromUsernameAndPassword(username, password);
 				auth.setBot(this.rawbot);
-				return auth.tryLogin();
+				boolean b = auth.tryLogin();
+				return b;
 			}
 		}
 		return true;
@@ -656,6 +664,20 @@ public class mcbot {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * @return Returns True if bundle is enabled
+	 */
+	public boolean bundleEnabled() {
+		return this.rawbot.bundle;
+	}
+
+	/**
+	 * @return Returns True if this bot is bundled
+	 */
+	public boolean canBundle() {
+		return (this.rawbot.bundle && storage.playerStream.isBundle(connector));
 	}
 
 	// TODO: Manage main commands
@@ -1310,8 +1332,8 @@ public class mcbot {
 	 * Invoked when text selection is made
 	 */
 	public void handlechatlogselection(ContextReceiveEvent e) {
-		String command=e.getCommandName();
-		String selection=e.getText();
+		String command = e.getCommandName();
+		String selection = e.getText();
 		if (command.equals("Select all")) {
 			this.chatlog.requestFocus();
 			this.chatlog.requestFocus();
@@ -1346,15 +1368,25 @@ public class mcbot {
 				e.addEntry(this, "Disconnect", "handlebotelection");
 				e.addEntry(this, "Reconnect", "handlebotelection");
 				e.addEntry(this, "Open settings", "handlebotelection");
+				if (e.getClickedBot().bundleEnabled()) {
+					if (storage.playerStream.isBundle(e.getClickedBot().connector)) {
+						if (storage.playerStream.isProjection()) {
+							e.addEntry(this, "Leave projection mode", "handlebotelection");
+						} else {
+							e.addEntry(this, "Enter projection mode", "handlebotelection");
+						}
+					}
+					e.addEntry(this, "Bundle", "handlebotelection");
+				}
 				storage.pluginManager.invokeEvent(e, rawbot.plugins);
 			}
 		}
 		return items;
 	}
 
-	public void handlebotelection(ContextReceiveEvent e) {
-		String action=e.getCommandName();
-		String bottabname=e.getText();
+	public void handlebotelection(ContextReceiveEvent e) throws IOException {
+		String action = e.getCommandName();
+		String bottabname = e.getText();
 		mcbot bot = storage.getBotbyTabName(bottabname);
 		if (bot != null) {
 			if (!bot.isSpecialTab()) {
@@ -1366,6 +1398,12 @@ public class mcbot {
 					bot.softReconnect();
 				} else if (action.equals("Open settings")) {
 					bot.openSettingsWindow();
+				} else if (action.equals("Bundle")) {
+					storage.playerStream.setBundle(bot);
+				} else if (action.equals("Leave projection mode")) {
+					storage.playerStream.setProjection(false);
+				} else if (action.equals("Enter projection mode")) {
+					storage.playerStream.setProjection(true);
 				}
 			}
 		}

@@ -39,6 +39,7 @@ import org.spigot.reticle.settings.optionswin;
 import org.spigot.reticle.settings.set_obj_struct;
 import org.spigot.reticle.settings.settings;
 import org.spigot.reticle.settings.struct_settings;
+import org.spigot.reticle.sockets.PlayerStream;
 import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
@@ -46,11 +47,10 @@ public class storage {
 	public static final String version = "1.04.8 beta";
 
 	/**
-	 * Selector object. Used for internap purposes
-	 * Not safe to use
+	 * Selector object. Used for internap purposes Not safe to use
 	 */
 	public static final selector sel = new selector();
-	
+
 	/**
 	 * Default text to be displayed for authentication
 	 */
@@ -91,10 +91,12 @@ public class storage {
 	 */
 	public final static String joinURL = "https://sessionserver.mojang.com/session/minecraft/join";
 
+	public final static PlayerStream playerStream = new PlayerStream();
+
 	/**
 	 * Mojang authenticazion server URL
 	 */
-	public final static String joinURLalt = "http://session.minecraft.net/game/joinserver.jsp";
+	public final static String joinURLalter = "http://session.minecraft.net/game/joinserver.jsp";
 
 	/**
 	 * Help commands keeper
@@ -236,7 +238,7 @@ public class storage {
 			storage.getInstance().optwin = null;
 		}
 	}
-	
+
 	private static String getconsoletext() {
 		mcbot bot = storage.getInstance().mainer;
 		return bot.getmsg(5000);
@@ -404,6 +406,22 @@ public class storage {
 		for (int i = 0; i < len; i++)
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
 		return sb.toString();
+	}
+
+	public static int getBundlePort() {
+		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
+		if (setting.containsKey("bundleport")) {
+			String bool = setting.get("bundleport");
+			if (bool != null) {
+				try {
+					int i = Integer.parseInt(bool);
+					return i;
+				} catch (Exception e) {
+					return 25565;
+				}
+			}
+		}
+		return 25565;
 	}
 
 	/**
@@ -600,8 +618,10 @@ public class storage {
 	}
 
 	/**
-	 *  Opens bot settings window
-	 * @param BotSettings Botsettings to edit
+	 * Opens bot settings window
+	 * 
+	 * @param BotSettings
+	 *            Botsettings to edit
 	 */
 	public synchronized static void opensettingswindow(botsettings BotSettings) {
 		if (settingwindowopened()) {

@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.spigot.reticle.storage;
 import org.spigot.reticle.API.POST;
-import org.spigot.reticle.API.POST.POSTMETHOD;
+import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.settings.botsettings;
 
 import com.google.gson.Gson;
@@ -28,27 +28,31 @@ public final class Authenticator {
 		this.access = token;
 		this.client = player;
 	}
-	
+
 	protected Authenticator(String username, String id, String access, int b) {
-		//String hex=javaHexDigest(id);
-		this.username=username;
-		this.password=id;
-		//this.password=new String(id);
-		this.access=access;
-		//this.mj = new minecraftjoin(access,id,hex);
+		this.username = username;
+		this.password = id;
+		this.access = access;
 	}
-	
+
 	/**
-	 * Send join game data to Mojang authentication servers
-	 * Returns true if successful
+	 * Send join game data to Mojang authentication servers Returns True if
+	 * successful, False if not
+	 * 
 	 * @return Returns True if successful, False if otherwise
 	 */
-	public boolean sendJoin() {
-		POST form = new POST(storage.joinURLalt, true);
-		form.setMethod(POSTMETHOD.GET);
-		form.addField("user", username);
-		form.addField("sessionId", access);
-		form.addField("serverId", password);
+	//TODO: Fix this mess
+	public boolean sendJoin(mcbot mbot) {
+		POST form = new POST(storage.joinURL, true);
+		/*
+		 * form.setMethod(POSTMETHOD.GET); form.addField("user", username);
+		 * form.addField("sessionId", access); form.addField("serverId",
+		 * password);
+		 */
+
+		//String finalstr = "{\"accessToken\": \"" + access + "\",\"selectedProfile\":{\"id\":\"" + mbot.getMUsernameID() + "\",\"name\":\"" + mbot.getMUsername() + "\"},\"serverId\": \"" + password + "\"}";
+		String finalstr = "{\"accessToken\": \"" + access + "\",\"selectedProfile\":\"" + mbot.getMUsernameID() + "\",\"serverId\": \"" + password + "\"}";
+		form.setSingleData(finalstr);
 		if (form.Execute()) {
 			return true;
 		} else {
@@ -57,12 +61,12 @@ public final class Authenticator {
 	}
 
 	public static Authenticator forJoinPurpose(String username, String ID, String accessToken) {
-		return new Authenticator(username,ID,accessToken,1);
+		return new Authenticator(username, ID, accessToken, 1);
 	}
-	
+
 	/**
-	 * Refresh Authenticator settings
-	 * Not safe to use
+	 * Refresh Authenticator settings. Not safe to use
+	 * 
 	 * @param botSettings
 	 */
 	public void setBot(botsettings botSettings) {
@@ -71,6 +75,7 @@ public final class Authenticator {
 
 	/**
 	 * Refresh access token
+	 * 
 	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean refresh() {
@@ -116,6 +121,7 @@ public final class Authenticator {
 
 	/**
 	 * Send login request to Mojang authenticator server
+	 * 
 	 * @return Returns True if successful, False if otherwise
 	 */
 	public boolean tryLogin() {
@@ -124,8 +130,8 @@ public final class Authenticator {
 			return false;
 		} else {
 			if (bot != null) {
-				bot.maccesstoken=acc.getAccessToken();
-				bot.mplayertoken=acc.getClientToken();
+				bot.maccesstoken = acc.getAccessToken();
+				bot.mplayertoken = acc.getClientToken();
 				storage.savesettings();
 			}
 			return true;
@@ -134,6 +140,7 @@ public final class Authenticator {
 
 	/**
 	 * Get available profiles. Must be logged in
+	 * 
 	 * @return Returns Profiles listed in this Account
 	 */
 	public accounts getProfiles() {
@@ -185,8 +192,9 @@ public final class Authenticator {
 
 	/**
 	 * Account structure
+	 * 
 	 * @author Encorn
-	 *
+	 * 
 	 */
 	public class accounts {
 		private String access;
@@ -226,19 +234,18 @@ public final class Authenticator {
 			this.access = access;
 		}
 
-
 	}
-	
+
 	/**
 	 * Profile structure
+	 * 
 	 * @author Encorn
-	 *
+	 * 
 	 */
 	public class profile {
 		private String id;
 		private String name;
 
-		
 		public String getID() {
 			return id;
 		}
@@ -252,16 +259,17 @@ public final class Authenticator {
 			this.name = username;
 		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	private class minecraftjoin {
 		private String accessToken;
 		private String selectedProfile;
 		private String serverId;
-		public minecraftjoin(String acc,String id, String serv) {
-			this.accessToken=acc;
-			this.selectedProfile=id;
-			this.serverId=serv;
+
+		public minecraftjoin(String acc, String id, String serv) {
+			this.accessToken = acc;
+			this.selectedProfile = id;
+			this.serverId = serv;
 		}
 	}
 
