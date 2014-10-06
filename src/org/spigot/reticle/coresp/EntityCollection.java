@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.spigot.reticle.packets.PlayerStreamEntityDestroyPacket;
-import org.spigot.reticle.packets.PlayerStreamInitEntityPacket;
 import org.spigot.reticle.packets.packet;
 import org.spigot.reticle.packets.packetStruct;
 

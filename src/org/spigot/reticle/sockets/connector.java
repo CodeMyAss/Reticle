@@ -32,6 +32,8 @@ import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.coresp.ChunkCollection;
 import org.spigot.reticle.coresp.ChunkDataInfo;
 import org.spigot.reticle.coresp.EntityCollection;
+import org.spigot.reticle.coresp.InventoryCollection;
+import org.spigot.reticle.coresp.InventorySlotResponse;
 import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.ConnectionResetEvent;
 import org.spigot.reticle.events.Event;
@@ -85,6 +87,7 @@ public class connector extends Thread {
 
 	private EntityCollection entities;
 	private ChunkCollection chunks;
+	private InventoryCollection inventory;
 
 	private float Health;
 	private int pos_x;
@@ -263,6 +266,7 @@ public class connector extends Thread {
 			TeamsByNames = new HashMap<String, team_struct>();
 			entities = new EntityCollection();
 			chunks = new ChunkCollection();
+			inventory = new InventoryCollection();
 			MyEntity = new org.spigot.reticle.coresp.MyEntity();
 
 			haslogged = false;
@@ -525,7 +529,15 @@ public class connector extends Thread {
 		 * buf).Read(); break;
 		 */
 
-		// TODO: Chunk data
+			case PlayerStreamSetSlotPacket.ID:
+				InventorySlotResponse slotdata = new PlayerStreamSetSlotPacket(buf, reader).Read();
+				if (slotdata.isAdded) {
+					inventory.addItem(slotdata.slotNumber, packet);
+				} else {
+					inventory.removeItem(slotdata.slotNumber);
+				}
+			break;
+
 			case ChunkDataPacket.ID:
 				if (bot.bundleEnabled()) {
 					ChunkDataInfo chunkdata = new ChunkDataPacket(buf, reader).Read();
@@ -680,7 +692,7 @@ public class connector extends Thread {
 				sendmsg("§4Server closed connection. (" + dcevent.getReason() + ")");
 			break;
 
-			//TODO: Entities
+			// TODO: Entities
 			case EntityPacket.ID - 8:
 			case EntityPacket.ID - 7:
 			case EntityPacket.ID - 6:
@@ -822,6 +834,10 @@ public class connector extends Thread {
 		bot.setTabSize(y, x);
 	}
 
+	protected InventoryCollection getInventory() {
+		return inventory;
+	}
+	
 	protected EntityCollection getEntities() {
 		return entities;
 	}

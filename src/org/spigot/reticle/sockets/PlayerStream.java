@@ -55,6 +55,7 @@ public class PlayerStream extends Thread {
 			if (online) {
 				online = false;
 				bundle.getEntities().destroyEntities(reader);
+				//bundle.getInventory().sendInventoryReset(reader);
 				MyEntity entity = bot.connector.MyEntity;
 				MyEntity ent = new MyEntity();
 				ent.levelType = entity.levelType;
@@ -70,6 +71,7 @@ public class PlayerStream extends Thread {
 				bot.connector.getChunks().reSendChunks(reader);
 				new PlayerStreamPlayerPositionAndLookPacket(null, reader).Write(entity.x, entity.y, entity.z, entity.pitch, entity.yaw, entity.onGround);
 				bot.connector.getEntities().reSendEntities(reader);
+				bot.connector.getInventory().writeItems(reader);
 				online = true;
 			}
 			this.bundle = bot.connector;
@@ -149,6 +151,7 @@ public class PlayerStream extends Thread {
 		new PlayerStreamPlayerPositionAndLookPacket(null, reader).Write(MyEntity.x, MyEntity.y, MyEntity.z, MyEntity.pitch, MyEntity.yaw, MyEntity.onGround);
 		bundle.getChunks().reSendChunks(reader);
 		bundle.getEntities().reSendEntities(reader);
+		bundle.getInventory().writeItems(reader);
 		online = true;
 		mainloop();
 		online = false;
