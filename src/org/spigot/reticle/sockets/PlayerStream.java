@@ -28,6 +28,7 @@ public class PlayerStream extends Thread {
 	private final String StatusResponseString = "{\"version\": {\"name\": \"Reticle server\",\"protocol\": %reticle_version%},\"players\": {\"max\": 1,\"online\": 0,\"sample\":[]},\"description\": {\"text\":\"Reticle abstraction\"}}";
 	private int port;
 	private boolean projection = false;
+	private connector bundlechat;
 
 	public void setProjection(boolean p) {
 		this.projection = p;
@@ -55,7 +56,7 @@ public class PlayerStream extends Thread {
 			if (online) {
 				online = false;
 				bundle.getEntities().destroyEntities(reader);
-				//bundle.getInventory().sendInventoryReset(reader);
+				// bundle.getInventory().sendInventoryReset(reader);
 				MyEntity entity = bot.connector.MyEntity;
 				MyEntity ent = new MyEntity();
 				ent.levelType = entity.levelType;
@@ -72,6 +73,7 @@ public class PlayerStream extends Thread {
 				new PlayerStreamPlayerPositionAndLookPacket(null, reader).Write(entity.x, entity.y, entity.z, entity.pitch, entity.yaw, entity.onGround);
 				bot.connector.getEntities().reSendEntities(reader);
 				bot.connector.getInventory().writeItems(reader);
+				this.bundlechat = bot.connector;
 				online = true;
 			}
 			this.bundle = bot.connector;
@@ -152,6 +154,7 @@ public class PlayerStream extends Thread {
 		bundle.getChunks().reSendChunks(reader);
 		bundle.getEntities().reSendEntities(reader);
 		bundle.getInventory().writeItems(reader);
+		this.bundlechat = bundle;
 		online = true;
 		mainloop();
 		online = false;
@@ -162,10 +165,18 @@ public class PlayerStream extends Thread {
 			packetStruct packet = reader.readNexter();
 			if (bundle != null) {
 				if (!projection) {
-					bundle.sendIfAvailable(packet);
+					if (packet.packetID == 1) {
+						handleOutGoingChat(packet);
+					} else {
+						bundle.sendIfAvailable(packet);
+					}
 				}
 			}
 		}
+	}
+
+	private void handleOutGoingChat(packetStruct packet) throws IOException {
+		this.bundlechat.sendIfAvailable(packet);
 	}
 
 	private void handlePing() throws SerialException, IOException {
@@ -183,5 +194,14 @@ public class PlayerStream extends Thread {
 	protected ByteBuffer makepacket(int[] pack) throws SerialException, IOException {
 		byte[] packer = reader.readInnerBytes(pack[0] - reader.getVarIntCount(pack[1]));
 		return ByteBuffer.wrap(packer);
+	}
+
+	public boolean isBundleChat(connector connector) {
+		return bundlechat==connector;
+	}
+	
+	public void setBundleChat(connector connector) {
+		bundlechat=connector;
+		storage.conlog("Chat bundled to "+connector.getTabName());
 	}
 }

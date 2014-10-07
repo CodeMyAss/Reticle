@@ -110,6 +110,13 @@ public class connector extends Thread {
 	}
 
 	/**
+	 * @return Returns bot tab name
+	 */
+	public String getTabName() {
+		return bot.gettabname();
+	}
+
+	/**
 	 * @return Timestamp of last outgoing message Note that this includes
 	 *         automatically sent messages
 	 */
@@ -330,8 +337,14 @@ public class connector extends Thread {
 				if (datalen > 0) {
 					ByteBuffer buf = ByteBuffer.wrap(packet.data);
 					if (encryptiondecided) {
-						if (bot.canBundle()) {
-							storage.playerStream.sendIfAvailable(packet);
+						if (packet.packetID == 0x02) {
+							if (storage.playerStream.isBundleChat(this)) {
+								storage.playerStream.sendIfAvailable(packet);
+							}
+						} else {
+							if (bot.canBundle()) {
+								storage.playerStream.sendIfAvailable(packet);
+							}
 						}
 						processpacket(pid, datalen, buf, packet);
 					} else {
@@ -837,7 +850,7 @@ public class connector extends Thread {
 	protected InventoryCollection getInventory() {
 		return inventory;
 	}
-	
+
 	protected EntityCollection getEntities() {
 		return entities;
 	}

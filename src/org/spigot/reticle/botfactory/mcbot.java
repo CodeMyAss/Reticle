@@ -1376,6 +1376,9 @@ public class mcbot {
 							e.addEntry(this, "Enter projection mode", "handlebotelection");
 						}
 					}
+					if(!storage.playerStream.isBundleChat(bot.connector)) {
+						e.addEntry(this, "Bundle chat", "handlebotelection");
+					}
 					e.addEntry(this, "Bundle", "handlebotelection");
 				}
 				storage.pluginManager.invokeEvent(e, rawbot.plugins);
@@ -1404,6 +1407,8 @@ public class mcbot {
 					storage.playerStream.setProjection(false);
 				} else if (action.equals("Enter projection mode")) {
 					storage.playerStream.setProjection(true);
+				} else if (action.equals("Bundle chat")) {
+					storage.playerStream.setBundleChat(bot.connector);
 				}
 			}
 		}
