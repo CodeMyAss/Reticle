@@ -5,7 +5,7 @@
     <target name="create_run_jar">
         <jar destfile="C:/www/minecraft server/atlantida/admin/cchat/Reticle.jar" filesetmanifest="mergewithoutmain">
             <manifest>
-                <attribute name="Main-Class" value="org.spigot.reticle.MAIN"/>
+                <attribute name="Main-Class" value="com.youporn.reticle.MAIN"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="C:/Documents and Settings/Tom/workspace/Reticle/target/classes"/>
