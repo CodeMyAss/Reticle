@@ -23,6 +23,8 @@ import java.io.PrintStream;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -159,16 +161,34 @@ public class mcbotapp {
 				storage.opensettingswindowforcurrentbot();
 			}
 		});
-		
+
 		JMenuItem mntmCopyServerInfo = new JMenuItem("Copy Server info");
 		mntmCopyServerInfo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String str=storage.getcurrentselectedbot().serverip+":"+storage.getcurrentselectedbot().serverport;
+				String str = storage.getcurrentselectedbot().serverip + ":" + storage.getcurrentselectedbot().serverport;
 				storage.setClipboard(str);
 			}
 		});
 		mnNewMenu_1.add(mntmCopyServerInfo);
 		mnNewMenu_1.add(mntmNewMenuItem_4);
+
+		JMenu mnPlugins = new JMenu("Plugins");
+		mnPlugins.addMenuListener(new MenuListener() {
+
+			@Override
+			public void menuSelected(MenuEvent e) {
+				storage.firepluginmenu();
+			}
+
+			@Override
+			public void menuCanceled(MenuEvent e) {
+			}
+
+			@Override
+			public void menuDeselected(MenuEvent arg0) {
+			}
+		});
+		menuBar.add(mnPlugins);
 
 		JMenu mnNewMenu_2 = new JMenu("Help");
 		menuBar.add(mnNewMenu_2);
@@ -215,7 +235,7 @@ public class mcbotapp {
 		storage.getInstance().menu_set = mntmNewMenuItem_4;
 		storage.getInstance().menu_rec = mntmNewMenuItem_10;
 		storage.getInstance().menu_info = mntmCopyServerInfo;
-		
+		storage.getInstance().menuplugins = mnPlugins;
 
 		storage.loadsettings();
 		mcbot main = new mcbot(new botsettings("Main"), true, false, true, false, Color.BLUE, Color.WHITE);

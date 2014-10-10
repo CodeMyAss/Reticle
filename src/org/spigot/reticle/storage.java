@@ -16,7 +16,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -25,6 +27,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
@@ -32,6 +35,7 @@ import javax.swing.JTabbedPane;
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
 import org.spigot.reticle.botfactory.selector;
+import org.spigot.reticle.events.PluginMenuOpenEvent;
 import org.spigot.reticle.resources.resources;
 import org.spigot.reticle.settings.aboutwin;
 import org.spigot.reticle.settings.botsettings;
@@ -89,7 +93,6 @@ public class storage {
 	 * Mojang authenticazion server URL
 	 */
 	public final static String joinURL = "https://sessionserver.mojang.com/session/minecraft/join";
-
 
 	/**
 	 * Mojang authenticazion server URL
@@ -164,6 +167,11 @@ public class storage {
 	 * Main window object
 	 */
 	public JFrame mainframe;
+
+	/**
+	 * Main plugins menu
+	 */
+	public JMenu menuplugins;
 
 	private final static Class<?> thisClass = resources.class;
 
@@ -1063,5 +1071,28 @@ public class storage {
 
 	protected static void closing() {
 		storage.pluginManager.unloadAllPlugins();
+	}
+
+	public static void firepluginmenu() {
+		LinkedHashMap<String,LinkedHashMap<String,JMenuItem>> items = new LinkedHashMap<String,LinkedHashMap<String,JMenuItem>>();
+		PluginMenuOpenEvent e = new PluginMenuOpenEvent(getcurrentselectedbot(),items);
+		JMenu plmenu = storage.getInstance().menuplugins;
+		plmenu.removeAll();
+		Collection<PluginInfo> plinfos = pluginManager.getPluginInfos();
+		storage.pluginManager.invokeEvent(e);
+		for (PluginInfo plinf : plinfos) {
+			if (items.containsKey(plinf.Name)) {
+				JMenu itm = new JMenu(plinf.Name);
+				LinkedHashMap<String, JMenuItem> itms = items.get(plinf.Name);
+				for(JMenuItem itmt:itms.values()) {
+					itm.add(itmt);
+				}
+				plmenu.add(itm);
+			} else {
+				JMenuItem itm = new JMenuItem(plinf.Name);
+				itm.setEnabled(false);
+				plmenu.add(itm);
+			}
+		}
 	}
 }

@@ -15,6 +15,7 @@ import java.util.Set;
 import org.spigot.reticle.API.Plugin;
 import org.spigot.reticle.events.ConsoleCommandEvent;
 import org.spigot.reticle.events.Event;
+import org.spigot.reticle.events.PluginMenuOpenEvent;
 
 public class PluginManager {
 	private HashMap<Plugin, PluginInfo> Plugins = new HashMap<Plugin, PluginInfo>();
@@ -253,6 +254,10 @@ public class PluginManager {
 		invokeEvent(e, list, false);
 	}
 
+	public void invokeEvent(PluginMenuOpenEvent e) {
+		invokeEvent(e, new ArrayList<String>(), true);
+	}
+
 	/**
 	 * Invoken when event is being dispatched to listeners
 	 * 
@@ -270,7 +275,7 @@ public class PluginManager {
 		if (ClassIsHandled(cls)) {
 			for (Plugin plugin : methods_by_plugins.get(cls).keySet()) {
 				if (override || list != null) {
-					if (list.contains(Plugins.get(plugin).Name)) {
+					if (override || list.contains(Plugins.get(plugin).Name)) {
 						Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
 						for (Method method : methods) {
 							try {

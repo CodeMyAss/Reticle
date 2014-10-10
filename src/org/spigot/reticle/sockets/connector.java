@@ -337,13 +337,6 @@ public class connector extends Thread {
 				if (datalen > 0) {
 					ByteBuffer buf = packet.generateBuffer();
 					if (encryptiondecided) {
-						/*
-						 * if (packet.packetID == 0x02) { if
-						 * (storage.playerStream.isBundleChat(this)) {
-						 * storage.playerStream.sendIfAvailable(packet); } }
-						 * else { if (bot.canBundle()) {
-						 * storage.playerStream.sendIfAvailable(packet); } }
-						 */
 						processpacket(pid, datalen, buf, packet);
 					} else {
 						processpreloginpacket(pid, datalen, buf);
