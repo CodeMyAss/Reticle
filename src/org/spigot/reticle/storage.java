@@ -39,7 +39,6 @@ import org.spigot.reticle.settings.optionswin;
 import org.spigot.reticle.settings.set_obj_struct;
 import org.spigot.reticle.settings.settings;
 import org.spigot.reticle.settings.struct_settings;
-import org.spigot.reticle.sockets.PlayerStream;
 import org.spigot.reticle.sockets.Reporter;
 import org.spigot.reticle.sockets.ChatThread;
 
@@ -91,7 +90,6 @@ public class storage {
 	 */
 	public final static String joinURL = "https://sessionserver.mojang.com/session/minecraft/join";
 
-	public final static PlayerStream playerStream = new PlayerStream();
 
 	/**
 	 * Mojang authenticazion server URL
@@ -406,22 +404,6 @@ public class storage {
 		for (int i = 0; i < len; i++)
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
 		return sb.toString();
-	}
-
-	public static int getBundlePort() {
-		HashMap<String, String> setting = storage.getInstance().settin.globalsettings;
-		if (setting.containsKey("bundleport")) {
-			String bool = setting.get("bundleport");
-			if (bool != null) {
-				try {
-					int i = Integer.parseInt(bool);
-					return i;
-				} catch (Exception e) {
-					return 25565;
-				}
-			}
-		}
-		return 25565;
 	}
 
 	/**

@@ -41,8 +41,8 @@ public class Plugin {
 
 	/**
 	 * Register event listener
-	 * @param Plugin
-	 * @param Instance
+	 * @param Plugin Plugin object
+	 * @param Instance Instance of listener object
 	 */
 	protected final void addEventListener(Plugin Plugin, Object Instance) {
 		Class<?> cls = Instance.getClass();
@@ -57,6 +57,7 @@ public class Plugin {
 				if (types.length == 1) {
 					Class<?> type = types[0];
 					try {
+						//if(type.isInstance(Event.class)) {}
 						if (type.getName().toLowerCase().startsWith(MasterClasses)) {
 							if (Class.forName(type.getName()) != null) {
 								storage.pluginManager.addMethod(Plugin, method, type, Instance);

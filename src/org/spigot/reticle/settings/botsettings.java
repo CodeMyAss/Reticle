@@ -48,7 +48,6 @@ public class botsettings {
 	public boolean useproxy = false;
 	public String proxyip = "";
 	public int proxyport = 0;
-	public boolean bundle;
 
 	/**
 	 * Returns ID Not safe to use

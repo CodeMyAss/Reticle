@@ -105,8 +105,6 @@ public class struct_settings {
 			sb.append("\t\tUse proxy: " + set.useproxy + storage.DirectoryDelim);
 			sb.append("\t\tProxy ip: " + set.proxyip + storage.DirectoryDelim);
 			sb.append("\t\tProxy port: " + set.proxyport + storage.DirectoryDelim);
-			sb.append("\t\tBundle: " + set.bundle + storage.DirectoryDelim);
-			
 		}
 		return sb.toString();
 	}
@@ -280,9 +278,6 @@ public class struct_settings {
 					break;
 					case "Proxy port":
 						bot.proxyport = Integer.parseInt(param);
-					break;
-					case "Bundle":
-						bot.bundle = Boolean.parseBoolean(param);
 					break;
 				}
 

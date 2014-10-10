@@ -29,15 +29,13 @@ import javax.swing.JTextField;
 import org.spigot.reticle.storage;
 import org.spigot.reticle.botfactory.mcbot;
 import org.spigot.reticle.botfactory.mcbot.ICONSTATE;
-import org.spigot.reticle.coresp.ChunkCollection;
-import org.spigot.reticle.coresp.ChunkDataInfo;
-import org.spigot.reticle.coresp.EntityCollection;
-import org.spigot.reticle.coresp.InventoryCollection;
-import org.spigot.reticle.coresp.InventorySlotResponse;
+import org.spigot.reticle.events.BotInitEvent;
 import org.spigot.reticle.events.ChatEvent;
 import org.spigot.reticle.events.ConnectionResetEvent;
 import org.spigot.reticle.events.Event;
 import org.spigot.reticle.events.JoinGameEvent;
+import org.spigot.reticle.events.LoginSuccessEvent;
+import org.spigot.reticle.events.PacketReceiveEvent;
 import org.spigot.reticle.events.PlayerListEvent;
 import org.spigot.reticle.events.PlayerPositionAndLookEvent;
 import org.spigot.reticle.events.TabCompleteEvent;
@@ -71,7 +69,6 @@ public class connector extends Thread {
 	private HashMap<String, team_struct> TeamsByNames = new HashMap<String, team_struct>();
 
 	private long connecttime;
-	protected org.spigot.reticle.coresp.MyEntity MyEntity;
 
 	private TabCompleteHandler tabcomp = new TabCompleteHandler();
 
@@ -84,10 +81,6 @@ public class connector extends Thread {
 
 	private InputStream cin;
 	private OutputStream cout;
-
-	private EntityCollection entities;
-	private ChunkCollection chunks;
-	private InventoryCollection inventory;
 
 	private float Health;
 	private int pos_x;
@@ -253,7 +246,12 @@ public class connector extends Thread {
 		communicationavailable = false;
 	}
 
-	protected void sendIfAvailable(packetStruct packet) throws IOException {
+	/**
+	 * Sends packet to server, if available
+	 * @param packet
+	 * @throws IOException
+	 */
+	public void sendIfAvailable(packetStruct packet) throws IOException {
 		reader.Send(packet);
 	}
 
@@ -267,14 +265,13 @@ public class connector extends Thread {
 				this.maxpacketid = 0x49;
 			}
 
+			BotInitEvent botinitevent = new BotInitEvent(bot);
+			storage.pluginManager.invokeEvent(botinitevent, bot.getAllowedPlugins());
+
 			Tablist = new ArrayList<String>();
 			Tablist_nicks = new HashMap<String, String>();
 			playerTeams = new HashMap<String, String>();
 			TeamsByNames = new HashMap<String, team_struct>();
-			entities = new EntityCollection();
-			chunks = new ChunkCollection();
-			inventory = new InventoryCollection();
-			MyEntity = new org.spigot.reticle.coresp.MyEntity();
 
 			haslogged = false;
 			encryptiondecided = false;
@@ -303,9 +300,7 @@ public class connector extends Thread {
 			// First, we must send HandShake and hope for good response
 			new HandShakePacket(reader).Write(bot.serverip, bot.serverport);
 			new LoginStartPacket(reader).Write(bot.username);
-
 			connecttime = System.currentTimeMillis() / 1000;
-
 			// Init routine
 			communicationavailable = true;
 			int pid;
@@ -334,18 +329,21 @@ public class connector extends Thread {
 				if (connectedicon) {
 					bot.seticon(ICONSTATE.CONNECTED);
 				}
+				PacketReceiveEvent packevent = new PacketReceiveEvent(bot, packet, !encryptiondecided);
+				storage.pluginManager.invokeEvent(packevent, bot.getAllowedPlugins());
+				if (packevent.isCancelled()) {
+					continue;
+				}
 				if (datalen > 0) {
-					ByteBuffer buf = ByteBuffer.wrap(packet.data);
+					ByteBuffer buf = packet.generateBuffer();
 					if (encryptiondecided) {
-						if (packet.packetID == 0x02) {
-							if (storage.playerStream.isBundleChat(this)) {
-								storage.playerStream.sendIfAvailable(packet);
-							}
-						} else {
-							if (bot.canBundle()) {
-								storage.playerStream.sendIfAvailable(packet);
-							}
-						}
+						/*
+						 * if (packet.packetID == 0x02) { if
+						 * (storage.playerStream.isBundleChat(this)) {
+						 * storage.playerStream.sendIfAvailable(packet); } }
+						 * else { if (bot.canBundle()) {
+						 * storage.playerStream.sendIfAvailable(packet); } }
+						 */
 						processpacket(pid, datalen, buf, packet);
 					} else {
 						processpreloginpacket(pid, datalen, buf);
@@ -489,6 +487,7 @@ public class connector extends Thread {
 	}
 
 	private void processpreloginpacket(int pid, int len, ByteBuffer buf) throws Exception {
+		Event e = null;
 		switch (pid) {
 			case ConnectionResetPacket.ID2: {
 				ConnectionResetEvent dcevent = new ConnectionResetPacket(buf, reader).Read();
@@ -505,14 +504,13 @@ public class connector extends Thread {
 			break;
 
 			case LoginSuccessPacket.ID:
-				String[] resp = new LoginSuccessPacket(buf, reader).Read();
-				String uuid = resp[0];
-				String username = resp[1];
+				LoginSuccessEvent logse = new LoginSuccessPacket(buf, reader).Read();
+				String uuid = logse.getUUID();
+				String username = logse.getUsername();
 				sendmsg("§2Received UUID: §n" + uuid);
 				sendmsg("§2Received Nick: §n" + username);
 				nowConnected();
-				MyEntity.Username = username;
-				MyEntity.UUID = uuid;
+				e = logse;
 				encryptiondecided = true;
 			break;
 
@@ -523,10 +521,12 @@ public class connector extends Thread {
 					encr.Read();
 					encr.Write(bot);
 					setEncryption(encr.getSecret(), reader);
-				} catch (BufferUnderflowException e) {
+				} catch (BufferUnderflowException e1) {
 				}
 			break;
-
+		}
+		if (e != null) {
+			storage.pluginManager.invokeEvent(e, bot.getAllowedPlugins());
 		}
 	}
 
@@ -542,36 +542,8 @@ public class connector extends Thread {
 		 * buf).Read(); break;
 		 */
 
-			case PlayerStreamSetSlotPacket.ID:
-				InventorySlotResponse slotdata = new PlayerStreamSetSlotPacket(buf, reader).Read();
-				if (slotdata.isAdded) {
-					inventory.addItem(slotdata.slotNumber, packet);
-				} else {
-					inventory.removeItem(slotdata.slotNumber);
-				}
-			break;
+			
 
-			case ChunkDataPacket.ID:
-				if (bot.bundleEnabled()) {
-					ChunkDataInfo chunkdata = new ChunkDataPacket(buf, reader).Read();
-					if (chunkdata.update) {
-						chunks.add(chunkdata.x, chunkdata.z, packet);
-					} else {
-						chunks.remove(chunkdata.x, chunkdata.z);
-					}
-				}
-			break;
-
-			case MapChunkBulkPacket.ID:
-				if (bot.bundleEnabled()) {
-					ChunkDataInfo[] chunkdata = new MapChunkBulkPacket(buf, reader).Read();
-					if (chunkdata != null) {
-						for (ChunkDataInfo data : chunkdata) {
-							chunks.add(data.x, data.z, packet);
-						}
-					}
-				}
-			break;
 
 			case SignUpdatePacket.ID:
 				e = new SignUpdatePacket(buf, reader).Read();
@@ -595,11 +567,6 @@ public class connector extends Thread {
 				this.pos_y = (int) ppal.getY();
 				this.pos_z = (int) ppal.getZ();
 				bot.updateposition(this.pos_x, this.pos_y, this.pos_z);
-				MyEntity.x = ppal.getX();
-				MyEntity.y = ppal.getY();
-				MyEntity.z = ppal.getZ();
-				MyEntity.pitch = ppal.getPitch();
-				MyEntity.yaw = ppal.getYaw();
 			break;
 
 			case TabCompletePacket.ID:
@@ -620,12 +587,6 @@ public class connector extends Thread {
 			case JoinGamePacket.ID:
 				// join game
 				JoinGameEvent joingameevent = new JoinGamePacket(buf, reader).Read();
-				MyEntity.Difficulty = joingameevent.getDifficulty();
-				MyEntity.Dimension = joingameevent.getDimension();
-				MyEntity.EntityId = joingameevent.getEntityId();
-				MyEntity.Gamemode = joingameevent.getGameMode();
-				MyEntity.levelType = joingameevent.getLevelType();
-				MyEntity.MaxPlayers = joingameevent.getMaxPlayers();
 				if (joingameevent.getMaxPlayers() > 25 && joingameevent.getMaxPlayers() < 50) {
 					// 2 Columns 20 rows
 					settablesize(2, 20);
@@ -696,49 +657,10 @@ public class connector extends Thread {
 			// plmsge.getMessageAsString());
 			break;
 
-			case 0x39:
-				MyEntity.AbilitiesPacket = packet;
-			break;
-
 			case ConnectionResetPacket.ID:
 				ConnectionResetEvent dcevent = new ConnectionResetPacket(buf, reader).Read();
 				sendmsg("§4Server closed connection. (" + dcevent.getReason() + ")");
 			break;
-
-			// TODO: Entities
-			case EntityPacket.ID - 8:
-			case EntityPacket.ID - 7:
-			case EntityPacket.ID - 6:
-			case EntityPacket.ID - 5:
-			case EntityPacket.ID - 4:
-			case EntityPacket.ID - 3:
-			case EntityPacket.ID - 2:
-			case EntityPacket.ID:
-			case EntityPacket.ID + 1:
-			case EntityPacket.ID + 2:
-			case EntityPacket.ID + 3:
-			case EntityPacket.ID + 4:
-			case EntityPacket.ID + 5:
-			case EntityPacket.ID + 6:
-			case EntityPacket.ID + 7:
-			case EntityPacket.ID + 8:
-			case EntityPacket.ID + 9:
-			case EntityPacket.ID + 10:
-				if (bot.bundleEnabled()) {
-					EntityPacket entip = new EntityPacket(buf, reader);
-					int entity = entip.Read();
-					entities.update(packet, entity);
-				}
-			break;
-
-			case DestroyEntitiesPacket.ID:
-				if (bot.bundleEnabled()) {
-					DestroyEntitiesPacket entidp = new DestroyEntitiesPacket(buf, reader);
-					int[] entitylist = entidp.Read();
-					entities.remove(packet, entitylist);
-				}
-			break;
-
 		}
 		if (e != null) {
 			storage.pluginManager.invokeEvent(e, bot.getAllowedPlugins());
@@ -847,18 +769,6 @@ public class connector extends Thread {
 		bot.setTabSize(y, x);
 	}
 
-	protected InventoryCollection getInventory() {
-		return inventory;
-	}
-
-	protected EntityCollection getEntities() {
-		return entities;
-	}
-
-	protected ChunkCollection getChunks() {
-		return chunks;
-	}
-
 	private void handleteam(TeamEvent teamevent) {
 		String teamname = teamevent.getTeamName();
 		if (teamevent.TeamIsBeingCreated()) {
@@ -941,6 +851,14 @@ public class connector extends Thread {
 		}
 	}
 
+	/**
+	 * Returns bot associated with this connection
+	 * @return Returns bot associated with this connection
+	 */
+	public mcbot getBot() {
+		return bot;
+	}
+	
 	private static String jsonreparse(JsonObject obj) {
 		StringBuilder sb = new StringBuilder();
 		String text = "";

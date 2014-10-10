@@ -33,7 +33,6 @@ public class optionswin extends JDialog {
 	private JCheckBox chckbxNewCheckBox_2;
 	private JTextField txtUnknown;
 	private JCheckBox checkBox_20;
-	private JTextField textField;
 
 	public optionswin() {
 		addWindowListener(new WindowAdapter() {
@@ -44,7 +43,7 @@ public class optionswin extends JDialog {
 		});
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setTitle("Options");
-		setBounds(100, 100, 388, 279);
+		setBounds(100, 100, 388, 230);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -85,7 +84,6 @@ public class optionswin extends JDialog {
 				set.put("support",chckbxNewCheckBox_2.isSelected()+"");
 				set.put("supportnick", txtUnknown.getText());
 				set.put("speciallogger", checkBox_20.isSelected()+"");
-				set.put("bundleport", textField.getText());
 				storage.setglobalsettings(set);
 				storage.savesettings();
 				storage.closeoptionswin();
@@ -129,13 +127,5 @@ public class optionswin extends JDialog {
 		txtUnknown.setText(storage.getSupportNick());
 		contentPanel.add(txtUnknown, "cell 0 5");
 		txtUnknown.setColumns(10);
-		
-		JLabel lblBundlePort = new JLabel("Bundle Port:");
-		contentPanel.add(lblBundlePort, "flowx,cell 0 6");
-		
-		textField = new JTextField();
-		textField.setText(storage.getBundlePort()+"");
-		contentPanel.add(textField, "cell 0 6");
-		textField.setColumns(10);
 	}
 }

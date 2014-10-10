@@ -17,6 +17,27 @@ public final class packetStruct {
 		return ByteBuffer.wrap(data);
 	}
 	
+	/**
+	 * Unsafe raw construcotr
+	 * @param PacketID
+	 * @param PacketLenght
+	 * @param Data
+	 * @param Packet
+	 * @param PacketLengthVarint
+	 * @param PacketIDVarint
+	 * @param DataLength
+	 * @param DataByteBuffer
+	 */
+	public packetStruct(int PacketID,int PacketLenght, byte[] Data, byte[] Packet, byte[] PacketLengthVarint,byte[] PacketIDVarint, int DataLength, ByteBuffer DataByteBuffer) {
+		this.data=Data;
+		this.packetID=PacketID;
+		this.packetLength=PacketLenght;
+		this.packetLengthVarint = PacketLengthVarint;
+		this.packet=Packet;
+		this.dataLength=DataLength;
+		this.packetIDVarint=PacketIDVarint;
+	}
+	
 	protected packetStruct(int packetlength, int packetID, byte[] data, packet reader) throws IOException {
 		this.data = data;
 		this.packetID = packetID;

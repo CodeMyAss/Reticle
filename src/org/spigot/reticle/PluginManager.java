@@ -26,6 +26,7 @@ public class PluginManager {
 
 	/**
 	 * Returns list of names of all plugins
+	 * 
 	 * @return Returns list of names of all plugins
 	 */
 	public List<String> getAllPluginNames() {
@@ -89,7 +90,8 @@ public class PluginManager {
 	/**
 	 * Unloads plugin
 	 * 
-	 * @param Plugin Plugin to be unloaded
+	 * @param Plugin
+	 *            Plugin to be unloaded
 	 */
 	public void unloadPlugin(Plugin Plugin) {
 		if (this.pluginExists(Plugin)) {
@@ -134,7 +136,7 @@ public class PluginManager {
 	public boolean loadPlugin(String filename) {
 		PluginInfo pl = tryLoadPlugin(new File(storage.CurrentDir + "plugins/" + filename));
 		if (pl == null) {
-			pl = tryLoadPlugin(new File(storage.CurrentDir+"plugins/" + filename + ".jar"));
+			pl = tryLoadPlugin(new File(storage.CurrentDir + "plugins/" + filename + ".jar"));
 		}
 		if (pl == null) {
 			return false;
@@ -186,7 +188,7 @@ public class PluginManager {
 
 	protected void loadAllPlugins() {
 		String pluginsdir = "plugins";
-		File pldir = new File(storage.CurrentDir+pluginsdir);
+		File pldir = new File(storage.CurrentDir + pluginsdir);
 		if (!pldir.exists() || !pldir.isDirectory()) {
 			if (!pldir.mkdirs()) {
 				storage.conlog("§4Fatal error while loading plugins");
@@ -240,7 +242,7 @@ public class PluginManager {
 	}
 
 	/**
-	 * Invoked when event is being dispatched to listeners
+	 * Invoked when event is being dispatched to enabled listeners
 	 * 
 	 * @param e
 	 *            Event to be dispatcher
@@ -251,6 +253,14 @@ public class PluginManager {
 		invokeEvent(e, list, false);
 	}
 
+	/**
+	 * Invoken when event is being dispatched to listeners
+	 * 
+	 * @param event
+	 *            Event to be dispatched
+	 * @param override
+	 *            If True, all plugins will receive the event
+	 */
 	public void invokeEvent(ConsoleCommandEvent event, boolean override) {
 		invokeEvent(event, null, true);
 	}
@@ -259,17 +269,16 @@ public class PluginManager {
 		Class<?> cls = e.getClass();
 		if (ClassIsHandled(cls)) {
 			for (Plugin plugin : methods_by_plugins.get(cls).keySet()) {
-				if (!override && list != null) {
-					if (!list.contains(Plugins.get(plugin).Name)) {
-						continue;
-					}
-				}
-				Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
-				for (Method method : methods) {
-					try {
-						Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
-						method.invoke(instance, e);
-					} catch (Exception e1) {
+				if (override || list != null) {
+					if (list.contains(Plugins.get(plugin).Name)) {
+						Set<Method> methods = methods_by_plugins.get(cls).get(plugin).keySet();
+						for (Method method : methods) {
+							try {
+								Object instance = methods_by_plugins.get(cls).get(plugin).get(method);
+								method.invoke(instance, e);
+							} catch (Exception e1) {
+							}
+						}
 					}
 				}
 			}
